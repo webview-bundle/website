@@ -1,4 +1,49 @@
 {
   "name": "webview-bundle-website",
+  "type": "module",
+  "scripts": {
+    "postinstall": "yarn typegen",
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "yarn build && wrangler deploy",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --type-aware --fix",
+    "format": "oxfmt",
+    "typegen": "yarn typegen:cloudflare && yarn typegen:fumadocs",
+    "typegen:fumadocs": "fumadocs-mdx",
+    "typegen:cloudflare": "wrangler types"
+  },
+  "dependencies": {
+    "@base-ui/react": "1.4.0",
+    "@date-fns/tz": "^1.4.1",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource/inter": "^5.2.8",
+    "@tanstack/react-router": "1.168.23",
+    "@tanstack/react-start": "1.167.42",
+    "@types/mdx": "2.0.13",
+    "date-fns": "^4.1.0",
+    "feed": "^5.2.0",
+    "fumadocs-core": "16.7.16",
+    "fumadocs-mdx": "14.3.0",
+    "fumadocs-ui": "16.7.16",
+    "react": "19.2.5",
+    "react-dom": "19.2.5"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.32.3",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/node": "^22",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "oxfmt": "0.45.0",
+    "oxlint": "1.60.0",
+    "oxlint-tsgolint": "0.21.1",
+    "tailwindcss": "4.2.2",
+    "typescript": "6.0.3",
+    "vite": "^8.0.8",
+    "wrangler": "4.83.0"
+  },
   "packageManager": "yarn@4.14.1"
 }

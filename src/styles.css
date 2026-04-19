@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/black.css';
+@import 'fumadocs-ui/css/preset.css';
+
+@import '@fontsource/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+@theme inline {
+  --font-sans: Inter, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', monospace;
+}
+
+body {
+  font-synthesis: style;
+  text-rendering: optimizeLegibility;
+  width: 100%;
+  min-width: 320px;
+  min-height: 100vh;
+  image-rendering: high-quality;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-autospace: normal;
+  text-spacing-trim: normal;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  overflow-x: clip;
+}
