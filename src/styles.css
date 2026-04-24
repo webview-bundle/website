@@ -1,12 +1,12 @@
 @import 'tailwindcss';
-@import 'fumadocs-ui/css/black.css';
+@import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
 
-@import '@fontsource/inter';
-@import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
 
 @theme inline {
-  --font-sans: Inter, sans-serif;
+  --font-sans: 'Inter Variable', Inter, sans-serif;
   --font-mono: 'JetBrains Mono Variable', monospace;
 }
 
