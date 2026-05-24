@@ -97,13 +97,13 @@ Config::new()
 The plugin then exposes these commands to the frontend via `invoke` (all under the `wvb` plugin
 namespace):
 
-| Command | Arguments | Returns |
-|---------|-----------|---------|
-| `plugin:wvb\|updater_get_update` | `bundleName` | update availability info |
+| Command                               | Arguments                | Returns                   |
+| ------------------------------------- | ------------------------ | ------------------------- |
+| `plugin:wvb\|updater_get_update`      | `bundleName`             | update availability info  |
 | `plugin:wvb\|updater_download_update` | `bundleName`, `version?` | installed bundle metadata |
-| `plugin:wvb\|source_load_version` | `bundleName` | active local version |
-| `plugin:wvb\|source_list_bundles` | — | local bundles |
-| `plugin:wvb\|remote_get_info` | `bundleName`, `channel?` | current remote metadata |
+| `plugin:wvb\|source_load_version`     | `bundleName`             | active local version      |
+| `plugin:wvb\|source_list_bundles`     | —                        | local bundles             |
+| `plugin:wvb\|remote_get_info`         | `bundleName`, `channel?` | current remote metadata   |
 
 ```ts
 import { invoke } from '@tauri-apps/api/core';

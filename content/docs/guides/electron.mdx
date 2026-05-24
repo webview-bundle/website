@@ -115,10 +115,12 @@ The same `source`, `remote`, and `updater` objects are also reachable in the mai
 instance returned by `wvb(...)`:
 
 ```ts
-const instance = wvb({ /* … */ });
-instance.source;   // BundleSource
-instance.remote;   // Remote | null
-instance.updater;  // Updater | null
+const instance = wvb({
+  /* … */
+});
+instance.source; // BundleSource
+instance.remote; // Remote | null
+instance.updater; // Updater | null
 await instance.whenProtocolRegistered();
 ```
 
@@ -166,10 +168,10 @@ const config: ForgeConfig = {
 ```
 
 <Callout type="info">
-The Forge Vite plugin ignores files outside `.vite/` by default, which can exclude `node_modules`.
-The example's `forge.config.ts` shows a `packagerConfig.ignore` override that keeps `node_modules`
-and `.tgz` files so the native module is bundled. See
-[`examples/electron-forge-vite/forge.config.ts`](https://github.com/webview-bundle/webview-bundle/blob/main/examples/electron-forge-vite/forge.config.ts).
+  The Forge Vite plugin ignores files outside `.vite/` by default, which can exclude `node_modules`.
+  The example's `forge.config.ts` shows a `packagerConfig.ignore` override that keeps `node_modules`
+  and `.tgz` files so the native module is bundled. See
+  [`examples/electron-forge-vite/forge.config.ts`](https://github.com/webview-bundle/webview-bundle/blob/main/examples/electron-forge-vite/forge.config.ts).
 </Callout>
 
 ## Where bundles live

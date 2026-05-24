@@ -10,8 +10,8 @@ unclear, it's probably explained here.
 
 A Webview Bundle is a single file with three parts laid out back to back:
 
-| Header (17 bytes) | Index (variable) | Data (variable) |
-|-------------------|------------------|-----------------|
+| Header (17 bytes)                                  | Index (variable)                 | Data (variable)              |
+| -------------------------------------------------- | -------------------------------- | ---------------------------- |
 | magic number, format version, index size, checksum | path → offset/length/headers map | LZ4-compressed file contents |
 
 - **Header** — starts with the magic number `0xF09F8C90F09F8E81` (the UTF-8 bytes for 🌐🎁), then a
@@ -38,7 +38,7 @@ the **current** version that gets served.
 A **source** is a directory on the device that stores bundles, plus a `manifest.json` that tracks
 versions. Apps typically use two sources:
 
-- **`builtin`** — bundles shipped *inside* the app package. Read-only, and used as the fallback the
+- **`builtin`** — bundles shipped _inside_ the app package. Read-only, and used as the fallback the
   very first time the app runs (before anything has been downloaded).
 - **`remote`** — bundles downloaded from your update server. **Remote wins**: when a bundle exists
   in both, the remote version is served.
@@ -86,7 +86,7 @@ Channels are how you do staged rollouts and pre-release testing.
 
 ## Integrity
 
-**Integrity** is a hash over the *serialized bytes* of a bundle, so a client can confirm it
+**Integrity** is a hash over the _serialized bytes_ of a bundle, so a client can confirm it
 downloaded exactly what the server published. Webview Bundle uses SHA-3, serialized as
 `<algorithm>:<base64>` — for example `sha384:Ws2q…`. Supported algorithms are `sha256`, `sha384`,
 and `sha512`.
@@ -99,7 +99,7 @@ When updating, an **integrity policy** controls how strict verification is:
 
 ## Signatures
 
-A **signature** proves *who* published a bundle, not just that it is intact. The publisher signs
+A **signature** proves _who_ published a bundle, not just that it is intact. The publisher signs
 the bundle's integrity string with a private key; clients verify it with the matching public key.
 Supported algorithms: **ECDSA** (secp256r1 / secp384r1), **Ed25519**, and **RSA** (PKCS#1 v1.5 /
 PSS). Keys are supplied as PEM/DER. Signature verification is layered on top of integrity: if you
@@ -113,7 +113,7 @@ Putting it together, shipping an update looks like this:
 2. **Upload** it to your remote server, optionally computing integrity and a signature
    (`wvb upload`).
 3. **Deploy** that version to a channel so clients can see it (`wvb deploy`, or `wvb upload
-   --deploy`).
+--deploy`).
 4. On the device, the **updater** checks for a newer deployed version, downloads it, verifies
    integrity/signature, and installs it into the `remote` source — after which it's served instead
    of the builtin version.

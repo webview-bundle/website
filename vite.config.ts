@@ -16,7 +16,6 @@ const logger = createLogger();
 const baseWarn = logger.warn.bind(logger);
 logger.warn = (msg, options) => {
   if (typeof msg === 'string' && msg.includes('Failed to load source map')) {
-    console.log('ho!')
     return;
   }
   baseWarn(msg, options);

@@ -28,15 +28,15 @@ wvb pack ./dist --ignore '*.map' --ignore 'node_modules/**'
 wvb pack ./dist --header '*.html' 'cache-control' 'max-age=3600'
 ```
 
-| Option | Description |
-|--------|-------------|
-| `SRC_DIR` | Source directory (or `pack.srcDir` in config). |
+| Option          | Description                                                                           |
+| --------------- | ------------------------------------------------------------------------------------- |
+| `SRC_DIR`       | Source directory (or `pack.srcDir` in config).                                        |
 | `--outfile, -O` | Output file name. Defaults to the `package.json` name; `.wvb` is appended if missing. |
-| `--outdir` | Output directory. Defaults to `.wvb`. |
-| `--ignore` | Glob(s) of files to exclude (repeatable). |
-| `--header, -H` | Set headers for matching files: `--header <glob> <key> <value>` (repeatable). |
-| `--write` | Set `--no-write` to simulate without writing. |
-| `--overwrite` | Overwrite an existing output file. Default `true`. |
+| `--outdir`      | Output directory. Defaults to `.wvb`.                                                 |
+| `--ignore`      | Glob(s) of files to exclude (repeatable).                                             |
+| `--header, -H`  | Set headers for matching files: `--header <glob> <key> <value>` (repeatable).         |
+| `--write`       | Set `--no-write` to simulate without writing.                                         |
+| `--overwrite`   | Overwrite an existing output file. Default `true`.                                    |
 
 ### `wvb extract [FILE]`
 
@@ -46,12 +46,12 @@ Extract a `.wvb` archive's files back onto disk.
 wvb extract ./app.wvb --outdir ./unpacked
 ```
 
-| Option | Description |
-|--------|-------------|
-| `FILE` | Bundle file to extract. |
-| `--outdir, -O` | Destination directory. |
-| `--clean` | Remove the out directory first. Default `false`. |
-| `--write` | Set `--no-write` to simulate. |
+| Option         | Description                                      |
+| -------------- | ------------------------------------------------ |
+| `FILE`         | Bundle file to extract.                          |
+| `--outdir, -O` | Destination directory.                           |
+| `--clean`      | Remove the out directory first. Default `false`. |
+| `--write`      | Set `--no-write` to simulate.                    |
 
 ### `wvb serve [FILE]`
 
@@ -62,12 +62,12 @@ wvb serve ./app.wvb              # http://localhost:4312
 wvb serve ./app.wvb --port 8080 --hostname 0.0.0.0
 ```
 
-| Option | Description |
-|--------|-------------|
-| `FILE` | Bundle to serve (or `serve.file` in config). |
+| Option           | Description                                          |
+| ---------------- | ---------------------------------------------------- |
+| `FILE`           | Bundle to serve (or `serve.file` in config).         |
 | `--hostname, -H` | Bind hostname. Default `localhost`. (`HOSTNAME` env) |
-| `--port, -P` | Port. Default `4312`. (`PORT` env) |
-| `--silent` | Disable request logging. |
+| `--port, -P`     | Port. Default `4312`. (`PORT` env)                   |
+| `--silent`       | Disable request logging.                             |
 
 ## Publishing & updating
 
@@ -85,15 +85,15 @@ wvb upload app 1.2.0 --deploy --channel beta
 wvb upload --file ./dist/app.wvb --force
 ```
 
-| Option | Description |
-|--------|-------------|
+| Option              | Description                                                  |
+| ------------------- | ------------------------------------------------------------ |
 | `BUNDLE`, `VERSION` | Bundle name and version (else from config / `package.json`). |
-| `--file, -F` | Path to the `.wvb` to upload. |
-| `--force` | Overwrite if the version already exists. |
-| `--deploy` | Deploy after upload. Default `true`. |
-| `--channel` | Channel to deploy to (with `--deploy`). |
-| `--skip-integrity` | Don't compute an integrity hash. |
-| `--skip-signature` | Don't sign the bundle. |
+| `--file, -F`        | Path to the `.wvb` to upload.                                |
+| `--force`           | Overwrite if the version already exists.                     |
+| `--deploy`          | Deploy after upload. Default `true`.                         |
+| `--channel`         | Channel to deploy to (with `--deploy`).                      |
+| `--skip-integrity`  | Don't compute an integrity hash.                             |
+| `--skip-signature`  | Don't sign the bundle.                                       |
 
 ### `wvb deploy [BUNDLE] VERSION`
 
@@ -114,14 +114,14 @@ wvb download app 1.2.0 --out ./bundles/app.wvb --overwrite
 wvb download app --skip-write          # fetch + print info only
 ```
 
-| Option | Description |
-|--------|-------------|
-| `--out, -O` | Output path. Defaults to `<name>.wvb`. |
-| `--endpoint, -E` | Remote endpoint (else `remote.endpoint`). |
-| `--channel` | Channel to download from. |
-| `--write` | Set `--no-write` to skip saving. |
-| `--overwrite` | Overwrite an existing file. Default `false`. |
-| `--progress` | Show a progress bar. Default `true`. |
+| Option           | Description                                  |
+| ---------------- | -------------------------------------------- |
+| `--out, -O`      | Output path. Defaults to `<name>.wvb`.       |
+| `--endpoint, -E` | Remote endpoint (else `remote.endpoint`).    |
+| `--channel`      | Channel to download from.                    |
+| `--write`        | Set `--no-write` to skip saving.             |
+| `--overwrite`    | Overwrite an existing file. Default `false`. |
+| `--progress`     | Show a progress bar. Default `true`.         |
 
 ### `wvb builtin`
 
@@ -133,14 +133,14 @@ wvb builtin --endpoint https://updates.example.com --out .wvb/builtin/bundles
 wvb builtin --include 'app*' --exclude 'internal*'
 ```
 
-| Option | Description |
-|--------|-------------|
-| `--out, -O` | Output directory. Default `.wvb/builtin/bundles`. |
-| `--endpoint, -E` | Remote endpoint. |
-| `--channel` | Channel to pull from. |
-| `--include` / `--exclude` | Glob filters over remote bundles (repeatable). |
-| `--clean` | Clear the output directory first. Default `true`. |
-| `--concurrency` | Parallel downloads. |
+| Option                    | Description                                       |
+| ------------------------- | ------------------------------------------------- |
+| `--out, -O`               | Output directory. Default `.wvb/builtin/bundles`. |
+| `--endpoint, -E`          | Remote endpoint.                                  |
+| `--channel`               | Channel to pull from.                             |
+| `--include` / `--exclude` | Glob filters over remote bundles (repeatable).    |
+| `--clean`                 | Clear the output directory first. Default `true`. |
+| `--concurrency`           | Parallel downloads.                               |
 
 ## Inspecting & testing the remote
 
@@ -172,13 +172,13 @@ wvb remote local                       # http://localhost:4313, serving ~/.wvb/l
 wvb remote local --base-dir ./.wvb/local --port 4313 --allow-other-versions
 ```
 
-| Option | Description |
-|--------|-------------|
-| `--base-dir` | Directory to serve. Default `~/.wvb/local`. |
+| Option                   | Description                                              |
+| ------------------------ | -------------------------------------------------------- |
+| `--base-dir`             | Directory to serve. Default `~/.wvb/local`.              |
 | `--allow-other-versions` | Allow downloading non-current versions. Default `false`. |
-| `--hostname, -H` | Bind hostname. Default `localhost`. (`HOSTNAME` env) |
-| `--port, -P` | Port. Default `4313`. (`PORT` env) |
-| `--silent` | Disable request logging. |
+| `--hostname, -H`         | Bind hostname. Default `localhost`. (`HOSTNAME` env)     |
+| `--port, -P`             | Port. Default `4313`. (`PORT` env)                       |
+| `--silent`               | Disable request logging.                                 |
 
 See [Remote updates → Testing locally](/docs/remote-updates#testing-locally) for how to wire this up
 with `@wvb/remote-local`.

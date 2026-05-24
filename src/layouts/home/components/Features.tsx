@@ -1,5 +1,5 @@
-import { FEATURES } from '../data';
 import { cn } from '../../../lib/cn';
+import { FEATURES } from '../data';
 
 export function Features() {
   return (

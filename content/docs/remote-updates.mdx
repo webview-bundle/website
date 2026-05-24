@@ -7,8 +7,8 @@ This is the end-to-end guide to shipping bundle updates over the air: how you pu
 what the server contract is, how clients pick it up, and — importantly — **how to run the whole loop
 locally** before you involve a real server.
 
-If you haven't yet, read [Concepts](/docs/concepts) for the meaning of *bundle*, *source*,
-*manifest*, *channel*, *integrity*, and *signature*.
+If you haven't yet, read [Concepts](/docs/concepts) for the meaning of _bundle_, _source_,
+_manifest_, _channel_, _integrity_, and _signature_.
 
 ## The lifecycle at a glance
 
@@ -80,12 +80,12 @@ wvb deploy app 1.1.0           # make it the deployed version
 A Webview Bundle server is any HTTP server that implements four endpoints. You can use a provider
 (AWS/Cloudflare/local) or build your own to this spec.
 
-| Method & path | Purpose |
-|---------------|---------|
-| `GET /bundles` | List deployed bundles: `[{ "name", "version" }]` |
-| `HEAD /bundles/{name}` | Current version's metadata (headers only) |
-| `GET /bundles/{name}` | Download the current version |
-| `GET /bundles/{name}/{version}` | Download a specific version |
+| Method & path                   | Purpose                                          |
+| ------------------------------- | ------------------------------------------------ |
+| `GET /bundles`                  | List deployed bundles: `[{ "name", "version" }]` |
+| `HEAD /bundles/{name}`          | Current version's metadata (headers only)        |
+| `GET /bundles/{name}`           | Download the current version                     |
+| `GET /bundles/{name}/{version}` | Download a specific version                      |
 
 Metadata travels in response headers:
 
@@ -224,7 +224,7 @@ Tauri, the remote URL in your Android/iOS updater). Now `getUpdate` / `downloadU
 server and install the bundle exactly as production would.
 
 <Callout type="info">
-On the Android emulator, reach your host machine at `http://10.0.2.2:4313` instead of `localhost`.
+  On the Android emulator, reach your host machine at `http://10.0.2.2:4313` instead of `localhost`.
 </Callout>
 
 You can also verify the server directly with the CLI's client commands:
@@ -237,7 +237,7 @@ wvb download app --endpoint http://localhost:4313 --out /tmp/app.wvb
 
 ### `wvb serve` — preview a single packed bundle
 
-To just look at what's *inside* a `.wvb` (no update server, no manifest), serve its files over HTTP:
+To just look at what's _inside_ a `.wvb` (no update server, no manifest), serve its files over HTTP:
 
 ```sh
 wvb serve ./app.wvb            # serves the bundle's files at http://localhost:4312
