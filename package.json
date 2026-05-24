@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "postinstall": "yarn typegen",
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
@@ -11,9 +10,8 @@
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --type-aware --fix",
     "format": "oxfmt",
-    "typegen": "yarn typegen:cloudflare && yarn typegen:fumadocs",
-    "typegen:fumadocs": "fumadocs-mdx",
-    "typegen:cloudflare": "wrangler types"
+    "gen:cf-types": "wrangler types",
+    "gen:fumadocs": "fumadocs-mdx"
   },
   "dependencies": {
     "@base-ui/react": "1.5.0",
@@ -28,6 +26,7 @@
     "fumadocs-core": "16.7.16",
     "fumadocs-mdx": "14.3.0",
     "fumadocs-ui": "16.7.16",
+    "jose": "6.2.3",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "tailwind-merge": "3.5.0"
