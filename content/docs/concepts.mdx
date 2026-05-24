@@ -1,0 +1,122 @@
+---
+title: Concepts
+description: The .wvb format, bundle sources, the manifest, channels, integrity, and signatures.
+---
+
+This page defines the vocabulary used throughout the guides. If a term in a platform guide is
+unclear, it's probably explained here.
+
+## The `.wvb` archive
+
+A Webview Bundle is a single file with three parts laid out back to back:
+
+| Header (17 bytes) | Index (variable) | Data (variable) |
+|-------------------|------------------|-----------------|
+| magic number, format version, index size, checksum | path → offset/length/headers map | LZ4-compressed file contents |
+
+- **Header** — starts with the magic number `0xF09F8C90F09F8E81` (the UTF-8 bytes for 🌐🎁), then a
+  one-byte format version, a `u32` index size, and a checksum.
+- **Index** — a map from each file path (e.g. `/index.html`) to where its bytes live in the data
+  section, plus its content type and any HTTP headers to replay when served.
+- **Data** — each file's bytes compressed with [LZ4](https://github.com/lz4/lz4), each block
+  followed by an [xxHash-32](https://github.com/Cyan4973/xxHash) checksum.
+
+Every section is checksummed, so a truncated or corrupted archive is detected before its contents
+are trusted. The full byte-level specification is in the
+[`wvb` crate docs](https://docs.rs/wvb).
+
+By convention a packed file is named `<bundle_name>_<version>.wvb`, e.g. `app_1.0.0.wvb`.
+
+## Bundles and bundle names
+
+A **bundle** is one logical web app, identified by a **bundle name** (e.g. `app`). A bundle has
+many **versions** (`1.0.0`, `1.1.0`, …), each a separate `.wvb` file. At any moment one version is
+the **current** version that gets served.
+
+## Sources: `builtin` vs `remote`
+
+A **source** is a directory on the device that stores bundles, plus a `manifest.json` that tracks
+versions. Apps typically use two sources:
+
+- **`builtin`** — bundles shipped *inside* the app package. Read-only, and used as the fallback the
+  very first time the app runs (before anything has been downloaded).
+- **`remote`** — bundles downloaded from your update server. **Remote wins**: when a bundle exists
+  in both, the remote version is served.
+
+```text
+{source_dir}/
+├── app/
+│   ├── app_1.0.0.wvb
+│   └── app_1.1.0.wvb
+└── manifest.json
+```
+
+This split is what makes updates safe: you always have the shipped `builtin` version to fall back
+to, and downloaded `remote` versions transparently shadow it once verified and installed.
+
+## The manifest
+
+`manifest.json` lives at the root of a source directory and records, for each bundle, the versions
+present and which one is current:
+
+```json
+{
+  "manifestVersion": 1,
+  "entries": {
+    "app": {
+      "versions": {
+        "1.0.0": {},
+        "1.1.0": { "integrity": "sha384:…", "signature": "…", "etag": "…" }
+      },
+      "currentVersion": "1.1.0"
+    }
+  }
+}
+```
+
+The per-version metadata (`integrity`, `signature`, `etag`, `lastModified`) is filled in from the
+remote server's response headers when a bundle is downloaded.
+
+## Channels
+
+A **channel** lets you deploy different versions to different audiences from the same server —
+`stable`, `beta`, `canary`, `internal`, and so on. Clients ask for a channel when listing,
+downloading, or checking for updates; if they don't specify one, they get the default channel.
+Channels are how you do staged rollouts and pre-release testing.
+
+## Integrity
+
+**Integrity** is a hash over the *serialized bytes* of a bundle, so a client can confirm it
+downloaded exactly what the server published. Webview Bundle uses SHA-3, serialized as
+`<algorithm>:<base64>` — for example `sha384:Ws2q…`. Supported algorithms are `sha256`, `sha384`,
+and `sha512`.
+
+When updating, an **integrity policy** controls how strict verification is:
+
+- **Strict** — a hash must be present and must match, or the update fails.
+- **Optional** (default) — verify when a hash is present; allow the download when it isn't.
+- **None** — skip integrity verification.
+
+## Signatures
+
+A **signature** proves *who* published a bundle, not just that it is intact. The publisher signs
+the bundle's integrity string with a private key; clients verify it with the matching public key.
+Supported algorithms: **ECDSA** (secp256r1 / secp384r1), **Ed25519**, and **RSA** (PKCS#1 v1.5 /
+PSS). Keys are supplied as PEM/DER. Signature verification is layered on top of integrity: if you
+configure a verifier, downloads must carry a valid signature.
+
+## The update lifecycle
+
+Putting it together, shipping an update looks like this:
+
+1. **Pack** your build output into a `.wvb` (`wvb pack`).
+2. **Upload** it to your remote server, optionally computing integrity and a signature
+   (`wvb upload`).
+3. **Deploy** that version to a channel so clients can see it (`wvb deploy`, or `wvb upload
+   --deploy`).
+4. On the device, the **updater** checks for a newer deployed version, downloads it, verifies
+   integrity/signature, and installs it into the `remote` source — after which it's served instead
+   of the builtin version.
+
+See [Remote updates & local testing](/docs/remote-updates) for the full walkthrough, including
+how to run the whole loop on your own machine.

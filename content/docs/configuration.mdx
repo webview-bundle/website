@@ -1,0 +1,164 @@
+---
+title: Configuration reference
+description: The wvb.config file — pack, remote, serve, and builtin options.
+---
+
+The `wvb` CLI reads a config file (`wvb.config.ts`, `.js`, `.mjs`, …) from the working directory.
+Author it with `defineConfig` from `@wvb/config` for full type-checking:
+
+```ts
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  root: process.cwd(),
+  pack: { /* … */ },
+  remote: { /* … */ },
+  serve: { /* … */ },
+  builtin: { /* … */ },
+});
+```
+
+`defineConfig` also accepts an async function or a promise, so you can compute config at runtime
+(e.g. read a version, load a signing key):
+
+```ts
+export default defineConfig(async () => ({
+  remote: { endpoint: process.env.WVB_ENDPOINT!, /* … */ },
+}));
+```
+
+## Top-level
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `root` | `string` | Project root for resolving paths. Default `process.cwd()`. |
+| `pack` | `PackConfig` | Defaults for `wvb pack`. |
+| `remote` | `RemoteConfig` | Remote server, uploader/deployer, integrity/signature. |
+| `serve` | `ServeConfig` | Defaults for `wvb serve`. |
+| `builtin` | `BuiltinConfig` | Defaults for `wvb builtin`. |
+
+## `pack`
+
+```ts
+pack: {
+  srcDir: './dist',
+  outFile: 'app',                 // → app.wvb
+  outDir: '.wvb',
+  ignore: ['*.map'],
+  headers: { '*.html': { 'cache-control': 'max-age=3600' } },
+  overwrite: true,
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `srcDir` | `string` | Directory to pack. |
+| `outFile` | `string` | Output file name (`.wvb` appended if missing). |
+| `outDir` | `string` | Output directory. Default `.wvb`. |
+| `ignore` | `Array<string \| RegExp> \| ((file) => boolean)` | Patterns/predicate to exclude files. |
+| `headers` | `Record<glob, HeadersInit> \| [glob, HeadersInit][] \| ((file) => HeadersInit)` | HTTP headers to attach to matching files. |
+| `overwrite` | `boolean` | Overwrite an existing output. Default `true`. |
+
+## `remote`
+
+```ts
+import { localRemote } from '@wvb/remote-local';
+const provider = localRemote({});
+
+remote: {
+  endpoint: 'https://updates.example.com',
+  bundleName: 'app',              // or () => string | Promise<string>
+  version: () => pkg.version,     // or a string; defaults to package.json version
+  uploader: provider.uploader,
+  deployer: provider.deployer,
+  integrity: { algorithm: 'sha384' },
+  signature: { /* see below */ },
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `endpoint` | `string` | Base URL of the remote server. |
+| `bundleName` | `string \| (() => …)` | Bundle name for remote operations. |
+| `version` | `string \| (() => …)` | Version to publish. |
+| `uploader` | `BaseRemoteUploader` | Uploads the `.wvb` to the server (from a provider). |
+| `deployer` | `BaseRemoteDeployer` | Marks a version deployed (from a provider). |
+| `integrity` | `boolean \| { algorithm }` | Compute an integrity hash on upload. |
+| `signature` | `SignatureSignConfig \| fn` | Sign the bundle on upload. |
+
+`uploader`/`deployer` come from a provider package — `@wvb/remote-local`, `@wvb/remote-aws`, or
+`@wvb/remote-cloudflare`. Each exposes `{ uploader, deployer }` compatible with these fields.
+
+### `integrity`
+
+Either `true`/`{ algorithm }` for the built-in hashing, or a function for custom logic.
+
+```ts
+integrity: { algorithm: 'sha384' }                       // 'sha256' | 'sha384' | 'sha512'
+integrity: async ({ data }) => `sha384:${await myHash(data)}`
+```
+
+### `signature`
+
+Sign the integrity string with a private key. The algorithm determines the required fields:
+
+```ts
+// ECDSA
+signature: {
+  algorithm: 'ecdsa',
+  curve: 'p256',                  // 'p256' | 'p384'
+  hash: 'sha256',                 // 'sha256' | 'sha384' | 'sha512'
+  key: { format: 'pkcs8', data: privateKeyDerBuffer },
+}
+
+// Ed25519
+signature: {
+  algorithm: 'ed25519',
+  key: { format: 'pkcs8', data: privateKeyDerBuffer },
+}
+
+// RSA
+signature: {
+  algorithm: 'rsa-pss',           // or 'rsa-pkcs1-v1.5'
+  hash: 'sha256',
+  saltLength: 32,                 // rsa-pss only
+  key: { format: 'pkcs8', data: privateKeyDerBuffer },
+}
+
+// or fully custom
+signature: async ({ message }) => myExternalSigner(message),
+```
+
+Key `format` is one of `'raw' | 'pkcs8' | 'spki' | 'jwk'` (use `data: JsonWebKey` for `'jwk'`,
+`data: Buffer` otherwise). Clients verify with the matching public key — see
+[Remote updates → Integrity and signatures](/docs/remote-updates#integrity-and-signatures).
+
+## `serve`
+
+```ts
+serve: { file: './app.wvb', port: 4312, silent: false }
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `file` | `string` | Bundle to serve. |
+| `port` | `number` | Port. Default `4312`. |
+| `silent` | `boolean` | Disable request logging. |
+
+## `builtin`
+
+```ts
+builtin: {
+  outDir: '.wvb/builtin/bundles',
+  include: ['app*'],
+  exclude: ['internal*'],
+  clean: true,
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `outDir` | `string` | Where to write downloaded builtin bundles. Default `.wvb/builtin/bundles`. |
+| `include` / `exclude` | `string \| RegExp \| Array<…> \| ((info) => boolean)` | Match remote bundles by name/version. |
+| `clean` | `boolean` | Clear `outDir` before downloading. Default `true`. |
+| `download.concurrency` | `number` | Parallel downloads. |

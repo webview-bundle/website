@@ -3311,7 +3311,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:^2.1.1":
+"clsx@npm:2.1.1, clsx@npm:^2.1.1":
   version: 2.1.1
   resolution: "clsx@npm:2.1.1"
   checksum: 10c0/c4c8eb865f8c82baab07e71bfa8897c73454881c4f99d6bc81585aecd7c441746c1399d08363dc096c550cceaf97bd4ce1e8854e1771e9998d9f94c4fe075839
@@ -6515,7 +6515,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwind-merge@npm:^3.5.0":
+"tailwind-merge@npm:3.5.0, tailwind-merge@npm:^3.5.0":
   version: 3.5.0
   resolution: "tailwind-merge@npm:3.5.0"
   checksum: 10c0/4dc588f5b5296ba3f38e1ebb41f02b6d24a8c5bb45e44b33748c118fb4b5767dd0efc464431ca3e75404056b618b5f67bec3708158baa65fed8a2fc9201e0c53
@@ -6928,6 +6928,7 @@ __metadata:
     "@types/react": "npm:19.2.15"
     "@types/react-dom": "npm:19.2.3"
     "@vitejs/plugin-react": "npm:6.0.2"
+    clsx: "npm:2.1.1"
     date-fns: "npm:4.3.0"
     fumadocs-core: "npm:16.7.16"
     fumadocs-mdx: "npm:14.3.0"
@@ -6937,6 +6938,7 @@ __metadata:
     oxlint-tsgolint: "npm:0.23.0"
     react: "npm:19.2.6"
     react-dom: "npm:19.2.6"
+    tailwind-merge: "npm:3.5.0"
     tailwindcss: "npm:4.3.0"
     typescript: "npm:6.0.3"
     vite: "npm:8.0.14"

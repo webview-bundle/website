@@ -13,6 +13,34 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        // Peel the large, rarely-changing vendor libraries out of the shared
+        // entry chunk. This keeps the app chunk small and lets browsers cache
+        // these dependencies separately across deploys.
+        codeSplitting: {
+          groups: [
+            {
+              name: 'react',
+              test: /[\\/]node_modules[\\/](?:react|react-dom|scheduler)[\\/]/,
+              priority: 30,
+            },
+            {
+              name: 'tanstack',
+              test: /[\\/]node_modules[\\/]@tanstack[\\/]/,
+              priority: 20,
+            },
+            {
+              name: 'fumadocs',
+              test: /[\\/]node_modules[\\/]fumadocs-(?:ui|core|mdx)[\\/]/,
+              priority: 20,
+            },
+          ],
+        },
+      },
+    },
+  },
   plugins: [
     mdx(MdxConfig),
     tailwindcss(),

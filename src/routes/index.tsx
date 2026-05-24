@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { LandingC } from '../layouts/home/LandingC';
+import { Landing } from '../layouts/home';
 
 export const Route = createFileRoute('/')({
   component: Home,
 });
 
 function Home() {
-  return <LandingC />;
+  return <Landing />;
 }

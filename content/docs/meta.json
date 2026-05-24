@@ -1,0 +1,4 @@
+{
+  "title": "Documentation",
+  "pages": ["index", "concepts", "remote-updates", "cli", "configuration", "guides"]
+}
