@@ -14,6 +14,7 @@ jobs:
           install_args: 'node'
       - run: corepack enable
       - run: yarn install
+      - run: yarn gen:fumadocs
       - run: yarn lint
   format:
     runs-on: ubuntu-latest

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "yarn gen:fumadocs",
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
