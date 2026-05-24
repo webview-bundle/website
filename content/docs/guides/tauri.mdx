@@ -1,0 +1,144 @@
+---
+title: Tauri
+description: Add the wvb-tauri plugin to a Tauri v2 app so the webview is served from a .wvb bundle, with dev proxying and OTA updates.
+---
+
+This guide adds the `wvb-tauri` plugin to a Tauri v2 app so your webview is served from a `.wvb`
+bundle, with an optional localhost proxy for development and over-the-air updates.
+
+A complete, runnable example lives in
+[`examples/tauri-simple`](https://github.com/webview-bundle/webview-bundle/tree/main/examples/tauri-simple).
+
+## Install
+
+Add the plugin crate to your `src-tauri/Cargo.toml`:
+
+```toml
+[dependencies]
+wvb-tauri = "0.1"
+tauri = { version = "2", features = [] }
+```
+
+If you'll drive updates from the frontend, also add the JavaScript glue you normally use with Tauri
+commands (`@tauri-apps/api`). The plugin registers its commands automatically.
+
+## 1. Register the plugin
+
+In your `src-tauri/src/lib.rs`, register the plugin with a `Config` that declares a bundle
+**source**, the **protocols** to serve, and optionally a **remote** for updates:
+
+```rust
+use tauri::Manager;
+use wvb_tauri::{Config, Protocol, Source};
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(wvb_tauri::init(
+            Config::new()
+                // Where bundles live. `builtin_dir` is resolved through Tauri's path API,
+                // so you can point it at a resource directory…
+                .source(Source::new().builtin_dir_fn(|app| {
+                    Ok(app.path().resource_dir()?.join("bundles"))
+                }))
+                // Serve `bundle://<name>/...` straight from bundles.
+                .protocol(Protocol::bundle("bundle"))
+                // In development, proxy `local://example.com/...` to the dev server.
+                .protocol(Protocol::local("local").host("example.com", "http://localhost:1420")),
+        ))
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+```
+
+- **`Protocol::bundle(scheme)`** serves files directly from bundles. `bundle://app/index.html`
+  resolves to bundle `app`, file `/index.html`.
+- **`Protocol::local(scheme).host(host, url)`** proxies a host to a localhost dev server, so the
+  same scheme works with your bundler's hot reload during development.
+- **`Source`** accepts `builtin_dir` / `remote_dir` (static path strings) or `builtin_dir_fn` /
+  `remote_dir_fn` (closures that compute the path from the `AppHandle` at runtime). When unset, both
+  default to the `bundles` directory in the app's resources.
+
+## 2. Allow the custom scheme to load
+
+Point your app window at the custom scheme. The simplest approach is to set the dev/prod URL in
+`tauri.conf.json` or load it explicitly. For a bundle-served app you'll typically navigate the main
+window to `bundle://app/` (production) or your dev server (development).
+
+Make sure your capabilities allow the plugin's commands if you call them from the frontend. Add the
+`wvb` permissions to `src-tauri/capabilities/default.json` as needed (the plugin namespace is
+`wvb`).
+
+## 3. Pack and ship bundles
+
+Build your frontend, pack it, and place the result in the directory you configured as the source:
+
+```sh
+# build your frontend first (e.g. `vite build`), then:
+npx wvb pack ./dist --outfile src-tauri/bundles/app/app_1.0.0.wvb
+```
+
+Include the `bundles` directory in your app resources so it ships with the build (see
+`tauri.conf.json` → `bundle.resources`).
+
+## 4. Drive updates from the frontend (optional)
+
+Add a remote to the config:
+
+```rust
+use wvb_tauri::{Config, Protocol, Remote, Source};
+
+Config::new()
+    .source(Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles"))))
+    .protocol(Protocol::bundle("bundle"))
+    .remote(Remote::new("https://updates.example.com"));
+```
+
+The plugin then exposes these commands to the frontend via `invoke` (all under the `wvb` plugin
+namespace):
+
+| Command                               | Arguments                | Returns                   |
+| ------------------------------------- | ------------------------ | ------------------------- |
+| `plugin:wvb\|updater_get_update`      | `bundleName`             | update availability info  |
+| `plugin:wvb\|updater_download_update` | `bundleName`, `version?` | installed bundle metadata |
+| `plugin:wvb\|source_load_version`     | `bundleName`             | active local version      |
+| `plugin:wvb\|source_list_bundles`     | —                        | local bundles             |
+| `plugin:wvb\|remote_get_info`         | `bundleName`, `channel?` | current remote metadata   |
+
+```ts
+import { invoke } from '@tauri-apps/api/core';
+
+const update = await invoke('plugin:wvb|updater_get_update', { bundleName: 'app' });
+if (update.isAvailable) {
+  await invoke('plugin:wvb|updater_download_update', { bundleName: 'app' });
+  // reload the webview to pick up the new bundle
+}
+```
+
+The full command set (source / remote / updater) is documented on the
+[`wvb-tauri` crate docs](https://docs.rs/wvb-tauri) and in
+[`packages/tauri/src/commands.rs`](https://github.com/webview-bundle/webview-bundle/blob/main/packages/tauri/src/commands.rs).
+
+## Reaching the plugin from Rust
+
+From any `App`, `AppHandle`, or `Window`, the `WebviewBundleExtra` trait adds `webview_bundle()`
+(aliased `wvb()`), which exposes the managed `source`, `remote`, and `updater`:
+
+```rust
+use wvb_tauri::WebviewBundleExtra;
+
+let wvb = app.wvb();
+let bundles = wvb.source().list_bundles().await?;
+if let Some(updater) = wvb.updater() {
+    updater.download_update("app", None).await?;
+}
+```
+
+## Troubleshooting
+
+- **`protocol not found: <scheme>`** — a request arrived for a scheme you didn't register; add the
+  matching `Protocol::bundle(...)` / `Protocol::local(...)`.
+- **`remote is not initialized` / `updater is not initialized`** — you called a remote/updater
+  command without configuring `.remote(...)` on the `Config`.
+- **Bundle not found at runtime** — confirm the `bundles` directory is listed in
+  `tauri.conf.json` resources and that `Source` resolves to it.

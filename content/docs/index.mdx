@@ -1,5 +1,103 @@
 ---
-title: Hello World
+title: Introduction
+description: An offline-first web resource delivery system for webview-mounted frameworks and platforms.
 ---
 
-I love Fumadocs
+Webview Bundle (`wvb`) is an **offline-first web resource delivery system** for webview-mounted
+frameworks and platforms. It packs your built web assets (HTML/JS/CSS/media) into a single
+compressed, integrity-checked archive (`.wvb`) that your app ships with and serves to its webview
+through a custom URL scheme — and can update over the air without an app-store release.
+
+```text
+ build output            .wvb archive              your app's webview
+┌──────────────┐  pack  ┌───────────────┐  serve  ┌────────────────────┐
+│ dist/        │ ─────▶ │ app_1.0.0.wvb │ ──────▶ │ app://app/index.html│
+│  index.html  │        │  (compressed, │         │  (offline, instant) │
+│  app.js …    │        │   verified)   │         └────────────────────┘
+└──────────────┘        └───────────────┘
+                              │  upload + deploy        ▲ download + verify
+                              ▼                         │
+                        ┌───────────────┐   updater     │
+                        │ remote server │ ──────────────┘
+                        └───────────────┘
+```
+
+## Why Webview Bundle?
+
+- **Offline-first.** Resources are bundled locally, so the first paint never waits on the network.
+- **Over-the-air updates.** Ship a fix or feature by deploying a new bundle version — no native
+  release required.
+- **Integrity & authenticity.** Every bundle carries checksums, and downloads can be verified with
+  SHA-3 integrity hashes and digital signatures (ECDSA, Ed25519, RSA).
+- **One format, every platform.** The same `.wvb` archive works in Electron, Tauri, Android, and
+  iOS via a shared Rust core.
+
+## Start here
+
+<Cards>
+  <Card
+    title="Concepts"
+    href="/docs/concepts"
+    description="The .wvb format, bundle sources, the manifest, channels, integrity, and signatures. Read this first; the platform guides assume these terms."
+  />
+  <Card
+    title="Remote updates & local testing"
+    href="/docs/remote-updates"
+    description="Pack, upload, deploy, and update bundles over the air — and how to test the whole loop locally."
+  />
+  <Card
+    title="CLI reference"
+    href="/docs/cli"
+    description="The wvb command-line tool: pack, serve, upload, deploy, download, and the local remote."
+  />
+  <Card
+    title="Configuration reference"
+    href="/docs/configuration"
+    description="The wvb.config file: pack, remote, serve, and builtin options."
+  />
+</Cards>
+
+Then pick your platform guide:
+
+<Cards>
+  <Card
+    title="Electron"
+    href="/docs/guides/electron"
+    description="Serve a bundle through a custom protocol in an Electron app."
+  />
+  <Card
+    title="Tauri"
+    href="/docs/guides/tauri"
+    description="Add the wvb-tauri plugin to a Tauri v2 app."
+  />
+  <Card
+    title="Android"
+    href="/docs/guides/android"
+    description="Serve a WebView from a bundle with the Kotlin bindings."
+  />
+  <Card
+    title="iOS"
+    href="/docs/guides/ios"
+    description="Serve a WKWebView from a bundle with the Swift bindings."
+  />
+</Cards>
+
+## Packages
+
+| Package                      | What it is                                                                        | Where it runs          |
+| ---------------------------- | --------------------------------------------------------------------------------- | ---------------------- |
+| [`wvb`](https://docs.rs/wvb) | Rust core: bundle format, source, remote, updater, protocol, integrity, signature | everywhere (library)   |
+| `@wvb/cli` (`wvb`)           | Command-line tool: pack, serve, upload, deploy, download, local remote            | your machine / CI      |
+| `@wvb/config`                | `defineConfig` for `wvb.config.ts`                                                | build tooling          |
+| `@wvb/node`                  | N-API bindings to the core                                                        | Node.js                |
+| `@wvb/electron`              | Electron integration (protocols, IPC, updater)                                    | Electron main/renderer |
+| `wvb-tauri`                  | Tauri plugin (protocols, commands, updater)                                       | Tauri app              |
+| `wvb-ffi`                    | UniFFI bindings (Kotlin/Swift)                                                    | Android / iOS          |
+| `@wvb/remote-*`              | Remote server providers (local, AWS, Cloudflare)                                  | your update backend    |
+
+## The bundle format in one line
+
+A `.wvb` file is **`[ Header | Index | Data ]`**: a 17-byte header (magic number, version, index
+size, checksum), an index mapping each file path to its location and HTTP metadata, and an
+LZ4-compressed data section. The full byte-level spec lives in the
+[`wvb` crate docs](https://docs.rs/wvb).

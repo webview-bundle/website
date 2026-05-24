@@ -1,0 +1,181 @@
+---
+title: Android
+description: Serve an Android WebView from a .wvb bundle using the Kotlin bindings generated from the Rust core.
+---
+
+On Android, Webview Bundle ships as a Kotlin library generated from the Rust core with
+[UniFFI](https://mozilla.github.io/uniffi-rs/). You build a [`BundleSource`](/docs/concepts#sources-builtin-vs-remote)
+from on-device directories and serve files into a `WebView` through a `BundleUrlHandler`.
+
+A working test app lives in
+[`packages/ffi/android`](https://github.com/webview-bundle/webview-bundle/tree/main/packages/ffi/android), and the integration tests in
+[`TestRunner.kt`](https://github.com/webview-bundle/webview-bundle/blob/main/packages/ffi/android/testapp/src/main/kotlin/dev/wvb/testapp/TestRunner.kt)
+exercise the full Kotlin API.
+
+<Callout type="warn">
+  The Android bindings are built from this repository (no Maven artifact is published yet). The
+  steps below build the `lib-android` module and include it in your app.
+</Callout>
+
+## What the library contains
+
+The Android library (`dev.wvb`, module `lib-android`) bundles:
+
+- the generated Kotlin bindings (`dev/wvb/wvb_ffi.kt`),
+- the native `libwvb_ffi.so` for each ABI (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) under
+  `jniLibs/`,
+- runtime dependencies on [JNA](https://github.com/java-native-access/jna) and
+  `kotlinx-coroutines`.
+
+Minimum SDK is 24; the module targets Java 17.
+
+## 1. Build and include the library
+
+From the repo, build the Android bindings (this compiles the Rust core for each Android ABI and
+generates the Kotlin bindings + `jniLibs`):
+
+```sh
+# from packages/ffi
+yarn build-ffi-android   # → node ./cli/main.ts build android --profile=release
+```
+
+Then include `lib-android` in your app. In a Gradle multi-module setup that vendors the library:
+
+```kotlin
+// settings.gradle.kts
+include(":lib-android")
+project(":lib-android").projectDir = file("path/to/webview-bundle/packages/ffi/android/lib-android")
+
+// app/build.gradle.kts
+dependencies {
+    implementation(project(":lib-android"))
+    implementation("net.java.dev.jna:jna:5.x@aar")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.x")
+}
+```
+
+Make sure your packaging keeps the native symbols:
+
+```kotlin
+android {
+    packaging {
+        jniLibs { keepDebugSymbols.add("**/*.so") }
+    }
+}
+```
+
+## 2. Ship your bundles as assets
+
+Pack your web build and place the `.wvb` plus its `manifest.json` under `src/main/assets`, following
+the [source layout](/docs/concepts#sources-builtin-vs-remote):
+
+```sh
+npx wvb pack ./dist --outfile app/src/main/assets/bundles/builtin/app/app_1.0.0.wvb
+```
+
+```text
+assets/bundles/builtin/
+├── app/
+│   └── app_1.0.0.wvb
+└── manifest.json
+```
+
+Assets aren't a real filesystem path, so at startup copy the builtin bundles into a directory the
+native code can read (e.g. under `context.filesDir`). The test app's `setupFixtures()` shows this
+copy-from-assets pattern.
+
+## 3. Build a `BundleSource`
+
+```kotlin
+import dev.wvb.*
+
+val source = BundleSource(
+    BundleSourceConfig(
+        builtinDir = File(context.filesDir, "bundles/builtin").absolutePath,
+        remoteDir = File(context.filesDir, "bundles/remote").absolutePath,
+        builtinManifestFilepath = null, // defaults to manifest.json in the dir
+        remoteManifestFilepath = null,
+    )
+)
+
+// Query what's available:
+val version = source.loadVersion("app")          // current version (remote wins over builtin)
+val bundle = source.fetch("app")                 // load a bundle into memory
+val html = bundle.getData("/index.html")         // ByteArray? — file bytes, or null
+```
+
+## 4. Serve a `WebView` from the bundle
+
+Create a `BundleUrlHandler` over the source and call it from a `WebViewClient`'s
+`shouldInterceptRequest`, mapping the handler's `HttpResponse` to a `WebResourceResponse`:
+
+```kotlin
+import android.webkit.*
+import dev.wvb.*
+import kotlinx.coroutines.runBlocking
+
+class BundleWebViewClient(source: BundleSource) : WebViewClient() {
+    private val handler = BundleUrlHandler(source)
+
+    override fun shouldInterceptRequest(
+        view: WebView,
+        request: WebResourceRequest,
+    ): WebResourceResponse? {
+        if (request.url.scheme != "https" || request.url.host?.endsWith(".wvb") != true) {
+            return null // not ours; let the WebView handle it
+        }
+        val method = if (request.method.equals("HEAD", true)) HttpMethod.HEAD else HttpMethod.GET
+        val resp = runBlocking {
+            handler.handle(method, request.url.toString(), request.requestHeaders)
+        }
+        val contentType = resp.headers["content-type"] ?: "application/octet-stream"
+        return WebResourceResponse(
+            contentType.substringBefore(';'),
+            "utf-8",
+            resp.status.toInt(),
+            "OK",
+            resp.headers,
+            resp.body.inputStream(),
+        )
+    }
+}
+
+// Wire it up and navigate to your bundle:
+webView.webViewClient = BundleWebViewClient(source)
+webView.loadUrl("https://app.wvb/index.html") // bundle "app", file "/index.html"
+```
+
+The handler resolves the bundle name from the first host label (`app.wvb` → bundle `app`) and treats
+a trailing slash or extension-less path as `index.html`. It returns `404` for unknown paths and
+supports `GET`/`HEAD`. `BundleUrlHandler.handle(...)` is a suspending call, so run it from a
+coroutine (or `runBlocking` inside `shouldInterceptRequest`, which already runs off the main thread).
+
+### Development against a dev server
+
+For hot reload during development, use `LocalUrlHandler` instead, mapping a host to your dev server:
+
+```kotlin
+val local = LocalUrlHandler(mapOf("app" to "http://10.0.2.2:5173"))
+// 10.0.2.2 is the host machine from the Android emulator
+```
+
+## 5. Build a bundle on device (optional)
+
+The same API can create bundles in-process — useful for tests or tooling:
+
+```kotlin
+val builder = BundleBuilder(Version.V1)
+builder.insertEntry("/index.html", "<!DOCTYPE html>".toByteArray(), "text/html", null)
+val bundle = builder.build(null)
+
+val bytes = writeBundleToBytes(bundle)   // serialize to ByteArray
+val loaded = readBundleFromBytes(bytes)  // round-trip
+writeBundle(bundle, file.absolutePath)   // or write to a file (suspending)
+```
+
+## Over-the-air updates
+
+`BundleSource` exposes `writeRemoteBundle(...)` and `updateVersion(...)` to install a downloaded
+bundle and flip the current version. The download/verify orchestration mirrors the desktop
+[updater](/docs/remote-updates); on Android you typically fetch the bundle bytes yourself (or via a
+future binding) and call `writeRemoteBundle` to install them, then reload the `WebView`.

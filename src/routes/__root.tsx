@@ -42,7 +42,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
       <body>
-        <RootProvider>{children}</RootProvider>
+        <RootProvider theme={{ enabled: true }}>{children}</RootProvider>
         <Scripts />
       </body>
     </html>
