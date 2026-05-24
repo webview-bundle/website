@@ -20,7 +20,7 @@ node_modules
 .source/
 dist/
 .wrangler/
-
+.dev.vars
 .idea
 
 # macOS
