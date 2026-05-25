@@ -13,7 +13,7 @@ async function handler(request: Request, env: Env, ctx: ExecutionContext): Promi
 
 export default Sentry.withSentry(
   () => ({
-    dsn: 'https://d1893624a683484f8260184a6025be0f@o4503970038611968.ingest.us.sentry.io/4503970040053760',
+    dsn: import.meta.env.VITE_SENTRY_DSN,
     sendDefaultPii: false,
   }),
   // @ts-expect-error - TanStack's ServerEntry types fetch as (request, opts?), not (request, env, ctx)

@@ -23,5 +23,9 @@ dist/
 .dev.vars
 .idea
 
+# Local env files (e.g. VITE_SENTRY_DSN for production builds). Vite loads
+# `.env.production.local` automatically; keep the DSN out of this public repo.
+.env*.local
+
 # macOS
 .DS_Store
