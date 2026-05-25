@@ -10,7 +10,7 @@ export function getRouter() {
 
   if (!router.isServer) {
     Sentry.init({
-      dsn: 'https://d1893624a683484f8260184a6025be0f@o4503970038611968.ingest.us.sentry.io/4503970040053760',
+      dsn: import.meta.env.VITE_SENTRY_DSN,
       integrations: [],
     });
   }
