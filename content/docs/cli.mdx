@@ -86,16 +86,16 @@ wvb upload app 1.2.0 --deploy --channel beta
 wvb upload --file ./dist/app.wvb --force
 ```
 
-| Option              | Description                                                  |
-| ------------------- | ------------------------------------------------------------ |
-| `BUNDLE`, `VERSION` | Bundle name and version (else from config / `package.json`). |
-| `--file, -F`        | Path to the `.wvb` to upload.                                |
+| Option              | Description                                                                                               |
+| ------------------- | --------------------------------------------------------------------------------------------------------- |
+| `BUNDLE`, `VERSION` | Bundle name and version (else from config / `package.json`).                                              |
+| `--file, -F`        | Path to the `.wvb` to upload.                                                                             |
 | `--pack, -P`        | Pack from `pack.srcDir` before uploading. Default `true` (pass `--no-pack` to upload an existing `.wvb`). |
-| `--force`           | Overwrite if the version already exists.                     |
-| `--deploy`          | Deploy after upload. Default `true`.                         |
-| `--channel`         | Channel to deploy to (with `--deploy`).                      |
-| `--skip-integrity`  | Don't compute an integrity hash.                             |
-| `--skip-signature`  | Don't sign the bundle.                                       |
+| `--force`           | Overwrite if the version already exists.                                                                  |
+| `--deploy`          | Deploy after upload. Default `true`.                                                                      |
+| `--channel`         | Channel to deploy to (with `--deploy`).                                                                   |
+| `--skip-integrity`  | Don't compute an integrity hash.                                                                          |
+| `--skip-signature`  | Don't sign the bundle.                                                                                    |
 
 ### `wvb deploy [BUNDLE] VERSION`
 

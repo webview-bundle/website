@@ -88,9 +88,7 @@ export function Showcase() {
                 onClick={() => setView(v.id)}
                 className={cn(
                   'rounded-full px-4 py-1.5 transition-colors',
-                  view === v.id
-                    ? 'bg-white/10 text-white'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                  view === v.id ? 'bg-white/10 text-white' : 'text-zinc-400 hover:text-zinc-200'
                 )}
               >
                 {v.label}

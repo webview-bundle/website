@@ -58,14 +58,14 @@ pack: {
 }
 ```
 
-| Field       | Type                                                                            | Description                                    |
-| ----------- | ------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `srcDir`    | `string`                                                                        | Directory to pack.                             |
-| `outFileName` | `string`                                                                      | Output file name (`.wvb` appended if missing). |
-| `outDir`    | `string`                                                                        | Output directory. Default `.wvb`.              |
-| `ignore`    | `Array<string \| RegExp> \| ((file) => boolean)`                                | Patterns/predicate to exclude files.           |
-| `headers`   | `Record<glob, HeadersInit> \| [glob, HeadersInit][] \| ((file) => HeadersInit)` | HTTP headers to attach to matching files.      |
-| `overwrite` | `boolean`                                                                       | Overwrite an existing output. Default `true`.  |
+| Field         | Type                                                                            | Description                                    |
+| ------------- | ------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `srcDir`      | `string`                                                                        | Directory to pack.                             |
+| `outFileName` | `string`                                                                        | Output file name (`.wvb` appended if missing). |
+| `outDir`      | `string`                                                                        | Output directory. Default `.wvb`.              |
+| `ignore`      | `Array<string \| RegExp> \| ((file) => boolean)`                                | Patterns/predicate to exclude files.           |
+| `headers`     | `Record<glob, HeadersInit> \| [glob, HeadersInit][] \| ((file) => HeadersInit)` | HTTP headers to attach to matching files.      |
+| `overwrite`   | `boolean`                                                                       | Overwrite an existing output. Default `true`.  |
 
 ## `remote`
 
@@ -166,10 +166,10 @@ builtin: {
 }
 ```
 
-| Field                  | Type                                                  | Description                                                                |
-| ---------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------- |
-| `outDir`               | `string`                                              | Where to write downloaded builtin bundles. Default `.wvb/builtin/bundles`. |
-| `target`               | `BuiltinTarget`                                       | Where to install from. Default `{ type: 'remote' }`.                       |
-| `include` / `exclude`  | `string \| RegExp \| Array<…> \| ((info) => boolean)` | Match remote bundles by name/version.                                      |
-| `clean`                | `boolean`                                             | Clear `outDir` before downloading. Default `true`.                         |
-| `target.download.concurrency` | `number`                                       | Parallel downloads (remote target).                                        |
+| Field                         | Type                                                  | Description                                                                |
+| ----------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------- |
+| `outDir`                      | `string`                                              | Where to write downloaded builtin bundles. Default `.wvb/builtin/bundles`. |
+| `target`                      | `BuiltinTarget`                                       | Where to install from. Default `{ type: 'remote' }`.                       |
+| `include` / `exclude`         | `string \| RegExp \| Array<…> \| ((info) => boolean)` | Match remote bundles by name/version.                                      |
+| `clean`                       | `boolean`                                             | Clear `outDir` before downloading. Default `true`.                         |
+| `target.download.concurrency` | `number`                                              | Parallel downloads (remote target).                                        |

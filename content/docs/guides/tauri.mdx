@@ -97,8 +97,8 @@ Config::new()
 The plugin then exposes these commands to the frontend via `invoke` (all under the `wvb-tauri` plugin
 namespace):
 
-| Command                               | Arguments                | Returns                   |
-| ------------------------------------- | ------------------------ | ------------------------- |
+| Command                                 | Arguments                | Returns                        |
+| --------------------------------------- | ------------------------ | ------------------------------ |
 | `plugin:wvb-tauri\|updater_get_update`  | `bundleName`             | update availability info       |
 | `plugin:wvb-tauri\|updater_download`    | `bundleName`, `version?` | downloaded bundle metadata     |
 | `plugin:wvb-tauri\|updater_install`     | `bundleName`, `version`  | activates a downloaded version |
