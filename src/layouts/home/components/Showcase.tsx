@@ -1,24 +1,34 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { cn } from '../../../lib/cn';
 
 const PLATFORMS = ['Electron', 'Tauri', 'iOS', 'Android'];
+type View = 'mobile' | 'desktop';
+const VIEWS: { id: View; label: string }[] = [
+  { id: 'mobile', label: 'Mobile' },
+  { id: 'desktop', label: 'Desktop' },
+];
 
 // A dark "spotlight" band: the demo footage is dark-themed, so we frame it on a dark
 // surface (in light mode too) to make it an intentional focal moment rather than a clash.
-// Desktop gets the 2-up cut (a large, legible desktop window + a phone); phones get the
-// single-device portrait cut, since a desktop window is unreadable at phone width. WebM (VP9)
-// is primary with an H.264 mp4 fallback for browsers without VP9 (e.g. older iOS Safari).
+// On lg+ the 2-up cut (large desktop window + phone) always shows. Below lg we default to the
+// single-device portrait cut, but a simple Mobile/Desktop tab lets viewers preview either.
+// WebM (VP9) is primary with an H.264 mp4 fallback for browsers without VP9 (e.g. older iOS Safari).
 export function Showcase() {
   const framesRef = useRef<HTMLDivElement>(null);
+  const [view, setView] = useState<View>('mobile'); // only affects the < lg layout
 
-  // Respect users who prefer reduced motion: hold the poster frame instead of looping.
+  // Play the currently visible video; pause the hidden one. Honors prefers-reduced-motion
+  // (everything stays paused on its poster). Re-runs whenever the tab toggles.
   useEffect(() => {
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     framesRef.current?.querySelectorAll('video').forEach(video => {
-      video.autoplay = false;
-      video.pause();
-      video.currentTime = 0;
+      if (video.offsetParent !== null && !reduce) {
+        void video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
     });
-  }, []);
+  }, [view]);
 
   return (
     <section
@@ -61,35 +71,65 @@ export function Showcase() {
       </div>
 
       {/* Video — intentionally wider than the text column so the UI stays legible. */}
-      <div className="relative mx-auto max-w-[1500px] px-4 pt-10 pb-16 sm:px-6 sm:pb-24">
+      <div className="relative mx-auto max-w-[1500px] px-4 pt-8 pb-16 sm:px-6 sm:pb-24">
+        {/* Mobile/Desktop toggle — only below lg, where a single cut is shown at a time. */}
+        <div className="mb-5 flex justify-center lg:hidden">
+          <div
+            role="tablist"
+            aria-label="Choose showcase view"
+            className="inline-flex gap-0.5 rounded-full border border-white/10 bg-white/[0.03] p-0.5 font-mono text-[12px]"
+          >
+            {VIEWS.map(v => (
+              <button
+                key={v.id}
+                type="button"
+                role="tab"
+                aria-selected={view === v.id}
+                onClick={() => setView(v.id)}
+                className={cn(
+                  'rounded-full px-4 py-1.5 transition-colors',
+                  view === v.id
+                    ? 'bg-white/10 text-white'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                )}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div
           ref={framesRef}
-          className="mx-auto max-w-[300px] overflow-hidden rounded-xl border border-white/10 bg-black shadow-[0_40px_90px_-30px_rgba(0,0,0,0.8)] ring-1 ring-white/[0.04] sm:max-w-[380px] lg:max-w-none"
+          className={cn(
+            'mx-auto overflow-hidden rounded-xl border border-white/10 bg-black shadow-[0_40px_90px_-30px_rgba(0,0,0,0.8)] ring-1 ring-white/[0.04]',
+            // < lg: portrait stays phone-sized; the desktop preview goes full width.
+            view === 'mobile' ? 'max-w-[340px] sm:max-w-[400px]' : 'max-w-none',
+            'lg:max-w-none'
+          )}
         >
-          {/* Wide screens: desktop window + phone (2-up). Below lg it would be too cramped. */}
+          {/* Desktop window + phone (2-up): always on lg+, and on the "Desktop" tab below lg. */}
           <video
-            className="hidden w-full lg:block"
-            autoPlay
+            className={cn('w-full lg:block', view === 'desktop' ? 'block' : 'hidden')}
             muted
             loop
             playsInline
             preload="metadata"
             poster="/showcase/landscape.jpg"
-            aria-label="The same webview-bundle app running on Electron, Tauri, iOS, and Android"
+            aria-label="The same webview-bundle app running on Electron and Tauri (desktop)"
           >
             <source src="/showcase/landscape.webm" type="video/webm" />
             <source src="/showcase/landscape.mp4" type="video/mp4" />
           </video>
-          {/* Phones & tablets: single device, portrait (always legible, never cramped) */}
+          {/* Single phone (portrait): below lg, on the "Mobile" tab (default). */}
           <video
-            className="block w-full lg:hidden"
-            autoPlay
+            className={cn('w-full lg:hidden', view === 'mobile' ? 'block' : 'hidden')}
             muted
             loop
             playsInline
             preload="metadata"
             poster="/showcase/vertical.jpg"
-            aria-label="The same webview-bundle app running on Electron, Tauri, iOS, and Android"
+            aria-label="The same webview-bundle app running on iOS and Android (mobile)"
           >
             <source src="/showcase/vertical.webm" type="video/webm" />
             <source src="/showcase/vertical.mp4" type="video/mp4" />
