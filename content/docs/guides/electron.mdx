@@ -106,7 +106,8 @@ const version = await source.loadVersion('app');
 // Is a newer version deployed?
 const info = await updater.getUpdate('app');
 if (info.isAvailable) {
-  await updater.downloadUpdate('app'); // downloads, verifies, installs
+  const downloaded = await updater.download('app'); // downloads + verifies, stages into the remote source
+  await updater.install('app', downloaded.version); // activates the downloaded version
   // reload the window to pick up the new bundle
 }
 ```
@@ -179,7 +180,7 @@ const config: ForgeConfig = {
 `source` accepts `builtinDir` (shipped, read-only) and `remoteDir` (downloaded updates). A good
 default is to ship `builtinDir` under `process.resourcesPath` and let `remoteDir` default to a
 writable app-data location. Downloaded versions always take priority over builtin ones, so an
-installed update is served automatically after `updater.downloadUpdate(...)`.
+installed update is served automatically after `updater.download(...)` + `updater.install(...)`.
 
 ## Troubleshooting
 

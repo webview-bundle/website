@@ -50,7 +50,7 @@ export default defineConfig(async () => ({
 ```ts
 pack: {
   srcDir: './dist',
-  outFile: 'app',                 // → app.wvb
+  outFileName: 'app',             // → app.wvb
   outDir: '.wvb',
   ignore: ['*.map'],
   headers: { '*.html': { 'cache-control': 'max-age=3600' } },
@@ -61,7 +61,7 @@ pack: {
 | Field       | Type                                                                            | Description                                    |
 | ----------- | ------------------------------------------------------------------------------- | ---------------------------------------------- |
 | `srcDir`    | `string`                                                                        | Directory to pack.                             |
-| `outFile`   | `string`                                                                        | Output file name (`.wvb` appended if missing). |
+| `outFileName` | `string`                                                                      | Output file name (`.wvb` appended if missing). |
 | `outDir`    | `string`                                                                        | Output directory. Default `.wvb`.              |
 | `ignore`    | `Array<string \| RegExp> \| ((file) => boolean)`                                | Patterns/predicate to exclude files.           |
 | `headers`   | `Record<glob, HeadersInit> \| [glob, HeadersInit][] \| ((file) => HeadersInit)` | HTTP headers to attach to matching files.      |
@@ -169,6 +169,7 @@ builtin: {
 | Field                  | Type                                                  | Description                                                                |
 | ---------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------- |
 | `outDir`               | `string`                                              | Where to write downloaded builtin bundles. Default `.wvb/builtin/bundles`. |
+| `target`               | `BuiltinTarget`                                       | Where to install from. Default `{ type: 'remote' }`.                       |
 | `include` / `exclude`  | `string \| RegExp \| Array<…> \| ((info) => boolean)` | Match remote bundles by name/version.                                      |
 | `clean`                | `boolean`                                             | Clear `outDir` before downloading. Default `true`.                         |
-| `download.concurrency` | `number`                                              | Parallel downloads.                                                        |
+| `target.download.concurrency` | `number`                                       | Parallel downloads (remote target).                                        |
