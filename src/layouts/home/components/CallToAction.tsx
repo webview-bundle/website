@@ -8,7 +8,7 @@ export function CallToAction() {
           Start now
         </div>
         <h2 className="mx-auto max-w-2xl text-3xl leading-[1.1] font-semibold tracking-tight text-balance sm:text-[40px] md:text-[52px]">
-          Three commands from zero to a mounted bundle.
+          Three commands from build output to a served bundle.
         </h2>
         <div className="mx-auto mt-10 max-w-xl rounded-lg border border-zinc-200 bg-zinc-50 p-5 text-left dark:border-zinc-900 dark:bg-[#0e0e0f]">
           <pre className="overflow-x-auto font-mono text-[12px] leading-relaxed text-zinc-800 sm:text-[13px] dark:text-zinc-200">

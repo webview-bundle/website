@@ -1,4 +1,4 @@
-import { DOCS_URL, GITHUB_URL, NAV_ITEMS } from '../data';
+import { GITHUB_URL, NAV_ITEMS } from '../data';
 import { GitHubIcon } from './icons';
 import { Logo } from './Logo';
 import { MobileMenu } from './MobileMenu';
@@ -31,17 +31,11 @@ export function Navbar() {
             target="_blank"
             rel="noreferrer"
             aria-label="GitHub repository"
-            className="rounded-md border border-zinc-300 p-1.5 text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-900 md:hidden dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
+            className="rounded-md border border-zinc-300 p-1.5 text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
           >
             <GitHubIcon className="size-[15px]" />
           </a>
           <ThemeToggle />
-          <a
-            href={DOCS_URL}
-            className="hidden rounded-md bg-brand px-3.5 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-brand-hover md:inline-flex"
-          >
-            Get started
-          </a>
           <MobileMenu />
         </div>
       </div>

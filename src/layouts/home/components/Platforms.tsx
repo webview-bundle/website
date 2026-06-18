@@ -6,7 +6,7 @@ export function Platforms() {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="mb-6 flex items-baseline justify-between">
           <div className="font-mono text-[11px] tracking-widest text-zinc-500 uppercase">
-            Runs on
+            Targets
           </div>
           <a
             href={DOCS_URL}
@@ -17,9 +17,11 @@ export function Platforms() {
         </div>
         <div className="grid grid-cols-2 gap-px bg-zinc-200 sm:grid-cols-3 md:grid-cols-5 dark:bg-zinc-900">
           {PLATFORMS.map(platform => (
-            <div key={platform} className="bg-white px-6 py-6 dark:bg-[#09090a]">
-              <div className="font-mono text-[11px] text-zinc-500">platform</div>
-              <div className="mt-1 text-[18px] font-semibold tracking-tight">{platform}</div>
+            <div key={platform.name} className="bg-white px-6 py-6 dark:bg-[#09090a]">
+              <div className="font-mono text-[11px] text-zinc-500">
+                {platform.planned === true ? 'planned' : 'platform'}
+              </div>
+              <div className="mt-1 text-[18px] font-semibold tracking-tight">{platform.name}</div>
             </div>
           ))}
         </div>

@@ -21,8 +21,8 @@ export function Hero() {
           <span className="text-zinc-400 dark:text-zinc-600">inside</span> native.
         </h1>
         <p className="mt-6 max-w-2xl font-mono text-[15px] leading-relaxed text-zinc-600 sm:text-[16.5px] dark:text-zinc-400">
-          A bundle format and runtime for delivering web resources to any webview-mounted platform —
-          signed, versioned, and guaranteed to work offline.
+          A bundle format and runtime for delivering web resources to webview-mounted platforms like
+          Electron and Tauri — signed, versioned, and offline-first.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <a

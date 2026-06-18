@@ -8,6 +8,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Docs', href: DOCS_URL },
+  { label: 'Demo', href: '#demo' },
   { label: 'How it works', href: '#how-it-works' },
   { label: 'Platforms', href: '#platforms' },
   { label: 'Reference', href: '/docs/cli' },
@@ -23,10 +24,9 @@ export interface WebviewHost {
 
 /** Hosts shown on the right ("webview host") of the architecture diagram. */
 export const WEBVIEW_HOSTS: WebviewHost[] = [
+  { platform: 'Desktop', runtime: 'Electron / Tauri' },
   { platform: 'iOS', runtime: 'WKWebView' },
   { platform: 'Android', runtime: 'WebView' },
-  { platform: 'Desktop', runtime: 'Tauri / Electron' },
-  { platform: 'RN', runtime: 'react-native-webview' },
 ];
 
 export interface Feature {
@@ -41,36 +41,47 @@ export const FEATURES: Feature[] = [
     number: '01',
     title: 'Offline-first, by default.',
     description:
-      "Every bundle carries its full dependency graph. Mount it once and the app keeps working — subway, plane, dead network, doesn't matter.",
-    code: 'await mount("app.wvb", { offline: true });',
+      "Every bundle carries its full asset graph and is served through a custom protocol — no network round-trip. Subway, plane, dead network, doesn't matter.",
+    code: "webviewBundle({ protocols: [bundleProtocol('app')] });",
   },
   {
     number: '02',
     title: 'Written in web code.',
     description:
-      'Author with React, Vue, Svelte, or vanilla HTML. The build step emits a single .wvb artifact from any bundler output — no custom toolchain to learn.',
-    code: 'wvb build ./dist --sign ed25519',
+      'Author with React, Vue, Svelte, or vanilla HTML. wvb pack turns any bundler output into a single .wvb artifact — no custom toolchain to learn.',
+    code: 'wvb pack ./dist --outfile app.wvb',
   },
   {
     number: '03',
     title: 'Cross-platform contract.',
     description:
-      'One bundle format, identical runtime behavior on iOS WKWebView, Android WebView, Tauri, and Electron. No per-host packaging branches.',
-    code: '// Same bundle. Every host.',
+      'One bundle format over one shared Rust core. Electron and Tauri run it today; iOS WKWebView and Android WebView are on the way. No per-host packaging branches.',
+    code: '// One .wvb — Electron & Tauri today.',
   },
   {
     number: '04',
     title: 'Native where it matters.',
     description:
-      'A typed bridge exposes host capabilities to your web code. Streaming IPC with cancellation and backpressure, adapters for Swift, Kotlin, and Rust.',
-    code: 'const result = await native.fs.read(path);',
+      'A typed IPC layer lets web code load bundles and pull over-the-air updates from the host. Native bindings for Swift and Kotlin are generated from the Rust core via UniFFI.',
+    code: 'const info = await updater.getUpdate("app");',
   },
 ];
 
-export const PLATFORMS = ['iOS', 'Android', 'macOS', 'Windows', 'Linux'];
+export interface Platform {
+  name: string;
+  planned?: boolean;
+}
+
+export const PLATFORMS: Platform[] = [
+  { name: 'macOS' },
+  { name: 'Windows' },
+  { name: 'Linux' },
+  { name: 'iOS', planned: true },
+  { name: 'Android', planned: true },
+];
 
 export const INSTALL_COMMANDS = [
-  'npm install -g webview-bundle',
-  'wvb init my-app',
-  'wvb build ./my-app --out app.wvb',
+  'npm install -D @wvb/cli',
+  'wvb pack ./dist --outfile app.wvb',
+  'wvb serve .wvb/app.wvb',
 ];

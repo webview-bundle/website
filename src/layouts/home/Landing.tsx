@@ -4,6 +4,7 @@ import { Footer } from './components/Footer';
 import { Hero } from './components/Hero';
 import { Navbar } from './components/Navbar';
 import { Platforms } from './components/Platforms';
+import { Showcase } from './components/Showcase';
 
 export function Landing() {
   return (
@@ -11,6 +12,7 @@ export function Landing() {
       <Navbar />
       <main>
         <Hero />
+        <Showcase />
         <Features />
         <Platforms />
         <CallToAction />
