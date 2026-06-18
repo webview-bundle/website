@@ -106,18 +106,31 @@ export function Showcase() {
             'lg:max-w-none'
           )}
         >
-          {/* Desktop window + phone (2-up): always on lg+, and on the "Desktop" tab below lg. */}
+          {/* 2-up (desktop window + phone): wide screens only (lg+). */}
           <video
-            className={cn('w-full lg:block', view === 'desktop' ? 'block' : 'hidden')}
+            className="hidden w-full lg:block"
             muted
             loop
             playsInline
             preload="metadata"
             poster="/showcase/landscape.jpg"
-            aria-label="The same webview-bundle app running on Electron and Tauri (desktop)"
+            aria-label="The same webview-bundle app running on Electron, Tauri, iOS, and Android"
           >
             <source src="/showcase/landscape.webm" type="video/webm" />
             <source src="/showcase/landscape.mp4" type="video/mp4" />
+          </video>
+          {/* Single desktop window: below lg, on the "Desktop" tab. */}
+          <video
+            className={cn('w-full lg:hidden', view === 'desktop' ? 'block' : 'hidden')}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster="/showcase/desktop.jpg"
+            aria-label="The webview-bundle app running on Electron and Tauri (desktop)"
+          >
+            <source src="/showcase/desktop.webm" type="video/webm" />
+            <source src="/showcase/desktop.mp4" type="video/mp4" />
           </video>
           {/* Single phone (portrait): below lg, on the "Mobile" tab (default). */}
           <video
