@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '../../../lib/cn';
 
-const PLATFORMS = ['Electron', 'Tauri', 'iOS', 'Android'];
 type View = 'mobile' | 'desktop';
 const VIEWS: { id: View; label: string }[] = [
   { id: 'mobile', label: 'Mobile' },
@@ -145,18 +144,6 @@ export function Showcase() {
             <source src="/showcase/vertical.webm" type="video/webm" />
             <source src="/showcase/vertical.mp4" type="video/mp4" />
           </video>
-        </div>
-
-        <div className="mt-5 flex flex-wrap justify-center gap-x-6 gap-y-2 lg:justify-start">
-          {PLATFORMS.map(platform => (
-            <span
-              key={platform}
-              className="flex items-center gap-2 font-mono text-[11.5px] text-zinc-400"
-            >
-              <span className="size-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_1px_rgba(59,130,246,0.7)]" />
-              {platform}
-            </span>
-          ))}
         </div>
       </div>
     </section>
