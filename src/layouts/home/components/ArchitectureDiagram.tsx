@@ -68,7 +68,7 @@ export function ArchitectureDiagram() {
       </div>
 
       <div className="mt-6 border-t border-zinc-200 pt-4 text-center font-mono text-[10.5px] tracking-widest text-zinc-500 uppercase dark:border-zinc-900">
-        deterministic · signed · offline
+        versioned · signed · offline
       </div>
     </div>
   );

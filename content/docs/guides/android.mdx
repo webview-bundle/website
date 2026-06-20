@@ -100,7 +100,7 @@ val source = BundleSource(
 
 // Query what's available:
 val version = source.loadVersion("app")          // current version (remote wins over builtin)
-val bundle = source.fetch("app")                 // load a bundle into memory
+val bundle = source.fetchBundle("app")           // load a bundle into memory
 val html = bundle.getData("/index.html")         // ByteArray? — file bytes, or null
 ```
 

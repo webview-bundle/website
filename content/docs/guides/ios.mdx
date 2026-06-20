@@ -86,7 +86,7 @@ let source = BundleSource(config: BundleSourceConfig(
 ))
 
 // Query what's available:
-let bundle = try await source.fetch(bundleName: "app")     // load into memory
+let bundle = try await source.fetchBundle(bundleName: "app")     // load into memory
 let html = try bundle.getData(path: "/index.html")          // Data? — bytes or nil
 ```
 

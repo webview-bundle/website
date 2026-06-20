@@ -29,8 +29,8 @@ through a custom URL scheme — and can update over the air without an app-store
   release required.
 - **Integrity & authenticity.** Every bundle carries checksums, and downloads can be verified with
   SHA-3 integrity hashes and digital signatures (ECDSA, Ed25519, RSA).
-- **One format, every platform.** The same `.wvb` archive works in Electron, Tauri, Android, and
-  iOS via a shared Rust core.
+- **One format, every platform.** The same `.wvb` archive runs in Electron and Tauri today via a
+  shared Rust core, with Android and iOS support planned.
 
 ## Start here
 
@@ -73,27 +73,27 @@ Then pick your platform guide:
   <Card
     title="Android"
     href="/docs/guides/android"
-    description="Serve a WebView from a bundle with the Kotlin bindings."
+    description="Serve a WebView from a bundle with the Kotlin bindings (planned — under development)."
   />
   <Card
     title="iOS"
     href="/docs/guides/ios"
-    description="Serve a WKWebView from a bundle with the Swift bindings."
+    description="Serve a WKWebView from a bundle with the Swift bindings (planned — under development)."
   />
 </Cards>
 
 ## Packages
 
-| Package                      | What it is                                                                        | Where it runs          |
-| ---------------------------- | --------------------------------------------------------------------------------- | ---------------------- |
-| [`wvb`](https://docs.rs/wvb) | Rust core: bundle format, source, remote, updater, protocol, integrity, signature | everywhere (library)   |
-| `@wvb/cli` (`wvb`)           | Command-line tool: pack, serve, upload, deploy, download, local remote            | your machine / CI      |
-| `@wvb/config`                | `defineConfig` for `wvb.config.ts`                                                | build tooling          |
-| `@wvb/node`                  | N-API bindings to the core                                                        | Node.js                |
-| `@wvb/electron`              | Electron integration (protocols, IPC, updater)                                    | Electron main/renderer |
-| `wvb-tauri`                  | Tauri plugin (protocols, commands, updater)                                       | Tauri app              |
-| `wvb-ffi`                    | UniFFI bindings (Kotlin/Swift)                                                    | Android / iOS          |
-| `@wvb/remote-*`              | Remote server providers (local, AWS, Cloudflare)                                  | your update backend    |
+| Package                      | What it is                                                                        | Where it runs           |
+| ---------------------------- | --------------------------------------------------------------------------------- | ----------------------- |
+| [`wvb`](https://docs.rs/wvb) | Rust core: bundle format, source, remote, updater, protocol, integrity, signature | everywhere (library)    |
+| `@wvb/cli` (`wvb`)           | Command-line tool: pack, serve, upload, deploy, download, local remote            | your machine / CI       |
+| `@wvb/config`                | `defineConfig` for `wvb.config.ts`                                                | build tooling           |
+| `@wvb/node`                  | N-API bindings to the core                                                        | Node.js                 |
+| `@wvb/electron`              | Electron integration (protocols, IPC, updater)                                    | Electron main/renderer  |
+| `wvb-tauri`                  | Tauri plugin (protocols, commands, updater)                                       | Tauri app               |
+| `wvb-ffi`                    | UniFFI bindings (Kotlin/Swift)                                                    | Android / iOS (planned) |
+| `@wvb/remote-*`              | Remote server providers (local, AWS, Cloudflare)                                  | your update backend     |
 
 ## The bundle format in one line
 

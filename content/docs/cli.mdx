@@ -76,7 +76,8 @@ These commands require `remote.*` settings in your [config](/docs/configuration)
 
 ### `wvb upload [BUNDLE] [VERSION]`
 
-Upload a packed bundle to the remote, optionally computing integrity, signing it, and deploying.
+Pack (by default) and upload a bundle to the remote, optionally computing integrity, signing it, and
+deploying.
 
 ```sh
 wvb upload                       # uses config defaults
@@ -85,15 +86,16 @@ wvb upload app 1.2.0 --deploy --channel beta
 wvb upload --file ./dist/app.wvb --force
 ```
 
-| Option              | Description                                                  |
-| ------------------- | ------------------------------------------------------------ |
-| `BUNDLE`, `VERSION` | Bundle name and version (else from config / `package.json`). |
-| `--file, -F`        | Path to the `.wvb` to upload.                                |
-| `--force`           | Overwrite if the version already exists.                     |
-| `--deploy`          | Deploy after upload. Default `true`.                         |
-| `--channel`         | Channel to deploy to (with `--deploy`).                      |
-| `--skip-integrity`  | Don't compute an integrity hash.                             |
-| `--skip-signature`  | Don't sign the bundle.                                       |
+| Option              | Description                                                                                               |
+| ------------------- | --------------------------------------------------------------------------------------------------------- |
+| `BUNDLE`, `VERSION` | Bundle name and version (else from config / `package.json`).                                              |
+| `--file, -F`        | Path to the `.wvb` to upload.                                                                             |
+| `--pack, -P`        | Pack from `pack.srcDir` before uploading. Default `true` (pass `--no-pack` to upload an existing `.wvb`). |
+| `--force`           | Overwrite if the version already exists.                                                                  |
+| `--deploy`          | Deploy after upload. Default `true`.                                                                      |
+| `--channel`         | Channel to deploy to (with `--deploy`).                                                                   |
+| `--skip-integrity`  | Don't compute an integrity hash.                                                                          |
+| `--skip-signature`  | Don't sign the bundle.                                                                                    |
 
 ### `wvb deploy [BUNDLE] VERSION`
 
@@ -111,7 +113,7 @@ Download a bundle from the remote and (by default) save it to disk.
 ```sh
 wvb download app --endpoint https://updates.example.com
 wvb download app 1.2.0 --out ./bundles/app.wvb --overwrite
-wvb download app --skip-write          # fetch + print info only
+wvb download app --no-write             # fetch + print info only
 ```
 
 | Option           | Description                                  |

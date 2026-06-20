@@ -66,8 +66,8 @@ Point your app window at the custom scheme. The simplest approach is to set the 
 window to `bundle://app/` (production) or your dev server (development).
 
 Make sure your capabilities allow the plugin's commands if you call them from the frontend. Add the
-`wvb` permissions to `src-tauri/capabilities/default.json` as needed (the plugin namespace is
-`wvb`).
+`wvb-tauri` permissions to `src-tauri/capabilities/default.json` as needed (the plugin namespace is
+`wvb-tauri`).
 
 ## 3. Pack and ship bundles
 
@@ -94,23 +94,25 @@ Config::new()
     .remote(Remote::new("https://updates.example.com"));
 ```
 
-The plugin then exposes these commands to the frontend via `invoke` (all under the `wvb` plugin
+The plugin then exposes these commands to the frontend via `invoke` (all under the `wvb-tauri` plugin
 namespace):
 
-| Command                               | Arguments                | Returns                   |
-| ------------------------------------- | ------------------------ | ------------------------- |
-| `plugin:wvb\|updater_get_update`      | `bundleName`             | update availability info  |
-| `plugin:wvb\|updater_download_update` | `bundleName`, `version?` | installed bundle metadata |
-| `plugin:wvb\|source_load_version`     | `bundleName`             | active local version      |
-| `plugin:wvb\|source_list_bundles`     | —                        | local bundles             |
-| `plugin:wvb\|remote_get_info`         | `bundleName`, `channel?` | current remote metadata   |
+| Command                                 | Arguments                | Returns                        |
+| --------------------------------------- | ------------------------ | ------------------------------ |
+| `plugin:wvb-tauri\|updater_get_update`  | `bundleName`             | update availability info       |
+| `plugin:wvb-tauri\|updater_download`    | `bundleName`, `version?` | downloaded bundle metadata     |
+| `plugin:wvb-tauri\|updater_install`     | `bundleName`, `version`  | activates a downloaded version |
+| `plugin:wvb-tauri\|source_load_version` | `bundleName`             | active local version           |
+| `plugin:wvb-tauri\|source_list_bundles` | —                        | local bundles                  |
+| `plugin:wvb-tauri\|remote_get_info`     | `bundleName`, `channel?` | current remote metadata        |
 
 ```ts
 import { invoke } from '@tauri-apps/api/core';
 
-const update = await invoke('plugin:wvb|updater_get_update', { bundleName: 'app' });
+const update = await invoke('plugin:wvb-tauri|updater_get_update', { bundleName: 'app' });
 if (update.isAvailable) {
-  await invoke('plugin:wvb|updater_download_update', { bundleName: 'app' });
+  const info = await invoke('plugin:wvb-tauri|updater_download', { bundleName: 'app' });
+  await invoke('plugin:wvb-tauri|updater_install', { bundleName: 'app', version: info.version });
   // reload the webview to pick up the new bundle
 }
 ```
@@ -130,7 +132,8 @@ use wvb_tauri::WebviewBundleExtra;
 let wvb = app.wvb();
 let bundles = wvb.source().list_bundles().await?;
 if let Some(updater) = wvb.updater() {
-    updater.download_update("app", None).await?;
+    let info = updater.download("app", None).await?; // download + verify, stage into the remote source
+    updater.install("app", info.version).await?;     // activate the downloaded version
 }
 ```
 
