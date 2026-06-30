@@ -6,8 +6,9 @@ import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layo
 import { Suspense } from 'react';
 import browserCollections from '~source/browser';
 import { docSource } from '../../doc';
-import { Logo } from '../../layouts/home/components/Logo';
-import { GITHUB_URL, NAV_ITEMS } from '../../layouts/home/data';
+import { DocsNavbar } from '../../layouts/docs/DocsNavbar';
+import { MobileTocBar } from '../../layouts/docs/MobileTocBar';
+import { GITHUB_URL } from '../../layouts/home/data';
 import { useMDXComponents } from '../../mdx';
 
 export const Route = createFileRoute('/docs/$')({
@@ -46,7 +47,7 @@ const clientLoader = browserCollections.docs.createClientLoader({
     _props: undefined
   ) {
     return (
-      <DocsPage toc={toc}>
+      <DocsPage toc={toc} tableOfContentPopover={{ component: <MobileTocBar /> }}>
         <DocsTitle>{frontmatter.title}</DocsTitle>
         <DocsDescription>{frontmatter.description}</DocsDescription>
         <DocsBody>
@@ -64,22 +65,7 @@ function Page() {
     <DocsLayout
       tree={data.pageTree}
       tabMode="navbar"
-      nav={{
-        mode: 'top',
-        url: '/',
-        title: (
-          <>
-            <Logo width={26} height={26} />
-            <span className="font-mono text-[15px] font-semibold tracking-tight">
-              webview-bundle
-            </span>
-          </>
-        ),
-      }}
-      links={NAV_ITEMS.map(item => ({
-        text: item.label,
-        url: item.href.startsWith('#') ? `/${item.href}` : item.href,
-      }))}
+      nav={{ mode: 'top', component: <DocsNavbar /> }}
       githubUrl={GITHUB_URL}
     >
       <Suspense>{clientLoader.useContent(data.path)}</Suspense>

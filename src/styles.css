@@ -75,16 +75,23 @@
  * color tone (white / #09090a base, zinc surfaces, translucent blurred nav).
  * ------------------------------------------------------------------------- */
 
-/* Top navbar: match the landing header's translucency and blur. */
-#nd-subnav[data-transparent='false'] {
-  background-color: color-mix(in oklab, var(--color-fd-background) 85%, transparent);
-  backdrop-filter: blur(12px);
+/* The docs header is a custom component (DocsNavbar) passed as the layout's
+ * `nav.component`. Fumadocs' built-in header sets `--fd-header-height` on the
+ * grid via the shipped `layout:` utility; a custom header doesn't, so declare
+ * the header row height here (DocsNavbar is `h-14` = 3.5rem). This drives the
+ * sidebar / ToC / content offsets below the sticky header. */
+#nd-notebook-layout {
+  --fd-header-height: 3.5rem;
 }
 
-/* Match the landing nav's mono link styling (the tab row keeps the sans font). */
-#nd-subnav [data-header-body] a {
-  font-family: var(--font-mono);
-  font-size: 13.5px;
+/* Mobile: the sidebar drawer slides in from the LEFT (the hamburger lives at the
+ * start of the ToC bar). Fumadocs defaults the drawer to the end (right) edge. */
+#nd-sidebar-mobile {
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  border-inline-start-width: 0;
+  border-inline-end-width: 1px;
+  --fd-sidebar-drawer-offset: -100%;
 }
 
 /* Left sidebar: blend with the page base so it shares the landing's tone, with
