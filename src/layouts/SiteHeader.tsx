@@ -30,7 +30,7 @@ export function SiteHeader({ className }: { className?: string }) {
           <span className="font-mono text-[15px] font-semibold tracking-tight">webview-bundle</span>
         </a>
 
-        <nav className="hidden items-center gap-5 font-mono text-[13.5px] text-zinc-600 md:flex dark:text-zinc-400">
+        <nav className="hidden items-center gap-5 font-sans text-sm text-zinc-600 md:flex dark:text-zinc-400">
           {SECTIONS.map(section => (
             <a
               key={section.href}

@@ -103,6 +103,15 @@
   border-inline-end: 1px solid var(--color-fd-border);
 }
 
+/* From `lg` up the section switcher lives in the header, so fumadocs hides the
+ * sidebar's dropdown but its padded container still reserves space at the top.
+ * Collapse that container on desktop so the page tree starts flush with the top. */
+@media (width >= 64rem) {
+  #nd-notebook-layout #nd-sidebar > :first-child {
+    display: none;
+  }
+}
+
 /* ---------------------------------------------------------------------------
  * Sharper, more angular corners for the docs. CSS variables inherit, so
  * redefining the radius scale on the docs root flows into every `rounded-*`

@@ -35,13 +35,13 @@ export function MobileNav({ className }: { className?: string }) {
             </Dialog.Close>
           </div>
 
-          <nav className="mt-6 flex flex-col gap-1 font-mono text-lg">
+          <nav className="mt-6 flex flex-col gap-1 font-sans text-[15px]">
             {SECTIONS.map(section => (
               <Dialog.Close
                 key={section.href}
                 render={<a href={section.href}>{section.label}</a>}
                 className={cn(
-                  'rounded-md px-3 py-3 text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900',
+                  'rounded-md px-3 py-2.5 text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900',
                   pathname.startsWith(section.href) && 'text-brand dark:text-brand'
                 )}
               />
