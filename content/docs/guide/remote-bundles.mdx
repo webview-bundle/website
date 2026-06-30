@@ -9,7 +9,7 @@ Webview Bundle downloads newer bundles over the air (OTA), so you ship updated a
 
 A bundle travels from build output to device in five stages. The first three run on your machine or CI; the last two run inside the app, driven by the updater.
 
-![The developer machine uploads and deploys a bundle to the remote server; the device checks, downloads, verifies, and installs the update.](/diagrams/update-lifecycle.svg)
+![The developer machine uploads and deploys a bundle to the remote server; the device checks, downloads, verifies, and installs the update.](https://static.wvb.dev/diagrams/update-lifecycle.svg)
 
 1. **Pack** your build into a `.wvb` archive.
 2. **Upload** that archive, optionally attaching an integrity hash and a signature.

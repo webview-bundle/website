@@ -19,6 +19,10 @@ export const Route = createRootRoute({
     ],
     links: [
       {
+        rel: 'preconnect',
+        href: 'https://static.wvb.dev',
+      },
+      {
         rel: 'stylesheet',
         href: styles,
       },

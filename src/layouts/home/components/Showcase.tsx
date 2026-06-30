@@ -112,11 +112,11 @@ export function Showcase() {
             loop
             playsInline
             preload="metadata"
-            poster="/showcase/landscape.jpg"
+            poster="https://static.wvb.dev/showcase/landscape.jpg"
             aria-label="The same webview-bundle app running on Electron, Tauri, iOS, and Android"
           >
-            <source src="/showcase/landscape.webm" type="video/webm" />
-            <source src="/showcase/landscape.mp4" type="video/mp4" />
+            <source src="https://static.wvb.dev/showcase/landscape.webm" type="video/webm" />
+            <source src="https://static.wvb.dev/showcase/landscape.mp4" type="video/mp4" />
           </video>
           {/* Single desktop window: below lg, on the "Desktop" tab. */}
           <video
@@ -125,11 +125,11 @@ export function Showcase() {
             loop
             playsInline
             preload="metadata"
-            poster="/showcase/desktop.jpg"
+            poster="https://static.wvb.dev/showcase/desktop.jpg"
             aria-label="The webview-bundle app running on Electron and Tauri (desktop)"
           >
-            <source src="/showcase/desktop.webm" type="video/webm" />
-            <source src="/showcase/desktop.mp4" type="video/mp4" />
+            <source src="https://static.wvb.dev/showcase/desktop.webm" type="video/webm" />
+            <source src="https://static.wvb.dev/showcase/desktop.mp4" type="video/mp4" />
           </video>
           {/* Single phone (portrait): below lg, on the "Mobile" tab (default). */}
           <video
@@ -138,11 +138,11 @@ export function Showcase() {
             loop
             playsInline
             preload="metadata"
-            poster="/showcase/vertical.jpg"
+            poster="https://static.wvb.dev/showcase/vertical.jpg"
             aria-label="The same webview-bundle app running on iOS and Android (mobile)"
           >
-            <source src="/showcase/vertical.webm" type="video/webm" />
-            <source src="/showcase/vertical.mp4" type="video/mp4" />
+            <source src="https://static.wvb.dev/showcase/vertical.webm" type="video/webm" />
+            <source src="https://static.wvb.dev/showcase/vertical.mp4" type="video/mp4" />
           </video>
         </div>
       </div>

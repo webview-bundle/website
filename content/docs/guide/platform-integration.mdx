@@ -254,7 +254,7 @@ const info = await updater.getUpdate('app');
 
 A request from your web app flows down through the bridge to the native host, into the core, and out to a bundle source or a remote server.
 
-![A web app calls the native host through @wvb/bridge; the host embeds the wvb Rust core, which reads from a source and a remote server.](/diagrams/architecture.svg)
+![A web app calls the native host through @wvb/bridge; the host embeds the wvb Rust core, which reads from a source and a remote server.](https://static.wvb.dev/diagrams/architecture.svg)
 
 The webview also loads its assets through the same core: the bundle protocol serves files straight out of the source, so the page bytes and the `invoke()` commands share one bundle source.
 
