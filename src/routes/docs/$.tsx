@@ -1,11 +1,13 @@
 import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
-import { DocsLayout } from 'fumadocs-ui/layouts/docs';
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/notebook/page';
 import { Suspense } from 'react';
 import browserCollections from '~source/browser';
 import { docSource } from '../../doc';
+import { Logo } from '../../layouts/home/components/Logo';
+import { GITHUB_URL, NAV_ITEMS } from '../../layouts/home/data';
 import { useMDXComponents } from '../../mdx';
 
 export const Route = createFileRoute('/docs/$')({
@@ -60,11 +62,25 @@ function Page() {
 
   return (
     <DocsLayout
-      nav={{
-        title: 'Webview Bundle',
-      }}
-      tabMode="top"
       tree={data.pageTree}
+      tabMode="navbar"
+      nav={{
+        mode: 'top',
+        url: '/',
+        title: (
+          <>
+            <Logo width={26} height={26} />
+            <span className="font-mono text-[15px] font-semibold tracking-tight">
+              webview-bundle
+            </span>
+          </>
+        ),
+      }}
+      links={NAV_ITEMS.map(item => ({
+        text: item.label,
+        url: item.href.startsWith('#') ? `/${item.href}` : item.href,
+      }))}
+      githubUrl={GITHUB_URL}
     >
       <Suspense>{clientLoader.useContent(data.path)}</Suspense>
     </DocsLayout>

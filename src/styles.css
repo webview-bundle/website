@@ -68,12 +68,32 @@
   --color-fd-ring: var(--color-brand);
 }
 
-/* fumadocs re-tints the sidebar with a higher-specificity rule of its own;
- * keep it in step with the dark palette above. */
-:root.dark #nd-sidebar {
-  --color-fd-muted: #18181b; /* zinc-900 */
-  --color-fd-secondary: #27272a; /* zinc-800 */
-  --color-fd-muted-foreground: #a1a1aa; /* zinc-400 */
+/* ---------------------------------------------------------------------------
+ * Docs use the notebook layout — a full-width top navbar with the sidebar
+ * below it — so the docs header reads as the same bar as the landing page.
+ * The rules below align that header and the left sidebar with the landing's
+ * color tone (white / #09090a base, zinc surfaces, translucent blurred nav).
+ * ------------------------------------------------------------------------- */
+
+/* Top navbar: match the landing header's translucency and blur. */
+#nd-subnav[data-transparent='false'] {
+  background-color: color-mix(in oklab, var(--color-fd-background) 85%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+/* Match the landing nav's mono link styling (the tab row keeps the sans font). */
+#nd-subnav [data-header-body] a {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+}
+
+/* Left sidebar: blend with the page base so it shares the landing's tone, with
+ * a single hairline divider against the content (vite.dev-style clean sidebar).
+ * In `nav.mode: top` fumadocs already leaves the sidebar transparent; this keeps
+ * it that way across themes and adds the divider. */
+#nd-notebook-layout #nd-sidebar {
+  background-color: transparent;
+  border-inline-end: 1px solid var(--color-fd-border);
 }
 
 /* ---------------------------------------------------------------------------
@@ -82,7 +102,7 @@
  * utility inside it — the home page keeps its softer radii, and `rounded-full`
  * (dots, pills, avatars) ignores these tokens and stays circular.
  * ------------------------------------------------------------------------- */
-#nd-docs-layout {
+#nd-notebook-layout {
   --radius-xs: 1px;
   --radius-sm: 2px;
   --radius-md: 3px;
