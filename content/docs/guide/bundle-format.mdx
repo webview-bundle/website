@@ -3,31 +3,41 @@ title: Bundle format
 description: How a .wvb archive is laid out on disk, section by section, and how its checksums protect against corruption.
 ---
 
-A Webview Bundle is a single file with the `.wvb` extension that packs your built web assets into one
-compressed, integrity-checked archive. This page explains how that file is laid out on disk: its three
-sections, the fields in each, and the checksums that catch corruption before any content is served. If
-you just want to produce one, see the [CLI](/docs/guide/cli); read on to understand what it contains.
+A Webview Bundle is a single `.wvb` file that packs your built web assets into one compressed,
+integrity-checked archive. It is three sections written back to back:
 
-## Overview
+```text
+[ Header (17 bytes) ][ Index (variable) ][ Data (variable) ]
+```
 
-A `.wvb` file is three sections written back to back:
+| Section          | Holds                                                   |
+| ---------------- | ------------------------------------------------------- |
+| Header           | magic number, format version, index size, checksum      |
+| Index            | path → offset/length/headers entry map                  |
+| Data             | LZ4-compressed file contents, sorted by path            |
 
-| Header (17 bytes)                                  | Index (variable)                       | Data (variable)               |
-| -------------------------------------------------- | -------------------------------------- | ----------------------------- |
-| magic number, format version, index size, checksum | path → offset/length/headers entry map | LZ4-compressed file contents  |
+Every section carries its own checksum, so a truncated or corrupted archive is caught before any content
+is served. To produce one, see the [CLI](/docs/guide/cli) or the [Node API](/docs/references/node):
 
-The **header** is a fixed 17-byte preamble. The **index** maps each file path to where its bytes live
-and how to serve them. The **data** section holds the compressed file contents. Every section carries
-its own checksum, so a truncated or corrupted archive is detected before its contents are trusted.
+```ts title="build.ts"
+import { BundleBuilder, writeBundle } from '@wvb/node';
 
-By convention a packed file is named `<name>_<version>.wvb`, for example `app_1.0.0.wvb`. The bundle
-name and version are source-level concepts that live in the filename and the manifest, not inside the
-archive itself. See [Bundle sources](/docs/guide/bundle-sources) for how names and versions are tracked.
+const builder = new BundleBuilder();
+builder.insertEntry('/index.html', await readFile('dist/index.html'), 'text/html');
+builder.insertEntry('/app.js', await readFile('dist/app.js'), 'application/javascript');
+
+const bundle = builder.build();
+await writeBundle(bundle, '.wvb/app_1.0.0.wvb');
+```
+
+By convention a packed file is named `<name>_<version>.wvb`, e.g. `app_1.0.0.wvb`. The bundle name and
+version are source-level concepts that live in the filename and the manifest, never inside the archive.
+See [Bundle sources](/docs/guide/bundle-sources).
 
 ## Header
 
-The header is exactly 17 bytes with a fixed layout. It is written by hand rather than through a
-serializer, so every field sits at a known offset.
+The header is exactly 17 bytes with a fixed layout, written by hand rather than through a serializer, so
+every field sits at a known offset.
 
 | Field        | Offset | Length | Encoding                                  |
 | ------------ | ------ | ------ | ----------------------------------------- |
@@ -36,31 +46,38 @@ serializer, so every field sits at a known offset.
 | Index size   | 9      | 4      | `u32`, big-endian                         |
 | Checksum     | 13     | 4      | `u32`, big-endian xxHash-32               |
 
-The magic number `0xF09F8C90F09F8E81` is the UTF-8 encoding of the two emoji 🌐🎁 (globe and wrapped
-gift). A reader that does not find these bytes rejects the file as not a bundle.
+For a `V1` bundle with an index size of `1234`, the 17 bytes are:
 
-The version byte holds the bundle **format version**. The format enum currently has a single value,
-`V1`. This is distinct from a bundle's release version, such as `1.0.0`, which never appears inside the
-archive.
+```text
+F0 9F 8C 90 F0 9F 8E 81   magic  (🌐🎁)
+01                        version (V1)
+00 00 04 D2               index size = 1234, big-endian
+31 38 03 10               xxHash-32 of the first 13 bytes
+```
 
-The index size is the byte length of the index section that follows, not counting the index's own
-trailing checksum. A reader uses it to know where the index ends and the data section begins.
+- The magic number `0xF09F8C90F09F8E81` is the UTF-8 encoding of 🌐🎁 (globe + wrapped gift). A reader
+  that does not find these bytes rejects the file as not a bundle.
+- The version byte holds the bundle **format version**. The enum currently has a single value, `V1`.
+  This is distinct from a bundle's release version such as `1.0.0`, which never appears inside the archive.
+- The index size is the byte length of the index that follows, **not** counting the index's own trailing
+  checksum.
+- The checksum is an xxHash-32 over the first 13 bytes (everything before the checksum), stored big-endian.
 
-The checksum is an xxHash-32 over the first 13 bytes of the header (everything before the checksum
-itself), stored big-endian.
+Read header fields back through the descriptor:
+
+```ts
+import { readBundle } from '@wvb/node';
+
+const header = (await readBundle('app_1.0.0.wvb')).descriptor().header();
+header.version();        // 'v1'
+header.indexSize();      // byte length of the index
+header.indexEndOffset(); // 17 + indexSize + 4 -> where the data section starts
+```
 
 ## Index
 
-The index sits immediately after the header. It is a map from each file path, such as `/index.html`, to
-an entry describing where that file's bytes are and how to serve them.
-
-The index is serialized with [bincode](https://github.com/bincode-org/bincode) using a big-endian,
-variable-length integer configuration. Numeric fields are therefore varint-encoded, not fixed width.
-Before serialization the map is sorted by path, so the output bytes are deterministic and independent of
-insertion order. A 4-byte big-endian xxHash-32 checksum of the index bytes is written right after the
-index.
-
-Each entry holds the following fields:
+The index sits immediately after the header and maps each file path, e.g. `/index.html`, to an entry
+describing where its bytes are and how to serve them. Each entry holds:
 
 | Field            | Type     | Meaning                                                          |
 | ---------------- | -------- | --------------------------------------------------------------- |
@@ -70,44 +87,83 @@ Each entry holds the following fields:
 | `content_length` | `u64`    | original **uncompressed** size, used for `Content-Length`       |
 | `headers`        | map      | HTTP header name/value pairs to replay when the file is served  |
 
+```ts
+const index = (await readBundle('app_1.0.0.wvb')).descriptor().index();
+
+index.containsPath('/index.html'); // true
+index.getEntry('/index.html');
+// {
+//   offset: 0,
+//   len: 184,                       // compressed
+//   contentType: 'text/html',
+//   contentLength: 412,             // uncompressed
+//   headers: { 'cache-control': 'no-cache' },
+//   isEmpty: false,
+// }
+```
+
+Serialization details:
+
+- Encoded with [bincode](https://github.com/bincode-org/bincode) in a big-endian, variable-length integer
+  configuration. Numeric fields are varint-encoded, not fixed width.
+- The map is sorted by path before encoding, so the output bytes are deterministic and independent of
+  insertion order.
+- A 4-byte big-endian xxHash-32 checksum of the index bytes is written right after the index.
+
 When the protocol handler serves a file, it replays the stored `headers`, then sets `Content-Type` from
 `content_type` and `Content-Length` from `content_length` (the uncompressed size). See
-[Protocol handling](/docs/guide/protocol-handling) for how a URL maps to one of these entries.
+[Protocol handling](/docs/guide/protocol-handling) for how a URL maps to an entry.
 
 ## Data
 
-The data section holds the file contents, laid out sorted by path in the same order as the index. Each
-file is stored as its compressed bytes followed by a 4-byte big-endian xxHash-32 checksum of those
-compressed bytes:
+The data section holds file contents sorted by path, in the same order as the index. Each file is its
+LZ4-compressed bytes followed by a 4-byte big-endian xxHash-32 checksum of those compressed bytes:
 
 ```text
 [ LZ4 bytes for file A ][ xxHash-32 ][ LZ4 bytes for file B ][ xxHash-32 ] ...
 ```
 
 Files are compressed with [LZ4](https://github.com/lz4/lz4) in its size-prepended block format, so the
-uncompressed length travels with the compressed data. The `offset` in each index entry points at the
-start of a file's compressed bytes, and its `len` is the length of those bytes; the per-file checksum
-sits at `offset + len`.
+uncompressed length travels with the compressed data. An entry's `offset` points at the start of its
+compressed bytes, `len` is the length of those bytes, and the per-file checksum sits at `offset + len`.
+
+`getData` returns the decompressed bytes; `getDataChecksum` returns the stored xxHash-32 so callers can
+verify a file at rest:
+
+```ts
+const bundle = await readBundle('app_1.0.0.wvb');
+
+bundle.getData('/index.html');          // Buffer (decompressed) | null
+bundle.getDataChecksum('/index.html');  // number (xxHash-32) | null
+```
 
 ## Checksums versus integrity
 
-The format uses two different hashing schemes for two different jobs. Keeping them straight avoids a
-common confusion.
+The format uses two different hashing schemes for two different jobs.
 
-The **internal checksums** in the header, index, and per-file data are all **xxHash-32**. They guard
-**storage integrity**: they catch a file that was truncated, partially written, or corrupted on disk.
-xxHash is fast and non-cryptographic, which is exactly what you want for a corruption check.
+**Internal checksums** in the header, index, and per-file data are all **xxHash-32**. They guard storage
+integrity: a file truncated, partially written, or corrupted on disk. xxHash is fast and
+non-cryptographic, which is exactly what a corruption check needs.
 
-A bundle's **integrity** value is something else entirely. It is a **SHA-2** hash computed over the
-serialized bytes of a downloaded bundle, so a client can confirm it received exactly what the server
-published. The algorithms are `sha256` (the default), `sha384`, and `sha512`, serialized as
-`<algorithm>:<base64>`, for example `sha384:Ws2q…`.
+A bundle's **integrity** value is something else: a **SHA-2** hash over the serialized bytes of a
+downloaded bundle, so a client can confirm it received exactly what the server published. Algorithms are
+`sha256` (default), `sha384`, and `sha512`, serialized as `<algorithm>:<base64>`:
+
+```text
+sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+sha384:Ws2q...
+```
+
+```ts
+import type { IntegrityAlgorithm, IntegrityPolicy } from '@wvb/node';
+// IntegrityAlgorithm = 'sha256' | 'sha384' | 'sha512'
+// IntegrityPolicy    = 'strict' | 'optional' | 'none'   (default: 'optional')
+```
 
 <Callout type="warn">
-The format uses **SHA-2** for integrity, not SHA-3. The two internal jobs are distinct: xxHash-32
-protects bytes at rest, while SHA-2 integrity verifies what was downloaded. See
-[Remote bundles](/docs/guide/remote-bundles) for how integrity and signatures are checked during an
-update.
+The format uses **SHA-2** for integrity, not SHA-3. The two jobs are distinct: xxHash-32 protects bytes
+at rest, while SHA-2 integrity verifies what was downloaded. See
+[Remote bundles](/docs/guide/remote-bundles) for how integrity and signatures are checked during an update.
 </Callout>
 
 ## Where to go next

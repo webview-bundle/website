@@ -3,13 +3,9 @@ title: Cloudflare provider
 description: Store, deploy, and serve bundles on Cloudflare using R2, Workers KV, and Cloudflare Workers.
 ---
 
-The Cloudflare provider runs a Webview Bundle remote entirely on Cloudflare's edge. Bundles live in
-an **R2** bucket, deployment and version pointers live in **Workers KV**, and a **Cloudflare Worker**
-serves the HTTP contract that the updater talks to. You get global, low-latency delivery without
-managing servers, and your published bundles reach devices over the air (OTA) without a native
-app-store release.
+Run a Webview Bundle remote entirely on Cloudflare's edge: bundles live in **R2**, version pointers live in **Workers KV**, and a **Cloudflare Worker** serves the HTTP contract the updater talks to. You get global, low-latency over-the-air (OTA) delivery with no servers to manage.
 
-The provider ships as three packages, each for a different stage of the workflow:
+Three packages cover the workflow:
 
 | Package | Role | Runs |
 |---|---|---|
@@ -17,7 +13,11 @@ The provider ships as three packages, each for a different stage of the workflow
 | `@wvb/remote-cloudflare-provider` | The Worker that serves bundles | Cloudflare Workers |
 | `@wvb/remote-cloudflare-provider-pulumi` | Pulumi component that provisions the infrastructure | `pulumi up` |
 
-All three are at version `0.1.0` and are pre-release. Pin the version and expect breaking changes.
+All three are `0.1.0` and pre-release. Pin the version and expect breaking changes.
+
+```sh
+npm i -D @wvb/remote-cloudflare
+```
 
 <Callout type="info">
 New to remotes? Start with [Building a remote](/docs/guide/remote) for the contract and the local
@@ -27,27 +27,21 @@ testing loop, and see [Remote, integrity & signature config](/docs/config/remote
 
 ## How the pieces fit
 
-The Cloudflare provider mirrors the shared remote contract, mapping each role onto a Cloudflare
-service:
+Each role maps onto a Cloudflare service:
 
-- **R2** stores each bundle as an object, accessed through R2's S3-compatible API. The uploader in
-  `@wvb/remote-cloudflare` reuses the S3 uploader from `@wvb/remote-aws`, pointed at R2's endpoint.
-- **Workers KV** holds the deployment pointer — a key per bundle (or per bundle and channel) whose
-  value is the deployed version.
-- A **Cloudflare Worker** running `@wvb/remote-cloudflare-provider` reads KV to resolve the version,
-  then streams the matching object from R2.
+- **R2** stores each bundle as an object, via R2's S3-compatible API. The `@wvb/remote-cloudflare` uploader reuses the S3 uploader from `@wvb/remote-aws`, pointed at R2.
+- **Workers KV** holds the deployment pointer — one key per bundle (or per bundle and channel) whose value is the deployed version.
+- A **Cloudflare Worker** running `@wvb/remote-cloudflare-provider` reads KV to resolve the version, then streams the matching object from R2.
 
 <Callout type="warn">
-Cloudflare has no built-in signing — there is no KMS equivalent here, and `@wvb/remote-cloudflare`
-exposes no signer. If you need [signatures](/docs/config/remote), produce them elsewhere and pass the
-resulting `signature` string through your `wvb.config`.
+Cloudflare has no built-in signing — no KMS equivalent, and `@wvb/remote-cloudflare` exposes no
+signer. If you need [signatures](/docs/config/remote), produce them elsewhere and pass the resulting
+`signature` string through your `wvb.config`.
 </Callout>
 
 ## Configure the uploader and deployer
 
-In your `wvb.config.ts`, call `cloudflareRemote()` and spread the result into the `remote` block. It
-returns `{ uploader, deployer }`: the uploader writes the bundle to R2, and the deployer writes the
-version to KV.
+Call `cloudflareRemote()` and spread the result into the `remote` block. It returns `{ uploader, deployer }`: the uploader writes the bundle to R2, the deployer writes the version to KV.
 
 ```ts title="wvb.config.ts"
 import { defineConfig } from '@wvb/config';
@@ -66,8 +60,6 @@ export default defineConfig({
 });
 ```
 
-`cloudflareRemote()` takes the following options:
-
 | Option | Type | Notes |
 |---|---|---|
 | `bucket` | `string` | R2 bucket that stores bundle objects. |
@@ -76,13 +68,34 @@ export default defineConfig({
 | `uploader` | object | Optional overrides for the underlying S3 uploader (`key`, `contentType`, `metadata`, and more). |
 | `deployer` | object | Optional overrides for the KV deployer (`key`, `expiration`, `expirationTtl`, `metadata`). |
 
-Under the hood the uploader defaults the S3 client to `region: 'auto'` and the endpoint
-`https://<accountId>.r2.cloudflarestorage.com`, then stores the object at the key
-`bundles/<name>/<name>_<version>.wvb` with `webview-bundle-*` custom metadata. The deployer writes the
-version into KV under the key `<name>` (or `<name>/<channel>` when you deploy to a channel).
+Defaults: the uploader sets `region: 'auto'` and endpoint `https://<accountId>.r2.cloudflarestorage.com`, then stores the object at key `bundles/<name>/<name>_<version>.wvb` with `webview-bundle-*` custom metadata. The deployer writes the version into KV under key `<name>` (or `<name>/<channel>` for a channel deploy).
 
-Provide R2 S3 credentials the same way you would for AWS, for example through environment variables
-that the S3 client picks up. With the config in place, the usual commands publish a bundle:
+Override either when your layout differs:
+
+```ts title="wvb.config.ts"
+...cloudflareRemote({
+  bucket: 'webview-bundle',
+  accountId: process.env.CLOUDFLARE_ACCOUNT_ID!,
+  kvNamespaceId: process.env.CLOUDFLARE_KV_NAMESPACE_ID!,
+  uploader: {
+    key: (name, version) => `releases/${name}/${version}.wvb`,
+    cacheControl: 'public, max-age=31536000, immutable',
+  },
+  deployer: {
+    key: (name, _version, channel) => (channel ? `${name}/${channel}` : name),
+    expirationTtl: 60 * 60 * 24,
+  },
+}),
+```
+
+R2 needs S3 credentials. Provide them the same way as AWS — through environment variables the S3 client reads:
+
+```sh
+export AWS_ACCESS_KEY_ID=<r2-access-key-id>
+export AWS_SECRET_ACCESS_KEY=<r2-secret-access-key>
+```
+
+With the config in place, publish a bundle:
 
 ```sh
 wvb pack ./dist
@@ -90,14 +103,23 @@ wvb upload --version 1.2.0
 wvb deploy --version 1.2.0
 ```
 
-`wvb upload` does not deploy by default — run `wvb deploy` (or pass `--deploy` to `upload`) to make the
-version live. See the [CLI reference](/docs/guide/cli) for every flag.
+`wvb upload` does not deploy by default. Run `wvb deploy` (or pass `--deploy` to `upload`) to make the version live:
+
+```sh
+wvb upload --version 1.2.0 --deploy
+```
+
+Deploy to a channel instead of the default pointer:
+
+```sh
+wvb deploy --version 1.2.0 --channel beta
+```
+
+See the [CLI reference](/docs/guide/cli) for every flag.
 
 ## Serve bundles with a Worker
 
-The serving side is a Hono app from `@wvb/remote-cloudflare-provider`. Create it with `wvbRemote()`
-and forward the Worker's bindings into its `Context`: the `KV` binding becomes `kv` and the `BUCKET`
-(R2) binding becomes `r2`.
+The serving side is a Hono app from `@wvb/remote-cloudflare-provider`. Create it with `wvbRemote()` and forward the Worker's bindings into its `Context` — the `KV` binding becomes `kv`, the `BUCKET` (R2) binding becomes `r2`.
 
 ```ts title="src/worker.ts"
 import { wvbRemote } from '@wvb/remote-cloudflare-provider';
@@ -116,14 +138,15 @@ export default {
 };
 ```
 
-`wvbRemote()` accepts a single option, `allowOtherVersions` (default `false`). When `false`, requests
-for a specific version path return `403`; set it to `true` to let clients download versions other than
-the deployed one. The Worker resolves the version from KV, reads the object from R2 at
-`bundles/<name>/<name>_<version>.wvb`, and returns it with the required `Webview-Bundle-Name` and
-`Webview-Bundle-Version` headers (plus `Webview-Bundle-Integrity` and `Webview-Bundle-Signature` when
-present in the object's metadata).
+`wvbRemote()` takes one option, `allowOtherVersions` (default `false`). When `false`, `GET /bundles/:name/:version` returns `403`; set it to `true` to let clients download versions other than the deployed one:
 
-Bind `KV` and `BUCKET` in your `wrangler.jsonc` so the names match the `Context`:
+```ts title="src/worker.ts"
+const remote = wvbRemote({ allowOtherVersions: true });
+```
+
+The Worker resolves the version from KV, reads `bundles/<name>/<name>_<version>.wvb` from R2, and returns it with the required `Webview-Bundle-Name` and `Webview-Bundle-Version` headers (plus `Webview-Bundle-Integrity` and `Webview-Bundle-Signature` when present in the object's metadata).
+
+Bind `KV` and `BUCKET` in `wrangler.jsonc` so the names match the `Context`:
 
 ```json title="wrangler.jsonc"
 {
@@ -135,12 +158,27 @@ Bind `KV` and `BUCKET` in your `wrangler.jsonc` so the names match the `Context`
 }
 ```
 
+Deploy the Worker:
+
+```sh
+npx wrangler deploy
+```
+
+Verify the contract against the live endpoint:
+
+```sh
+curl https://bundles.example.com/bundles
+# [{ "name": "my-app", "version": "1.2.0" }]
+
+curl -I https://bundles.example.com/bundles/my-app
+# Webview-Bundle-Name: my-app
+# Webview-Bundle-Version: 1.2.0
+# Content-Type: application/webview-bundle
+```
+
 ## Provision with Pulumi
 
-`@wvb/remote-cloudflare-provider-pulumi` provisions the whole stack as a single Pulumi component
-resource. Construct `WebviewBundleRemoteProvider` with your account ID; it creates an R2 bucket, a
-Workers KV namespace, and a Worker (with a version and a deployment) wired together with the right
-bindings.
+`@wvb/remote-cloudflare-provider-pulumi` provisions the whole stack as one component resource: an R2 bucket, a Workers KV namespace, and a Worker (with a version and a deployment), wired together with the bindings `BUCKET` (R2) and `KV` that the `Context` expects.
 
 ```ts title="index.ts"
 import { WebviewBundleRemoteProvider } from '@wvb/remote-cloudflare-provider-pulumi';
@@ -154,16 +192,18 @@ const provider = new WebviewBundleRemoteProvider('webview-bundle', {
 export const bucketName = provider.bucketName;
 export const kvNamespaceId = provider.kvNamespaceId;
 export const workerId = provider.workerId;
+export const workerVersionId = provider.workerVersionId;
+export const workerDeploymentId = provider.workerDeploymentId;
 ```
 
-The component registers the Pulumi resource token `webview-bundle:cloudflare:RemoteProvider`. By
-default it deploys the bundled Worker entry with the bindings `BUCKET` (R2) and `KV`, matching the
-`Context` the Worker expects. `workerDeploymentPercentage` controls a gradual rollout — the share of
-traffic the new Worker version receives — and defaults to `100`. The component exports `bucketName`,
-`kvNamespaceId`, `workerId`, `workerVersionId`, and `workerDeploymentId`.
+The component registers the Pulumi resource token `webview-bundle:cloudflare:RemoteProvider`. `workerDeploymentPercentage` is the share of traffic the new Worker version receives (default `100`).
 
-After `pulumi up`, take the bucket name and KV namespace ID it exports and feed them into the
-`cloudflareRemote()` config above, then publish with the CLI.
+```sh
+pulumi up
+pulumi stack output kvNamespaceId
+```
+
+Feed the exported `bucketName` and `kvNamespaceId` into `cloudflareRemote()` above, then publish with the CLI.
 
 ## Next steps
 

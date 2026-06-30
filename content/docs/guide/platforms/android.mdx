@@ -3,15 +3,13 @@ title: Android
 description: Serve and update Webview Bundles inside an Android WebView with the webview-bundle-android Kotlin library.
 ---
 
-The `webview-bundle-android` library wires the Webview Bundle Rust core into an Android `WebView`. You give it a `WebView`, it intercepts requests over ordinary `https://<bundle>.wvb/` URLs and serves files from a bundle you ship in the APK, and it can pull newer bundles over the air (OTA) from a remote without an app-store release. The library lives in its own Kotlin repository and consumes a prebuilt native binding from the core repo; this page covers requirements, a quick start, how serving works, builtin bundles, protocols, and OTA updates.
+The `webview-bundle-android` library wires the Webview Bundle Rust core into an Android `WebView`. Give it a `WebView`; it intercepts requests over ordinary `https://<bundle>.wvb/` URLs, serves files from a bundle you ship in the APK, and pulls newer bundles over the air (OTA) from a remote without an app-store release.
 
 <Callout type="warn">
-**Pre-release.** The library is not yet published to Maven Central. There is no release tag yet, so the Maven coordinates and version below describe the intended artifact, not something you can resolve today. For now, build and consume it from the [`webview-bundle-android`](https://github.com/webview-bundle/webview-bundle-android) repository. The native FFI is pinned in a `.ffi-version` file and installed by `scripts/install.mjs`, which downloads the `android.zip` asset from a [core repo](https://github.com/webview-bundle/webview-bundle) release and unpacks the Kotlin bindings and `jniLibs` into the library module.
+**Pre-release.** Not yet published to Maven Central. There is no release tag, so the coordinates below describe the intended artifact, not something you can resolve today. For now, build from the [`webview-bundle-android`](https://github.com/webview-bundle/webview-bundle-android) repository. The native FFI is pinned in `.ffi-version` and installed by `scripts/install.mjs`, which downloads the `android.zip` asset from a [core repo](https://github.com/webview-bundle/webview-bundle) release and unpacks the Kotlin bindings and `jniLibs` into the library module.
 </Callout>
 
 ## Requirements
-
-The library targets a modern Android baseline:
 
 | Item | Value |
 | --- | --- |
@@ -21,11 +19,11 @@ The library targets a modern Android baseline:
 | System WebView | Must support `WEB_MESSAGE_LISTENER` (modern WebView / Chrome 88+) |
 | Library namespace | `dev.wvb` |
 
-The bridge that connects your web app to the native host attaches through `WebViewCompat.addWebMessageListener`. On a device whose System WebView is too old to support `WEB_MESSAGE_LISTENER`, the bridge is not attached and the library logs a warning. Serving still works; only the JavaScript bridge is unavailable.
+The bridge attaches through `WebViewCompat.addWebMessageListener`. On a device whose System WebView is too old for `WEB_MESSAGE_LISTENER`, the bridge is not attached and the library logs a warning — serving still works, only the JavaScript bridge is unavailable.
 
-Runtime dependencies are pulled in transitively: JNA (`net.java.dev.jna:jna`, loads the native `libwvb_ffi.so`), `kotlinx-coroutines-core`, and `androidx.webkit`. Consumer R8/ProGuard rules ship with the library, so you do not need to add keep rules for the FFI yourself.
+Runtime dependencies are pulled in transitively: JNA (`net.java.dev.jna:jna`, loads the native `libwvb_ffi.so`), `kotlinx-coroutines-core`, and `androidx.webkit`. Consumer R8/ProGuard rules ship with the library, so you do not add keep rules for the FFI yourself.
 
-Once a release is cut, the intended Maven coordinates are:
+Once a release is cut, the intended coordinates are:
 
 ```kotlin title="build.gradle.kts"
 dependencies {
@@ -33,8 +31,26 @@ dependencies {
 }
 ```
 
+Until then, build from source. Clone the repo, install the pinned FFI, and build the `:lib` module:
+
+```sh
+git clone https://github.com/webview-bundle/webview-bundle-android
+cd webview-bundle-android
+node scripts/install.mjs        # installs the FFI pinned in .ffi-version
+./gradlew :lib:assembleRelease
+```
+
+`install.mjs` fetches the `android.zip` release asset and unpacks the Kotlin bindings into `lib/src/main/kotlin/` and the JNI libs into `lib/src/main/jniLibs/`. Pin a different FFI version per invocation:
+
+```sh
+node scripts/install.mjs                       # use the version in .ffi-version
+node scripts/install.mjs 0.1.0                 # resolves to tag ffi/0.1.0
+node scripts/install.mjs latest                # highest ffi/* release
+node scripts/install.mjs --prerelease a3f693a  # prerelease/<sha>
+```
+
 <Callout type="info">
-Until the artifact is on Maven Central, clone the repo and follow its README to install the pinned FFI (`node scripts/install.mjs`) and build the `:lib` module locally. See [Platform support](/docs/guide/platform-support) for the status of every platform.
+`install.mjs` requires `unzip` on `PATH` and honors `GITHUB_TOKEN` / `GH_TOKEN`. See [Platform support](/docs/guide/platform-support) for the status of every platform.
 </Callout>
 
 ## Quick start
@@ -86,9 +102,16 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
-`getInstance` honors `config` only on the first call per process; later calls return the existing instance and ignore the passed config. Call `handle.close()` and `webView.destroy()` when the `WebView` goes away.
+`getInstance` honors `config` only on the first call per process; later calls return the existing instance and ignore the passed config. `getInstance` also has shorthand aliases:
 
-Your manifest needs the internet permission. For local development against a cleartext dev server or remote, also enable `usesCleartextTraffic`.
+```kotlin
+WebViewBundle.getInstance(context, config)   // canonical
+WebViewBundle(context, config)               // invoke operator
+webViewBundle(context, config)               // top-level fun
+wvb(context, config)                         // short alias
+```
+
+The manifest needs the internet permission. For local development against a cleartext dev server or remote, also enable `usesCleartextTraffic`.
 
 ```xml title="AndroidManifest.xml"
 <uses-permission android:name="android.permission.INTERNET" />
@@ -105,13 +128,11 @@ Your manifest needs the internet permission. For local development against a cle
 
 ## How serving works
 
-The library does not register a custom URL scheme. Instead, `install()` sets a custom `WebViewClient` whose `shouldInterceptRequest` inspects ordinary `http`/`https` requests and serves matching ones from the bundle source.
+No custom URL scheme is registered. `install()` sets a `WebViewClient` whose `shouldInterceptRequest` inspects ordinary `http`/`https` requests and serves matching ones from the bundle source. For each request, the handler lowercases the host and walks your registered protocols in order; the first matcher to accept the host wins. The bundle protocol takes the bundle name from the first host label and returns the file at the request path. No match returns `null` and the `WebView` loads from the network.
 
-For each request, the handler lowercases the host and walks your registered protocols in order; the first protocol whose matcher accepts the host wins. The bundle protocol takes the **bundle name from the first host label** (`app.wvb` resolves to bundle `app`) and returns the file at the request path. When no protocol matches, the handler returns `null` and the `WebView` loads the request from the network as usual.
+If a handler throws, the library synthesizes a `500 text/plain` response and calls the optional `onError` callback. See [Protocol handling](/docs/guide/protocol-handling) for how a request path maps to a file inside a `.wvb`.
 
-If a handler throws while serving, the library synthesizes a `500 text/plain` response and calls the optional `onError` callback you pass in `WebViewBundleConfig`. See [Protocol handling](/docs/guide/protocol-handling) for how a request path maps to a file inside a `.wvb`.
-
-`install()` also attaches the native bridge as `window.wvbAndroid` on the main frame, unless you opt out. Your web app posts a message with a command name and params, and the bridge dispatches to a registered handler. To register extra native handlers or to skip the bridge, use the install options:
+`install()` also attaches the native bridge as `window.wvbAndroid` on the main frame. Use the install options to register extra native handlers, wrap your own `WebViewClient`, or skip the bridge:
 
 ```kotlin
 val handle = wvb.install(webView) {
@@ -123,9 +144,15 @@ val handle = wvb.install(webView) {
 }
 ```
 
+If you want the serving seam without the bridge at all, use the low-level client directly:
+
+```kotlin
+webView.webViewClient = wvb.createWebViewClient(delegate = myWebViewClient)
+```
+
 ## Builtin bundles
 
-Ship the bundle your app starts with inside the APK under `assets/bundles/`. That directory holds a `manifest.json` plus the `.wvb` files it references.
+Ship the bundle your app starts with inside the APK under `assets/bundles/` — a `manifest.json` plus the `.wvb` files it references.
 
 ```text
 app/src/main/assets/bundles/
@@ -134,18 +161,50 @@ app/src/main/assets/bundles/
     └── app_0.1.0.wvb
 ```
 
-On install, the native source reads files rather than asset streams, so the library copies `assets/bundles/` into the app's `filesDir` (the builtin directory). This extraction is controlled by `SourceOptions.builtinAssetsDir`, which defaults to `"bundles"`; set it to `null` to disable extraction. Re-extraction happens on each APK install or update and is additive — removed assets are not deleted.
+The native source reads files, not asset streams, so the library copies `assets/bundles/` into the app's `filesDir`. This is controlled by `SourceOptions`:
 
-The `manifest.json` declares the bundle entries and the current version, and may carry `integrity` and `signature` values for the bundles it ships. See [Bundle sources](/docs/guide/bundle-sources) for the manifest format.
+```kotlin
+import dev.wvb.SourceOptions
+
+WebViewBundleConfig(
+    protocols = listOf(WebViewBundleProtocol.bundle()),
+    source = SourceOptions(
+        builtinAssetsDir = "bundles",   // APK assets/<dir>; null disables extraction
+        // builtinDir  defaults to <filesDir>/wvb/builtin (read-only)
+        // remoteDir   defaults to <filesDir>/wvb/remote  (writable)
+    ),
+)
+```
+
+Re-extraction happens on each APK install or update and is additive — removed assets are not deleted. The `manifest.json` declares the bundle entries and current version, and may carry `integrity` and `signature` values:
+
+```json title="manifest.json"
+{
+  "manifestVersion": 1,
+  "bundles": {
+    "app": {
+      "currentVersion": "0.1.0",
+      "versions": {
+        "0.1.0": {
+          "integrity": "sha256:n4bQgYhMfWWaL...",
+          "signature": "..."
+        }
+      }
+    }
+  }
+}
+```
+
+See [Bundle sources](/docs/guide/bundle-sources) for the manifest format.
 
 ## Protocols
 
-A protocol decides which hosts a `WebView` request is served from. Register protocols in `WebViewBundleConfig.protocols`. They are evaluated in order and the first matching one wins, so **register `bundle()` last** because it matches every host.
+A protocol decides which hosts a `WebView` request is served from. Register protocols in `WebViewBundleConfig.protocols`; they are evaluated in order and the first matching one wins, so **register `bundle()` last** because it matches every host.
 
 <Tabs items={['Bundle', 'Local']}>
 <Tab value="Bundle">
 
-`WebViewBundleProtocol.bundle()` serves entries from the bundle source for every host, using the first host label as the bundle name. Pass a passthrough block to send named hosts to the network instead of the bundle source.
+`WebViewBundleProtocol.bundle()` serves entries from the bundle source for every host, using the first host label as the bundle name. Pass a passthrough block to send named hosts to the network instead:
 
 ```kotlin
 WebViewBundleProtocol.bundle {
@@ -158,7 +217,7 @@ WebViewBundleProtocol.bundle {
 </Tab>
 <Tab value="Local">
 
-`WebViewBundleProtocol.local(hosts)` is a development proxy. It maps a full request host to a local base URL so you keep your bundler's hot reload while developing. On the Android emulator, `10.0.2.2` reaches the host machine's loopback.
+`WebViewBundleProtocol.local(hosts)` is a development proxy. It maps a full request host to a local base URL so you keep your bundler's hot reload while developing. On the Android emulator, `10.0.2.2` reaches the host machine's loopback:
 
 ```kotlin
 WebViewBundleProtocol.local(
@@ -182,7 +241,7 @@ WebViewBundleConfig(
 
 ## OTA updates
 
-To enable over-the-air updates, pass a `WebViewBundleUpdaterConfig` as `WebViewBundleConfig.updater`. The library then builds a remote client and an updater, exposed as `wvb.remote` and `wvb.updater`. Both are `null` when no updater config is provided.
+Pass a `WebViewBundleUpdaterConfig` as `WebViewBundleConfig.updater`. The library then builds a remote client and an updater, exposed as `wvb.remote` and `wvb.updater` (both `null` when no updater config is provided).
 
 ```kotlin title="MainActivity.kt"
 import android.util.Base64
@@ -218,7 +277,15 @@ val wvb = WebViewBundle.getInstance(
 )
 ```
 
-`IntegrityPolicy.STRICT` rejects a bundle whose digest does not match; `OPTIONAL` verifies when present and skips when absent; `NONE` skips the check. The integrity string uses SHA-2 (`sha256`, `sha384`, or `sha512`). The signature verifier proves who published the bundle. Not every algorithm and key-format pair is valid — `ED25519` accepts `SPKI_DER`, `SPKI_PEM`, or `RAW` (a 32-byte key supplied via `der`); an unsupported pair throws when the updater is built.
+`IntegrityPolicy.STRICT` rejects a bundle whose digest does not match; `OPTIONAL` verifies when present and skips when absent; `NONE` skips the check. The integrity string uses SHA-2 (`sha256`, `sha384`, or `sha512`). The signature verifier proves who published the bundle. Not every algorithm and key-format pair is valid:
+
+| `SignatureAlgorithm` | Valid `VerifyingKeyFormat` |
+| --- | --- |
+| `ECDSA_SECP256R1`, `ECDSA_SECP384R1` | `SEC1`, `SPKI_DER`, `SPKI_PEM` |
+| `ED25519` | `SPKI_DER`, `SPKI_PEM`, `RAW` (32-byte key via `der`) |
+| `RSA_PKCS1_V15`, `RSA_PSS` | `PKCS1_DER`, `PKCS1_PEM`, `SPKI_DER`, `SPKI_PEM` |
+
+An unsupported pair throws `Exception.Signature` when the updater is built. `pem` is read for `*_PEM` formats; `der` for DER, `SEC1`, and `RAW`.
 
 <Callout type="info">
 On the Android emulator, a remote running on the host machine is reachable at `http://10.0.2.2:4313` (the local remote's default port). The `channel` value is sent to the remote as a query parameter so it can serve a specific release channel.
@@ -226,21 +293,44 @@ On the Android emulator, a remote running on the host machine is reachable at `h
 
 ### Driving updates from Kotlin
 
-The updater runs a three-step cycle. Each call is a `suspend` function, so call them from a coroutine.
+The updater runs a three-step cycle. Each call is a `suspend` function, so call it from a coroutine.
 
 ```kotlin
-val update = wvb.updater?.getUpdate("app")          // check the remote, no download
-if (update?.isAvailable == true) {
-    wvb.updater?.downloadUpdate("app")              // download latest, persist to remote dir
-    wvb.updater?.install("app", update.version)     // verify, activate, prune old versions
+import kotlinx.coroutines.launch
+
+lifecycleScope.launch {
+    val update = wvb.updater?.getUpdate("app")          // check the remote, no download
+    if (update?.isAvailable == true) {
+        wvb.updater?.downloadUpdate("app")              // download latest, persist to remote dir
+        wvb.updater?.install("app", update.version)     // verify, activate, prune old versions
+    }
 }
 ```
 
-`getUpdate` reports whether a newer version exists without downloading it. `downloadUpdate` fetches and stores the bundle (the latest version when you pass no version). `install` verifies integrity and signature on the staged bundle, makes it current, and prunes stale versions.
+`getUpdate` reports whether a newer version exists without downloading. `downloadUpdate` fetches and stores the bundle (the latest version when you pass no version). `install` verifies integrity and signature on the staged bundle, makes it current, and prunes stale versions.
 
 ### Driving updates from web JavaScript
 
-The same cycle is available to your web app through the `window.wvbAndroid` bridge. The built-in updater commands are `updaterGetUpdate`, `updaterDownload`, and `updaterInstall`. These throw `updater_not_initialized` when no updater config was provided. Use the bridge when your update UI lives in the web layer.
+The same cycle is available to your web app through the `window.wvbAndroid` bridge. The built-in updater commands are `updaterGetUpdate`, `updaterDownload`, and `updaterInstall`; they throw `updater_not_initialized` when no updater config was provided.
+
+```ts
+declare const wvbAndroid: {
+  postMessage(message: string): void
+}
+
+// The bridge posts { name, params, success, error } and replies via callbacks.
+// A small wrapper that resolves a Promise per command:
+function invoke(name: string, params?: unknown): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    // ... wire success/error callbacks, then:
+    wvbAndroid.postMessage(JSON.stringify({ name, params }))
+  })
+}
+
+const update = await invoke("updaterGetUpdate", { name: "app" })
+await invoke("updaterDownload", { name: "app" })
+await invoke("updaterInstall", { name: "app", version: "0.2.0" })
+```
 
 For the remote HTTP contract, integrity, and signatures across platforms, see [Remote bundles](/docs/guide/remote-bundles) and the guide to [building a remote](/docs/guide/remote).
 

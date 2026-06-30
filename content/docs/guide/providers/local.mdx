@@ -3,35 +3,26 @@ title: Local provider
 description: Run a filesystem-backed remote on your own machine to test the full upload, deploy, and over-the-air update loop before reaching for a cloud provider.
 ---
 
-The local provider is a filesystem-backed remote that runs on your own machine. It implements the same
-HTTP contract as the cloud providers, so you can exercise the complete bundle lifecycle — pack, upload,
-deploy, and over-the-air (OTA) update — without provisioning any infrastructure. Use it to develop and
-test your update flow end to end, then switch to a [cloud provider](/docs/guide/remote) for production.
+A filesystem-backed remote that runs on your own machine. It implements the same HTTP contract as the cloud providers, so you can exercise the full lifecycle — pack, upload, deploy, and over-the-air (OTA) update — with no infrastructure. Develop against it, then switch to a [cloud provider](/docs/guide/remote) for production.
 
 <Callout type="warn">
-The local provider is for development and testing only. It stores bundles as plain files on a single
-machine and the `wvb remote local` server binds to `localhost` by default. Do not use it to serve
-production traffic — see the [AWS](/docs/guide/providers/aws) and
-[Cloudflare](/docs/guide/providers/cloudflare) providers for that.
+Development and testing only. It stores bundles as plain files on one machine and `wvb remote local` binds to `localhost`. For production traffic, use the [AWS](/docs/guide/providers/aws) or [Cloudflare](/docs/guide/providers/cloudflare) providers.
 </Callout>
 
 ## Two packages
 
-The local provider ships as two packages, both at version `0.0.0` (pre-release, not yet published —
-install from source for now):
+Both at `0.0.0` (pre-release, not yet published — install from source for now):
 
 | Package | Role |
 | --- | --- |
-| `@wvb/remote-local` | The publish-side client. Its `localRemote()` produces the `uploader` and `deployer` you wire into `wvb.config`. |
+| `@wvb/remote-local` | Publish-side client. `localRemote()` produces the `uploader` and `deployer` you wire into `wvb.config`. |
 | `@wvb/remote-local-provider` | The server. A [Hono](https://hono.dev) app that serves stored bundles over HTTP. The CLI runs it for you. |
 
-This split mirrors every backend: the plain package pushes bundles, and the `-provider` package serves
-them. See [Building a remote](/docs/guide/remote) for the shared contract and how the pieces fit together.
+This split mirrors every backend: the plain package pushes bundles, the `-provider` package serves them. See [Building a remote](/docs/guide/remote) for the shared contract.
 
 ## Configure the publish side
 
-Add `localRemote()` to the `remote` block of your `wvb.config`. It returns an object with `uploader`
-and `deployer`, which you spread into the config.
+Spread `localRemote()` — which returns `{ uploader, deployer }` — into the `remote` block:
 
 ```ts title="wvb.config.ts"
 import { defineConfig } from '@wvb/config';
@@ -46,13 +37,13 @@ export default defineConfig({
 });
 ```
 
-`localRemote()` accepts a single optional field:
+`localRemote()` accepts one optional field:
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `baseDir` | `string` | `~/.wvb/local` | Directory where bundles and deployment state are stored on disk. |
 
-Pass `baseDir` to keep a project's bundles isolated from the default store:
+Set `baseDir` to isolate a project's bundles from the default store:
 
 ```ts title="wvb.config.ts"
 import os from 'node:os';
@@ -71,26 +62,22 @@ export default defineConfig({
 });
 ```
 
-For the full `remote` block — including `endpoint`, `bundleName`, `packBeforeUpload`, integrity, and
-signature — see the [remote config reference](/docs/config/remote).
+For the full `remote` block — `endpoint`, `bundleName`, `packBeforeUpload`, integrity, and signature — see the [remote config reference](/docs/config/remote).
 
 ## On-disk layout
 
-The uploader and deployer write everything under `{baseDir}/bundles`. Each bundle name gets its own
-directory holding one `.wvb` file per version, a metadata file per version, and a single deployment
-pointer.
+Everything is written under `{baseDir}/bundles`, one directory per bundle name:
 
 ```text
 {baseDir}/
 └── bundles/
     └── {name}/
-        ├── {name}_{version}.wvb       # the bundle binary (one per uploaded version)
+        ├── {name}_{version}.wvb       # bundle binary (one per uploaded version)
         ├── {name}_{version}.json      # per-version metadata: { integrity?, signature? }
         └── deployment.json            # which version is current, per channel
 ```
 
-For example, after uploading and deploying version `1.1.0` of a bundle named `app` to the default
-store:
+After uploading and deploying `1.1.0` of bundle `app` to the default store:
 
 ```text
 ~/.wvb/local/
@@ -101,102 +88,128 @@ store:
         └── deployment.json
 ```
 
-The `deployment.json` file records the current version. Deploying without a channel sets the default
-`version`; deploying with a channel sets `channels[channel]` instead, so multiple channels can point at
-different versions of the same bundle.
+`deployment.json` records the current version. Deploying without a channel sets the default `version`; with a channel it sets `channels[channel]`, so channels can point at different versions:
+
+```json title="deployment.json"
+{
+  "name": "app",
+  "version": "1.1.0",
+  "channels": {
+    "beta": "1.2.0"
+  }
+}
+```
 
 ## Run the server
 
-The `@wvb/remote-local-provider` package only builds the Hono app — it does not bind a port. The CLI
-command `wvb remote local` serves that app with a Node HTTP server. Start it from your project:
+`@wvb/remote-local-provider` only builds the Hono app — it does not bind a port. `wvb remote local` serves that app over a Node HTTP server:
 
 ```sh
 wvb remote local
 ```
 
-By default it serves the store at `~/.wvb/local` on `http://localhost:4313`. The command accepts:
+Defaults to serving `~/.wvb/local` on `http://localhost:4313`. Flags:
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `--base-dir` | `~/.wvb/local` | Directory to serve. Match the `baseDir` you set in `localRemote()`. |
-| `--port`, `-P` | `4313` | Port to listen on (also reads the `PORT` env var). |
-| `--hostname`, `-H` | `localhost` | Host to bind (also reads the `HOSTNAME` env var). |
-| `--allow-other-versions` | `false` | Allow downloading specific versions other than the deployed one. |
+| `--base-dir` | `~/.wvb/local` | Directory to serve. Match the `baseDir` set in `localRemote()`. |
+| `--port`, `-P` | `4313` | Port to listen on (also reads `PORT`). |
+| `--hostname`, `-H` | `localhost` | Host to bind (also reads `HOSTNAME`). |
+| `--allow-other-versions` | `false` | Allow downloading versions other than the deployed one. |
 | `--silent` | — | Suppress server logging. |
 
-If you set a custom `baseDir` in your config, pass the same path to the server so it serves the bundles
-you uploaded:
+Pass the same path you set in your config:
 
 ```sh
-wvb remote local --base-dir ~/.wvb/my-app
+wvb remote local --base-dir ~/.wvb/my-app --port 4313
 ```
 
-See the [CLI reference](/docs/guide/cli) for the full `remote` command group, including `remote list`.
+See the [CLI reference](/docs/guide/cli) for the full `remote` command group (`remote list`, alias `remote ls`).
 
 ### allowOtherVersions
 
-By default the server only serves the currently deployed version of each bundle. A request for a
-specific version — `GET /bundles/{name}/{version}` — returns `403 Forbidden`. This matches how the
-cloud providers behave and keeps clients pinned to deployed versions.
+By default the server serves only the deployed version. `GET /bundles/{name}/{version}` returns `403 Forbidden`, matching the cloud providers and keeping clients pinned:
 
-Set `--allow-other-versions` (or `allowOtherVersions: true` when you build the provider app directly)
-to let those requests succeed. This is useful for testing rollbacks or inspecting an older bundle:
+```sh
+curl -i http://localhost:4313/bundles/app/1.0.0
+# HTTP/1.1 403 Forbidden
+```
+
+Opt in to unlock the version-specific route — useful for testing rollbacks or inspecting an older bundle:
 
 ```sh
 wvb remote local --allow-other-versions
 ```
 
+```sh
+curl -i http://localhost:4313/bundles/app/1.0.0
+# HTTP/1.1 200 OK
+# Webview-Bundle-Name: app
+# Webview-Bundle-Version: 1.0.0
+```
+
+When building the provider app directly, pass `allowOtherVersions: true`:
+
+```ts title="server.ts"
+import { wvbRemote } from '@wvb/remote-local-provider';
+
+const app = wvbRemote({
+  baseDir: '~/.wvb/local',
+  allowOtherVersions: true,
+});
+```
+
 <Callout type="info">
-With `allowOtherVersions` disabled, only the deployed version is reachable through
-`GET /bundles/{name}`. The version-specific route stays locked behind `403` until you opt in.
+With `allowOtherVersions` disabled, only the deployed version is reachable via `GET /bundles/{name}`. The version-specific route stays behind `403` until you opt in.
 </Callout>
 
 ## Walk the full loop
 
-Put the pieces together to test an OTA update against a local server. The first three steps run on your
-machine; the last points your app's updater at the server.
+Test an OTA update against a local server end to end.
 
 <Callout type="info">
-`wvb upload` does not deploy by default — `--deploy` is `false` unless you pass it. Use
-`wvb upload --deploy` to upload and mark the version current in one step, or run `wvb deploy`
-separately.
+`wvb upload` does not deploy by default — `--deploy` is `false` unless passed. Use `wvb upload --deploy` to upload and mark current in one step, or run `wvb deploy` separately.
 </Callout>
 
-1. Wire up `localRemote()` in `wvb.config`, as shown above.
+Wire up `localRemote()` as shown above, then pack, upload, and deploy. With `packBeforeUpload` at its default, `wvb upload` packs for you, so the explicit `wvb pack` is optional:
 
-2. Pack, upload, and deploy a version. `--deploy` makes it the current version immediately:
+```sh
+wvb pack ./dist
+wvb upload --version 1.1.0 --deploy
+```
 
-   ```sh
-   wvb pack ./dist
-   wvb upload --version 1.1.0 --deploy
-   ```
+Start the server against the same store and confirm the bundle is listed:
 
-   With `packBeforeUpload` left at its default, `wvb upload` packs for you, so you can skip the explicit
-   `wvb pack` step. Pass the version with the `--version`, `-V` flag.
+```sh
+wvb remote local
+```
 
-3. Start the server pointed at the same store:
+```sh
+curl http://localhost:4313/bundles
+# [{"name":"app","version":"1.1.0"}]
+```
 
-   ```sh
-   wvb remote local
-   ```
+```sh
+curl -I http://localhost:4313/bundles/app
+# Webview-Bundle-Name: app
+# Webview-Bundle-Version: 1.1.0
+# Content-Type: application/webview-bundle
+```
 
-   Confirm the deployed bundle is listed:
+Point your app's updater at `http://localhost:4313`. It calls `GET /bundles/{name}`, verifies the bundle, and installs it into the `remote` source. Configure the remote target in your platform integration — see the [Electron](/docs/guide/platforms/electron), [Tauri](/docs/guide/platforms/tauri), [Android](/docs/guide/platforms/android), and [iOS](/docs/guide/platforms/ios) guides.
 
-   ```sh
-   curl http://localhost:4313/bundles
-   # [{"name":"app","version":"1.1.0"}]
-   ```
-
-4. Point your app's updater at `http://localhost:4313`. The updater calls
-   `GET /bundles/{name}` to download the current bundle, verifies it, and installs it into the
-   `remote` source. Configure the remote target in your platform integration — see the
-   [Electron](/docs/guide/platforms/electron), [Tauri](/docs/guide/platforms/tauri),
-   [Android](/docs/guide/platforms/android), and [iOS](/docs/guide/platforms/ios) guides.
-
-To publish an update, bump the version, upload and deploy again, and the next updater check picks it up:
+Publish an update by bumping the version and deploying again; the next updater check picks it up:
 
 ```sh
 wvb upload --version 1.2.0 --deploy
+```
+
+Deploy to a channel instead of the default by passing `--channel`:
+
+```sh
+wvb deploy --version 1.2.0 --channel beta
+curl 'http://localhost:4313/bundles?channel=beta'
+# [{"name":"app","version":"1.2.0"}]
 ```
 
 ## Where to go next

@@ -3,58 +3,39 @@ title: Remote bundles & updates
 description: How over-the-air updating works — the lifecycle, the updater model, the HTTP contract, and how integrity and signatures protect each bundle.
 ---
 
-Webview Bundle can download newer bundles over the air (OTA), so you ship updated app code without a
-native app-store release. This page is the conceptual hub for that capability: it explains the update
-lifecycle, the language-neutral updater model, the HTTP contract every remote server implements, and
-how integrity and signatures keep each bundle trustworthy. To stand up a server and test the loop
-locally, see [Building a remote](/docs/guide/remote); for the exact per-language updater APIs, see the
-[Node](/docs/references/node) and [Deno](/docs/references/deno) references.
+Webview Bundle downloads newer bundles over the air (OTA), so you ship updated app code without a native app-store release. This page covers the update lifecycle, the language-neutral updater model, the HTTP contract every remote server implements, and how integrity and signatures keep each bundle trustworthy. To stand up a server, see [Building a remote](/docs/guide/remote); for per-language updater APIs, see the [Node](/docs/references/node) and [Deno](/docs/references/deno) references.
 
 ## The update lifecycle
 
-A bundle travels from your build output to a device in five stages. The first three run on your
-machine or CI; the last two run inside the app, driven by the updater.
+A bundle travels from build output to device in five stages. The first three run on your machine or CI; the last two run inside the app, driven by the updater.
 
-```text
-  developer machine / CI                       remote server                  end-user device
-┌──────────────────────────┐             ┌──────────────────────┐        ┌──────────────────────┐
-│ wvb pack ./dist          │             │                      │        │                      │
-│   → app_1.1.0.wvb        │             │                      │        │  updater.getUpdate() │
-│ wvb upload  ─────────────── upload ───▶ │  store version       │        │   isAvailable? ──┐   │
-│   (+integrity +signature)│             │                      │        │                  │   │
-│ wvb deploy  ─────────────── deploy ───▶ │  mark deployed       │ ◀──────── HEAD /bundles/app  │
-│   (--channel beta)       │             │  (per channel)       │ ───────▶ GET  /bundles/app   │
-└──────────────────────────┘             └──────────────────────┘        │  verify + install ◀┘ │
-                                                                         └──────────────────────┘
-```
+![The developer machine uploads and deploys a bundle to the remote server; the device checks, downloads, verifies, and installs the update.](/diagrams/update-lifecycle.svg)
 
 1. **Pack** your build into a `.wvb` archive.
-2. **Upload** that archive to the server, optionally attaching an integrity hash and a signature.
-3. **Deploy** the uploaded version so clients on a given channel start seeing it.
-4. On the device, the **updater checks** for a newer deployed version, then **downloads** it.
-5. The updater **verifies** the download and **installs** it into the `remote` source, after which the
-   app serves it instead of the builtin bundle.
+2. **Upload** that archive, optionally attaching an integrity hash and a signature.
+3. **Deploy** the uploaded version so clients on a channel start seeing it.
+4. On the device, the updater **checks** for a newer version, then **downloads** it.
+5. The updater **verifies** the download and **installs** it into the `remote` source.
 
-Stages 1 through 3 are CLI commands — see the [CLI reference](/docs/guide/cli) for `pack`, `upload`,
-`deploy`, and `download`. Stages 4 and 5 are the updater, covered next.
+Stages 1–3 are CLI commands:
+
+```sh
+wvb pack                                   # build output -> .wvb/<pkgName>
+wvb upload --version 1.2.0                 # push to the server (does not deploy)
+wvb deploy --version 1.2.0                 # make 1.2.0 the current version
+```
+
+`wvb upload --deploy` (default `false`) uploads and deploys in one step. See the [CLI reference](/docs/guide/cli) for every flag. Stages 4–5 are the updater, covered next.
 
 ## The updater model
 
-The updater ties a [bundle source](/docs/guide/bundle-sources) to a remote endpoint and exposes three
-operations. They are deliberately separate so you control exactly when a device fetches bytes and when
-it switches versions. The names below are conceptual; each platform exposes the same three operations
-under its own API.
+The updater ties a [bundle source](/docs/guide/bundle-sources) to a remote endpoint and exposes three operations, kept separate so you control exactly when a device fetches bytes and when it switches versions.
 
-- **`getUpdate`** is a check only. It asks the server for the current deployed version and compares it
-  to the local version. It reports `isAvailable` as `true` when there is no local version, or when the
-  local version differs from the deployed version. It downloads nothing.
-- **`download`** fetches the bundle, verifies it against your integrity and signature policy, and
-  stages it into the `remote` source. It does **not** activate the new version — the app keeps serving
-  the current one.
-- **`install`** re-verifies the staged bundle from disk, activates it as the current version, unloads
-  the old descriptor, and prunes versions that are no longer retained.
+- **`getUpdate`** — a check only. Asks the server for the current deployed version and compares it to the local version. Reports `isAvailable` as `true` when there is no local version, or when the local version differs from the deployed version. Downloads nothing.
+- **`download`** — fetches the bundle, verifies it against your integrity and signature policy, and stages it into the `remote` source. Does **not** activate the new version.
+- **`install`** — re-verifies the staged bundle from disk, activates it as the current version, unloads the old descriptor, and prunes versions no longer retained.
 
-This split lets you, for example, download in the background and install on the next app launch.
+This split lets you download in the background and install on the next app launch.
 
 <Callout type="info">
   The `builtin` source — the bundle shipped inside the app — always remains as a fallback. The `remote`
@@ -63,9 +44,14 @@ This split lets you, for example, download in the background and install on the 
   [Bundle sources](/docs/guide/bundle-sources).
 </Callout>
 
-A typical flow in the Rust core looks like this; platform wrappers mirror it one-to-one:
+The Rust core flow; platform wrappers mirror it one-to-one:
 
 ```rust
+use std::sync::Arc;
+use wvb::updater::Updater;
+
+let updater = Updater::new(source, remote, None); // None -> UpdaterConfig::default()
+
 let update = updater.get_update("app").await?;
 if update.is_available {
     // download fetches, verifies, and stages — but does not activate
@@ -76,6 +62,30 @@ if update.is_available {
 }
 ```
 
+`get_update` returns a `BundleUpdateInfo`:
+
+```rust
+pub struct BundleUpdateInfo {
+    pub name: String,
+    pub version: String,
+    pub local_version: Option<String>,
+    pub is_available: bool,
+    pub etag: Option<String>,
+    pub integrity: Option<String>,
+    pub signature: Option<String>,
+    pub last_modified: Option<String>,
+}
+```
+
+Pass `Some(version)` to `download` to fetch a specific version instead of the current one:
+
+```rust
+// fetch current deployed version
+let info = updater.download("app", None).await?;
+// fetch an exact version (GET /bundles/{name}/{version})
+let info = updater.download("app", Some("1.1.0".into())).await?;
+```
+
 The platform guides show the idiomatic call for each target:
 [Electron](/docs/guide/platforms/electron), [Tauri](/docs/guide/platforms/tauri),
 [Android](/docs/guide/platforms/android), [iOS](/docs/guide/platforms/ios), and
@@ -83,8 +93,7 @@ The platform guides show the idiomatic call for each target:
 
 ## The remote HTTP contract
 
-A Webview Bundle server is any HTTP server that implements four endpoints. The provider packages
-(local, AWS, Cloudflare) implement this spec, and you can build your own to match it.
+A Webview Bundle server implements four endpoints. The provider packages (local, AWS, Cloudflare) implement this spec, and you can build your own to match.
 
 | Method and path                 | Purpose                                            |
 | ------------------------------- | -------------------------------------------------- |
@@ -93,61 +102,84 @@ A Webview Bundle server is any HTTP server that implements four endpoints. The p
 | `GET /bundles/{name}`           | Download the current version                       |
 | `GET /bundles/{name}/{version}` | Download a specific version                        |
 
-`GET /bundles`, `HEAD /bundles/{name}`, and `GET /bundles/{name}` accept an optional `?channel=` query
-to scope the response to a channel. Metadata travels in response headers:
+`GET /bundles`, `HEAD /bundles/{name}`, and `GET /bundles/{name}` accept an optional `?channel=` query. `GET /bundles/{name}/{version}` does not. Metadata travels in response headers:
 
-- `Webview-Bundle-Name` — bundle name **(required)**
-- `Webview-Bundle-Version` — version **(required)**
-- `Webview-Bundle-Integrity` — integrity string (optional)
-- `Webview-Bundle-Signature` — signature (optional)
-- `ETag` and `Last-Modified` — standard validators (optional)
+| Header                       | Required | Meaning                  |
+| ---------------------------- | -------- | ------------------------ |
+| `Webview-Bundle-Name`        | yes      | bundle name              |
+| `Webview-Bundle-Version`     | yes      | version                  |
+| `Webview-Bundle-Integrity`   | no       | integrity string         |
+| `Webview-Bundle-Signature`   | no       | signature                |
+| `ETag`, `Last-Modified`      | no       | standard validators      |
 
-Downloads use `Content-Type: application/webview-bundle`; the list endpoint returns
-`application/json`. A missing bundle or version returns `404`; requesting a specific non-deployed
-version returns `403` when that server disallows it. Both missing required headers and any other
-non-2xx response cause the client to reject the download. For a worked server implementation and local
-testing, see [Building a remote](/docs/guide/remote).
+A download response looks like:
+
+```sh
+$ curl -sI http://localhost:4313/bundles/app
+HTTP/1.1 200 OK
+Content-Type: application/webview-bundle
+Webview-Bundle-Name: app
+Webview-Bundle-Version: 1.2.0
+Webview-Bundle-Integrity: sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+ETag: "abc123"
+```
+
+The list endpoint returns `application/json`:
+
+```json
+[
+  { "name": "app", "version": "1.2.0" },
+  { "name": "admin", "version": "0.4.1" }
+]
+```
+
+A missing bundle or version returns `404`; requesting a specific non-deployed version returns `403` when the server disallows it. Missing required headers, or any non-2xx response, cause the client to reject the download. The default request timeout is 120s. For a worked server and local testing, see [Building a remote](/docs/guide/remote).
 
 ## Integrity
 
-An integrity hash lets a device confirm that the bytes it downloaded are exactly the bytes you
-published. Webview Bundle uses **SHA-2**: `sha256` (the default), `sha384`, or `sha512`. The hash is
-serialized as `"<alg>:<base64>"`, for example:
+An integrity hash lets a device confirm the downloaded bytes are exactly the bytes you published. Webview Bundle uses **SHA-2**: `sha256` (the default), `sha384`, or `sha512`, serialized as `"<alg>:<base64>"`:
 
 ```text
 sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
 ```
 
-The publisher attaches this string at upload time (configured in
-[Remote config](/docs/config/remote)), the server returns it in the `Webview-Bundle-Integrity` header,
-and the updater enforces it on download according to an **integrity policy**:
+The publisher attaches this string at upload time ([Remote config](/docs/config/remote)), the server returns it in `Webview-Bundle-Integrity`, and the updater enforces it on download per an **integrity policy**:
 
-- **`Strict`** — an integrity value must be present and must match, or the download is rejected.
-- **`Optional`** — the **default**. Verify the integrity value if one is present; allow the download
-  if none is attached.
-- **`None`** — skip integrity checking entirely.
+| Policy     | Behavior                                                         |
+| ---------- | --------------------------------------------------------------- |
+| `Strict`   | integrity value must be present and must match, or reject       |
+| `Optional` | **default** — verify if present; allow when none is attached    |
+| `None`     | skip integrity checking entirely                                |
+
+```rust
+use wvb::integrity::IntegrityPolicy;
+use wvb::updater::UpdaterConfig;
+
+let config = UpdaterConfig::new()
+    .integrity_policy(IntegrityPolicy::Strict);
+```
 
 ## Signatures
 
-Where integrity proves the bytes are intact, a signature proves *who* published them. The signature
-covers the **integrity string bytes** (`"<alg>:<base64>"`), not the raw bundle, so signature
-verification requires an integrity value to be present. Configure the updater with a public key, and it
-rejects any download whose signature does not verify.
+Where integrity proves the bytes are intact, a signature proves *who* published them. The signature covers the **integrity string bytes** (`"<alg>:<base64>"`), not the raw bundle — so signature verification requires an integrity value to be present. Supply a public key, and the updater rejects any download whose signature does not verify.
 
-The core verifies these algorithms:
+Verify algorithms:
 
 - **ECDSA** with curve P-256 (secp256r1) or P-384 (secp384r1)
 - **Ed25519**
 - **RSA** with PKCS#1 v1.5 or PSS padding, hashing with SHA-256
 
-Public keys can be supplied in these formats:
+Public-key formats:
 
-- **SPKI** as PEM or DER (all algorithms)
-- **PKCS#1** as PEM or DER (RSA only)
-- **SEC1** point bytes (ECDSA only)
-- **Raw** 32-byte key (Ed25519 only)
+| Format            | Loader                  | Applies to    |
+| ----------------- | ----------------------- | ------------- |
+| SPKI PEM          | `from_public_key_pem`   | all           |
+| SPKI DER          | `from_public_key_der`   | all           |
+| PKCS#1 PEM/DER    | `from_pkcs1_pem` / `_der` | RSA only    |
+| SEC1 point bytes  | `from_sec1_bytes`       | ECDSA only    |
+| Raw 32-byte key   | `from_public_key_bytes` | Ed25519 only  |
 
-A Rust updater that requires both a matching integrity hash and a valid Ed25519 signature:
+An updater requiring both a matching integrity hash and a valid Ed25519 signature:
 
 ```rust
 use wvb::integrity::IntegrityPolicy;
@@ -164,23 +196,37 @@ let config = UpdaterConfig::new()
 let updater = Updater::new(source, remote, Some(config));
 ```
 
-The publish-side counterpart — which algorithm signs, and the private-key format — is set in
-[Remote config](/docs/config/remote).
+ECDSA P-256 from an SPKI PEM:
+
+```rust
+use wvb::signature::{EcdsaSecp256r1Verifier, SignatureVerifier};
+use std::sync::Arc;
+
+let verifier = SignatureVerifier::EcdsaSecp256r1(Arc::new(
+    EcdsaSecp256r1Verifier::from_public_key_pem(PUBLIC_KEY_PEM)?,
+));
+```
+
+The publish-side counterpart — which algorithm signs, and the private-key format — is set in [Remote config](/docs/config/remote).
 
 ## Channels
 
-A channel routes different versions to different audiences, which makes staged rollouts possible. Deploy
-a version to a channel, and only clients that request that channel receive it; clients with no channel
-get the default deployment.
+A channel routes different versions to different audiences for staged rollouts. Deploy to a channel, and only clients requesting that channel receive it; clients with no channel get the default deployment.
 
 ```sh
 wvb upload --version 1.2.0 --deploy --channel beta   # only beta clients see 1.2.0
 wvb deploy --version 1.2.0                            # later, promote to the default channel
 ```
 
-On the device, the updater carries the channel in its configuration and forwards it as the `?channel=`
-query parameter when it checks for and downloads updates. A channel is a free-form string; there is no
-hardcoded default name — when no channel is set, the query parameter is simply omitted.
+On the device, the updater carries the channel in its config and forwards it as `?channel=`:
+
+```rust
+let config = UpdaterConfig::new().channel("beta");
+let updater = Updater::new(source, remote, Some(config));
+// get_update / download now request ?channel=beta
+```
+
+A channel is a free-form string; there is no hardcoded default name — when no channel is set, the query parameter is omitted.
 
 ## Where to go next
 

@@ -1,28 +1,63 @@
 ---
 title: Introduction
-description: An offline-first web resource delivery system for webview-based frameworks and platforms.
+description: An offline-first web application deployment system for webview-based frameworks and platforms.
 ---
 
-Webview Bundle (`wvb`) is an offline-first web resource delivery system for webview-based
-frameworks and platforms. Instead of fetching your web app over the network, it packs your built
-assets (HTML/JS/CSS/media) into a single compressed, integrity-checked archive (`.wvb`) that your
-app ships with and serves to its webview through a custom URL scheme. Configure a remote, and your
-app downloads newer bundles over the air (OTA = over-the-air) — delivering updated app code without
-a native app-store release. One `.wvb` format runs on every webview platform via a shared Rust core.
+Webview Bundle (`wvb`) packs your built web assets (HTML/JS/CSS/media) into a single compressed,
+integrity-checked archive (`.wvb`). Your app ships with the archive and serves it to its webview
+through a custom URL scheme — so first paint never waits on the network. Configure a remote and the
+app downloads newer bundles over the air (OTA = over-the-air), shipping updated code without a
+native app-store release. One `.wvb` format runs on every webview platform via a shared Rust core.
 
-```text
- build output            .wvb archive              your app's webview
-┌──────────────┐  pack  ┌───────────────┐  serve  ┌─────────────────────┐
-│ dist/        │ ─────▶ │ app_1.0.0.wvb │ ──────▶ │ app://app/index.html│
-│  index.html  │        │  (compressed, │         │  (offline, instant) │
-│  app.js …    │        │   verified)   │         └─────────────────────┘
-└──────────────┘        └───────────────┘
-                              │  upload + deploy        ▲ download + verify
-                              ▼                         │
-                        ┌───────────────┐   updater     │
-                        │ remote server │ ──────────────┘
-                        └───────────────┘
+![Build output is packed into a .wvb archive, served to the webview, and updated over the air from a remote server.](/diagrams/pack-serve-update.svg)
+
+## Quickstart
+
+Install the CLI, pack your build output, and preview it locally.
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+```sh
+npm install --save-dev @wvb/cli
 ```
+  </Tab>
+  <Tab value="pnpm">
+```sh
+pnpm add -D @wvb/cli
+```
+  </Tab>
+  <Tab value="yarn">
+```sh
+yarn add -D @wvb/cli
+```
+  </Tab>
+</Tabs>
+
+```sh
+# Pack ./dist into .wvb/<pkgName> (override with --outfile,-O)
+npx wvb pack
+
+# Serve the bundle for local preview on http://localhost:4312
+npx wvb serve
+```
+
+Configure the build in `wvb.config.ts` with `defineConfig`:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  pack: {
+    // `.wvb` is appended automatically -> .wvb/app.wvb
+    outFile: '.wvb/app',
+  },
+  serve: {
+    port: 4312,
+  },
+});
+```
+
+See the [CLI reference](/docs/guide/cli) and the [`wvb.config` reference](/docs/config) for every command and field.
 
 ## Why Webview Bundle?
 
@@ -34,6 +69,25 @@ a native app-store release. One `.wvb` format runs on every webview platform via
   (ECDSA, Ed25519, RSA).
 - **One format, every platform.** The same `.wvb` archive runs on Electron, Tauri, Android, iOS,
   and Deno Desktop through a shared Rust core.
+
+Enable integrity and signature verification on the remote in config:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  remote: {
+    integrity: { algorithm: 'sha256' },
+    signature: {
+      algorithm: 'ed25519',
+      keyFormat: 'pkcs8',
+      // privateKey: ...
+    },
+  },
+});
+```
+
+See [Remote, integrity & signature config](/docs/config/remote) for the full schema.
 
 ## Start here
 
@@ -123,6 +177,16 @@ The core is a Rust crate. Each platform consumes it through a thin integration p
 | `@wvb/remote-aws` | 0.1.0 | Remote configuration and provider for AWS |
 | `@wvb/remote-cloudflare` | 0.1.0 | Remote configuration and provider for Cloudflare |
 | `@wvb/remote-local` | 0.0.0 | Remote configuration for local simulation |
+
+Install a platform integration alongside the CLI:
+
+```sh
+# Electron
+npm install @wvb/electron
+
+# Tauri (Rust crate)
+cargo add wvb-tauri
+```
 
 <Callout type="info">
   The Tauri integration is the **`wvb-tauri` crate** on crates.io — there is no `@wvb/tauri` npm
