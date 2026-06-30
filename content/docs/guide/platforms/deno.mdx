@@ -3,9 +3,11 @@ title: Deno Desktop
 description: Serve and update Webview Bundle archives in a Deno desktop webview through a Deno.serve request handler.
 ---
 
+<Badge>Experimental</Badge>
+
 Deno Desktop renders a native webview with `Deno.BrowserWindow` and serves it over `Deno.serve`. Webview Bundle becomes that server's handler, so the window loads your packed `.wvb` assets offline instead of fetching them over the network.
 
-```ts title="main.ts (preview)"
+```ts title="main.ts"
 import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
@@ -20,10 +22,7 @@ await win.closed;
 `@wvb/deno-desktop` is the integration layer; `@wvb/deno` is the FFI peer of [`@wvb/node`](/docs/references/node) that drives the shared Rust core.
 
 <Callout type="warn">
-  Deno Desktop is **experimental / preview** and not production-ready. The source lives on an
-  un-merged branch; `main` ships only a prebuilt dylib artifact. The JSR packages `@wvb/deno` and
-  `@wvb/deno-desktop` are published at version **`0.0.0`** and their APIs may change. Treat these
-  snippets as preview, not a stable contract.
+  Deno Desktop is experimental and its API may change before a stable release.
 </Callout>
 
 ## How it fits together
@@ -34,7 +33,7 @@ The window points at a single local origin served by `Deno.serve`, so the integr
 
 Call `webviewBundle(config)` — aliased as `wvb`, backed by the `WebviewBundle` class — to build a `BundleSource` (plus an optional `Remote` and `Updater`) and get back a `Deno.serve`-compatible `fetch` handler. Add an `updater` to pull newer bundles from a remote:
 
-```ts title="main.ts (preview)"
+```ts title="main.ts"
 import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
@@ -53,7 +52,7 @@ await win.closed;
 
 Call `registerBindings(win, wvb)` to expose native commands to your web app. It registers one `Deno.BrowserWindow` binding named `wvbInvoke`, reachable from the page as `window.bindings.wvbInvoke`, that dispatches every `@wvb/bridge` command in the `source.*`, `remote.*`, and `updater.*` groups.
 
-```ts title="main.ts (preview)"
+```ts title="main.ts"
 import { webviewBundle, bundleProtocol, registerBindings } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
@@ -78,7 +77,7 @@ type InvokeResult =
 
 The `@wvb/bridge` client unwraps this envelope once it detects the `deno` platform, so web code keeps calling `invoke()`, `source.*`, `remote.*`, and `updater.*` exactly as on other platforms:
 
-```ts title="app.ts (in the webview, preview)"
+```ts title="app.ts (in the webview)"
 import { updater } from '@wvb/bridge';
 
 const update = await updater.getUpdate('my-app');
@@ -94,7 +93,7 @@ if (update.isAvailable) {
 
 Each class is `Disposable` — free it explicitly with `free()`, or let a `using` declaration call `[Symbol.dispose]` at scope exit:
 
-```ts title="dispose.ts (preview)"
+```ts title="dispose.ts"
 import { BundleProtocol } from '@wvb/deno';
 
 // `lib` and `source` come from the load + BundleSource steps below.
@@ -114,7 +113,7 @@ protocol.free();
 
 Load the `cdylib` from an explicit path, or download a SHA-256-verified prebuilt via [`@denosaurs/plug`](https://jsr.io/@denosaurs/plug):
 
-```ts title="load.ts (preview)"
+```ts title="load.ts"
 import { loadLib, loadLibViaPlug } from '@wvb/deno';
 
 // 1. Load a library already on disk.
@@ -160,7 +159,7 @@ Beyond the experimental status, two gaps apply to the Deno bindings today.
 
 **Custom verifier callbacks are not supported.** The `Updater` accepts only the **declarative** `signatureVerifier` — a `SignatureVerifierOptions` with an `algorithm` and a `key`:
 
-```ts title="updater.ts (preview)"
+```ts title="updater.ts"
 const wvb = await webviewBundle({
   protocols: [bundleProtocol({ scheme: 'app' })],
   updater: {
@@ -178,7 +177,7 @@ The custom `integrityChecker` / `signatureVerifier` function callbacks available
 
 **`HttpOptions.defaultHeaders` is not yet supported** on the Deno `Remote`. Other `HttpOptions` fields still apply:
 
-```ts title="http.ts (preview)"
+```ts title="http.ts"
 const wvb = await webviewBundle({
   protocols: [bundleProtocol({ scheme: 'app' })],
   updater: {

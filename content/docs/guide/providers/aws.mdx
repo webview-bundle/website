@@ -4,12 +4,6 @@ description: Host, serve, and provision remote Webview Bundles on AWS using S3, 
 ---
 
 Publish bundles to your own AWS account and serve them over a global CDN. Bundles live in **S3**, **CloudFront** caches them, two **Lambda@Edge** functions translate the remote HTTP contract into S3 reads, and **KMS** can optionally sign each bundle.
-
-<Callout type="warn">
-  All AWS packages are at `0.1.0` and pre-release. Treat them as preview and install from source
-  until a published release lands.
-</Callout>
-
 For the contract these pieces implement and how to choose a provider, see [Building a remote](/docs/guide/remote).
 
 ## Backing services

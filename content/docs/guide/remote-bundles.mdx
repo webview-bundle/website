@@ -54,11 +54,11 @@ let updater = Updater::new(source, remote, None); // None -> UpdaterConfig::defa
 
 let update = updater.get_update("app").await?;
 if update.is_available {
-    // download fetches, verifies, and stages — but does not activate
-    let info = updater.download("app", None).await?;
-    // install re-verifies, activates, and prunes old versions
-    updater.install("app", info.version).await?;
-    // reload the webview to serve the new version
+  // download fetches, verifies, and stages — but does not activate
+  let info = updater.download("app", None).await?;
+  // install re-verifies, activates, and prunes old versions
+  updater.install("app", info.version).await?;
+  // reload the webview to serve the new version
 }
 ```
 
@@ -66,14 +66,14 @@ if update.is_available {
 
 ```rust
 pub struct BundleUpdateInfo {
-    pub name: String,
-    pub version: String,
-    pub local_version: Option<String>,
-    pub is_available: bool,
-    pub etag: Option<String>,
-    pub integrity: Option<String>,
-    pub signature: Option<String>,
-    pub last_modified: Option<String>,
+  pub name: String,
+  pub version: String,
+  pub local_version: Option<String>,
+  pub is_available: bool,
+  pub etag: Option<String>,
+  pub integrity: Option<String>,
+  pub signature: Option<String>,
+  pub last_modified: Option<String>,
 }
 ```
 
@@ -156,7 +156,7 @@ use wvb::integrity::IntegrityPolicy;
 use wvb::updater::UpdaterConfig;
 
 let config = UpdaterConfig::new()
-    .integrity_policy(IntegrityPolicy::Strict);
+  .integrity_policy(IntegrityPolicy::Strict);
 ```
 
 ## Signatures
@@ -188,11 +188,11 @@ use wvb::updater::{Updater, UpdaterConfig};
 use std::sync::Arc;
 
 let verifier = SignatureVerifier::Ed25519(Arc::new(
-    Ed25519Verifier::from_public_key_pem(PUBLIC_KEY_PEM)?,
+  Ed25519Verifier::from_public_key_pem(PUBLIC_KEY_PEM)?,
 ));
 let config = UpdaterConfig::new()
-    .integrity_policy(IntegrityPolicy::Strict)
-    .signature_verifier(verifier);
+  .integrity_policy(IntegrityPolicy::Strict)
+  .signature_verifier(verifier);
 let updater = Updater::new(source, remote, Some(config));
 ```
 
@@ -203,7 +203,7 @@ use wvb::signature::{EcdsaSecp256r1Verifier, SignatureVerifier};
 use std::sync::Arc;
 
 let verifier = SignatureVerifier::EcdsaSecp256r1(Arc::new(
-    EcdsaSecp256r1Verifier::from_public_key_pem(PUBLIC_KEY_PEM)?,
+  EcdsaSecp256r1Verifier::from_public_key_pem(PUBLIC_KEY_PEM)?,
 ));
 ```
 

@@ -3,8 +3,8 @@ title: Changelog
 description: Where Webview Bundle releases are tracked, and the versions published so far.
 ---
 
-Webview Bundle is pre-1.0. Releases are cut per package, so the authoritative release
-notes live with each registry and the GitHub release pages.
+Releases are cut per package, so the authoritative release notes live with each registry and the
+GitHub release pages.
 
 <Cards>
   <Card
@@ -35,16 +35,9 @@ The current published versions, by package:
 | `@wvb/remote-aws`        | [npm](https://www.npmjs.com/package/@wvb/remote-aws)        | 0.1.0   |
 | `@wvb/remote-cloudflare` | [npm](https://www.npmjs.com/package/@wvb/remote-cloudflare) | 0.1.0   |
 
-<Callout type="info">
-  Some packages are not published yet: `@wvb/electron-builder` and `@wvb/electron-forge` exist in
-  the repository but are not on npm, and the Android (`webview-bundle-android`) and iOS
-  (`webview-bundle-ios`) bindings are pre-release — not yet on Maven Central or tagged for Swift
-  Package Manager. See [Platform support](/docs/guide/platform-support) for current status.
-</Callout>
-
 ## Versioning
 
-Packages follow [semantic versioning](https://semver.org). While the project is pre-1.0, minor
-versions may introduce breaking changes; pin exact versions for reproducible builds. The `.wvb`
+Packages follow [semantic versioning](https://semver.org). Pin exact versions for reproducible
+builds. The `.wvb`
 bundle format carries its own format version (`v1`) independent of package versions — see the
 [bundle format](/docs/guide/bundle-format).

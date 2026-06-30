@@ -101,7 +101,7 @@ In Tauri, configure the host map on `Protocol::local`:
 use wvb_tauri::{Config, Protocol};
 
 Config::new().protocol(
-    Protocol::local("app").host("myapp.wvb", "http://localhost:3000"),
+  Protocol::local("app").host("myapp.wvb", "http://localhost:3000"),
 );
 ```
 
@@ -159,13 +159,13 @@ The `wvb-tauri` crate registers an async URI-scheme protocol per configured `Pro
 use wvb_tauri::{Config, Protocol, Source};
 
 tauri::Builder::default()
-    .plugin(wvb_tauri::init(
-        Config::new()
-            .source(Source::new())
-            .protocol(Protocol::bundle("bundle")),
-    ))
-    .run(tauri::generate_context!())
-    .unwrap();
+  .plugin(wvb_tauri::init(
+    Config::new()
+      .source(Source::new())
+      .protocol(Protocol::bundle("bundle")),
+  ))
+  .run(tauri::generate_context!())
+  .unwrap();
 ```
 
 Point the window at the scheme in `tauri.conf.json`:
@@ -198,11 +198,6 @@ class BundleWebViewClient : WebViewClient() {
 ```
 
 See the [Android guide](/docs/guide/platforms/android) for the working setup.
-
-<Callout type="warn">
-  Android and iOS are pre-release and not yet published to Maven Central or tagged for SPM. Install
-  from source for now.
-</Callout>
 
 </Tab>
 <Tab value="iOS">

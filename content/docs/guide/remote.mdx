@@ -42,12 +42,6 @@ export default defineConfig({
 
 Publish-side integrity and signature options live alongside `uploader`/`deployer` — see [Remote, integrity & signature config](/docs/config/remote).
 
-<Callout type="info">
-  `@wvb/remote-local` and `@wvb/remote-local-provider` are pre-release (`0.0.0`); the AWS and
-  Cloudflare packages are at `0.1.0`. Treat all of them as not-yet-published and install from source
-  for now.
-</Callout>
-
 ## The HTTP contract
 
 Every provider implements the same four endpoints, so the client never cares which backend is behind it.
@@ -155,14 +149,14 @@ Set the app's updater endpoint to `http://localhost:4313`. Now `getUpdate`, `dow
 
 ```rust
 let remote = Remote::builder()
-    .endpoint("http://localhost:4313")
-    .build()?;
+  .endpoint("http://localhost:4313")
+  .build()?;
 let updater = Updater::new(source, Arc::new(remote), None);
 
 let info = updater.get_update("app").await?;   // HEAD /bundles/app
 if info.is_available {
-    updater.download("app", None).await?;       // GET /bundles/app
-    updater.install("app", &info.version).await?; // activate the downloaded version
+  updater.download("app", None).await?;       // GET /bundles/app
+  updater.install("app", &info.version).await?; // activate the downloaded version
 }
 ```
 

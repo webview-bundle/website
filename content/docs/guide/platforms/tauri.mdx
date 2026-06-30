@@ -55,19 +55,19 @@ use wvb_tauri::{Config, Protocol, Source};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
-        .plugin(wvb_tauri::init(
-            Config::new()
-                .source(Source::new().builtin_dir_fn(|app| {
-                    Ok(app.path().resource_dir()?.join("bundles"))
-                }))
-                // Serve `bundle://<name>.wvb/...` straight from packed bundles.
-                .protocol(Protocol::bundle("bundle"))
-                // In development, proxy `local://example.com/...` to the dev server.
-                .protocol(Protocol::local("local").host("example.com", "http://localhost:1420")),
-        ))
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+  tauri::Builder::default()
+    .plugin(wvb_tauri::init(
+      Config::new()
+        .source(Source::new().builtin_dir_fn(|app| {
+          Ok(app.path().resource_dir()?.join("bundles"))
+        }))
+        // Serve `bundle://<name>.wvb/...` straight from packed bundles.
+        .protocol(Protocol::bundle("bundle"))
+        // In development, proxy `local://example.com/...` to the dev server.
+        .protocol(Protocol::local("local").host("example.com", "http://localhost:1420")),
+    ))
+    .run(tauri::generate_context!())
+    .expect("error while running tauri application");
 }
 ```
 
@@ -79,8 +79,8 @@ pub fn run() {
 use std::collections::HashMap;
 
 Protocol::local("local").hosts(HashMap::from([
-    ("example.com".to_string(), "http://localhost:1420".to_string()),
-    ("api.example.com".to_string(), "http://localhost:8080".to_string()),
+  ("example.com".to_string(), "http://localhost:1420".to_string()),
+  ("api.example.com".to_string(), "http://localhost:8080".to_string()),
 ]));
 ```
 
@@ -168,9 +168,9 @@ Add a `Remote` to enable OTA downloads:
 use wvb_tauri::{Config, Protocol, Remote, Source};
 
 Config::new()
-    .source(Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles"))))
-    .protocol(Protocol::bundle("bundle"))
-    .remote(Remote::new("https://updates.example.com"));
+  .source(Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles"))))
+  .protocol(Protocol::bundle("bundle"))
+  .remote(Remote::new("https://updates.example.com"));
 ```
 
 Tune the HTTP client with `Http` (defaults: request timeout `120_000` ms), and watch progress with `.on_download`:
@@ -179,12 +179,12 @@ Tune the HTTP client with `Http` (defaults: request timeout `120_000` ms), and w
 use wvb_tauri::{Http, Remote};
 
 Remote::new("https://updates.example.com")
-    .http(Http::new().timeout(30_000).user_agent("my-app/1.0".into()))
-    .on_download(|downloaded, total, _name| {
-        if let Some(total) = total {
-            println!("{downloaded}/{total} bytes");
-        }
-    });
+  .http(Http::new().timeout(30_000).user_agent("my-app/1.0".into()))
+  .on_download(|downloaded, total, _name| {
+    if let Some(total) = total {
+      println!("{downloaded}/{total} bytes");
+    }
+  });
 ```
 
 Plugin commands are reachable as `plugin:wvb-tauri|<command_name>`. Arguments use camelCase on the JS side (`bundle_name` becomes `bundleName`). The core OTA flow uses three updater commands:
@@ -287,15 +287,15 @@ use wvb_tauri::{Config, Ed25519Verifier, IntegrityPolicy, Protocol, Remote, Sour
 const PUBLIC_KEY_PEM: &str = include_str!("../keys/public.pem");
 
 Config::new()
-    .source(Source::new())
-    .protocol(Protocol::bundle("bundle"))
-    .remote(Remote::new("https://updates.example.com"))
-    .updater(
-        Updater::new()
-            .channel("stable")
-            .integrity_policy(IntegrityPolicy::Strict)
-            .signature_verifier(|| Ok(Ed25519Verifier::from_pem(PUBLIC_KEY_PEM)?.into())),
-    );
+  .source(Source::new())
+  .protocol(Protocol::bundle("bundle"))
+  .remote(Remote::new("https://updates.example.com"))
+  .updater(
+    Updater::new()
+      .channel("stable")
+      .integrity_policy(IntegrityPolicy::Strict)
+      .signature_verifier(|| Ok(Ed25519Verifier::from_pem(PUBLIC_KEY_PEM)?.into())),
+  );
 ```
 
 `IntegrityPolicy` is `Strict` (must be present and match), `Optional` (default — verify if present), or `None` (skip). Verifier types: `EcdsaSecp256r1Verifier`, `EcdsaSecp384r1Verifier`, `Ed25519Verifier`, `RsaPkcs1V15Verifier`, `RsaPssVerifier`. An `Updater` requires a `Remote`; without one, no updater is built.
@@ -311,7 +311,7 @@ let wvb = app.wvb();
 let _source = wvb.source();
 
 if let Some(_updater) = wvb.updater() {
-    // updater is present only when both `.remote(...)` and `.updater(...)` are configured
+  // updater is present only when both `.remote(...)` and `.updater(...)` are configured
 }
 ```
 
@@ -323,8 +323,8 @@ On **iOS**, builtin bundles live in a real filesystem resource directory — no 
 
 ```rust title="src-tauri/src/lib.rs"
 tauri::Builder::default()
-    .plugin(tauri_plugin_fs::init())
-    .plugin(wvb_tauri::init(/* ... */));
+  .plugin(tauri_plugin_fs::init())
+  .plugin(wvb_tauri::init(/* ... */));
 ```
 
 The plugin then extracts each bundle from the APK on first request and caches it in app local data. Remote-only apps (no builtin bundles) need no extra Android setup. See the [Android](/docs/guide/platforms/android) and [iOS](/docs/guide/platforms/ios) guides for platform specifics, and [Platform support](/docs/guide/platform-support) for current status.

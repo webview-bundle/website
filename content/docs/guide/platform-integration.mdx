@@ -93,13 +93,13 @@ wvb-tauri = "0.1.0"
 use wvb_tauri::{Config, Protocol, Source};
 
 tauri::Builder::default()
-    .plugin(wvb_tauri::init(
-        Config::new()
-            .source(Source::new().builtin_dir("bundles"))
-            .protocol(Protocol::bundle("bundle")),
-    ))
-    .run(tauri::generate_context!())
-    .unwrap();
+  .plugin(wvb_tauri::init(
+    Config::new()
+      .source(Source::new().builtin_dir("bundles"))
+      .protocol(Protocol::bundle("bundle")),
+  ))
+  .run(tauri::generate_context!())
+  .unwrap();
 ```
 
 A frontend that calls plugin commands must grant the ACL permission set in a capability file.
@@ -114,8 +114,8 @@ The same crate handles desktop and mobile. On Android, builtin bundles ship insi
 
 ```rust
 tauri::Builder::default()
-    .plugin(tauri_plugin_fs::init()) // required on Android for builtin bundles
-    .plugin(wvb_tauri::init(config))
+  .plugin(tauri_plugin_fs::init()) // required on Android for builtin bundles
+  .plugin(wvb_tauri::init(config))
 ```
 
 See the [Tauri guide](/docs/guide/platforms/tauri).
@@ -128,19 +128,19 @@ Android and iOS share one binding generator: `packages/ffi`, a Rust crate that u
 - `apple.zip` — Swift bindings and static libraries for Apple platforms,
 - `WebViewBundleFFI.xcframework.zip` — the xcframework for iOS.
 
-Two dedicated repositories consume these assets and resolve them by release tag — stable releases use `ffi/<version>`, prereleases use `prerelease/<sha>`.
+Two dedicated repositories consume these assets and resolve them by release tag `ffi/<version>`.
 
 ```kotlin title="Android — dev.wvb bindings"
 import dev.wvb.BundleSource
 import dev.wvb.BundleSourceConfig
 
 val source = BundleSource(
-    BundleSourceConfig(
-        builtinDir = "$filesDir/bundles",
-        remoteDir = "$cacheDir/remote",
-        builtinManifestFilepath = null,
-        remoteManifestFilepath = null,
-    ),
+  BundleSourceConfig(
+    builtinDir = "$filesDir/bundles",
+    remoteDir = "$cacheDir/remote",
+    builtinManifestFilepath = null,
+    remoteManifestFilepath = null,
+  ),
 )
 val bundle = source.fetchBundle("app")
 ```
@@ -149,31 +149,23 @@ val bundle = source.fetchBundle("app")
 import WebViewBundleLibrary
 
 let source = BundleSource(
-    config: BundleSourceConfig(
-        builtinDir: "\(docs)/bundles",
-        remoteDir: "\(caches)/remote",
-        builtinManifestFilepath: nil,
-        remoteManifestFilepath: nil
-    )
+  config: BundleSourceConfig(
+    builtinDir: "\(docs)/bundles",
+    remoteDir: "\(caches)/remote",
+    builtinManifestFilepath: nil,
+    remoteManifestFilepath: nil
+  )
 )
 let bundle = try await source.fetchBundle(bundleName: "app")
 ```
 
-```swift title="Package.swift — install from source (pre-release)"
+```swift title="Package.swift"
 .binaryTarget(
-    name: "WebViewBundleFFI",
-    url: "https://github.com/webview-bundle/webview-bundle/releases/download/ffi/0.1.0/WebViewBundleFFI.xcframework.zip",
-    checksum: "<sha256>"
+  name: "WebViewBundleFFI",
+  url: "https://github.com/webview-bundle/webview-bundle/releases/download/ffi/0.1.0/WebViewBundleFFI.xcframework.zip",
+  checksum: "<sha256>"
 )
 ```
-
-<Callout type="warn">
-  Android and iOS are implemented and end-to-end tested, but the bindings are pre-release. They are
-  not yet published to Maven Central, and there is no Swift Package Manager tag — install from
-  source for now. The minimum supported iOS version is iOS 16. The currently committed xcframework
-  contains a simulator-only slice; the device slice is pending. See the
-  [Android](/docs/guide/platforms/android) and [iOS](/docs/guide/platforms/ios) guides.
-</Callout>
 
 ### Deno
 
@@ -279,12 +271,12 @@ The webview also loads its assets through the same core: the bundle protocol ser
   <Card
     title="Android guide"
     href="/docs/guide/platforms/android"
-    description="Consume the UniFFI Kotlin bindings (pre-release)."
+    description="Consume the UniFFI Kotlin bindings."
   />
   <Card
     title="iOS guide"
     href="/docs/guide/platforms/ios"
-    description="Consume the UniFFI Swift bindings (pre-release, iOS 16+)."
+    description="Consume the UniFFI Swift bindings (iOS 16+)."
   />
   <Card
     title="Deno guide"

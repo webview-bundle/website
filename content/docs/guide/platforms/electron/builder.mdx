@@ -5,13 +5,6 @@ description: Install builtin .wvb bundles at package time and keep the native @w
 
 `@wvb/electron-builder` integrates Webview Bundle with [electron-builder](https://www.electron.build/) packaging. It hooks electron-builder's `afterPack` step to install your builtin `.wvb` bundles into the packaged app's resources, so the bundles `@wvb/electron` serves at runtime ship with the app. You still configure electron-builder to keep the native `@wvb/node` addon out of the ASAR archive. Read the [Electron guide](/docs/guide/platforms/electron) first for the runtime setup, and see [Electron Forge](/docs/guide/platforms/electron/forge) for the Forge equivalent.
 
-<Callout type="warn">
-  `@wvb/electron-builder` lives in the
-  [repository](https://github.com/webview-bundle/webview-bundle/tree/main/packages/electron-builder)
-  but is **not yet published to npm** (version `0.0.0`). Install it from source or pin the workspace
-  version for now. The manual `extraResources` setup below works without it.
-</Callout>
-
 ## What it does
 
 At package time the plugin resolves your Webview Bundle config, installs the builtin bundles (downloaded from a `remote` target or packed from local workspaces via `@wvb/cli`), stages them under `<root>/.wvb/builtin/bundles/<platform>-<arch>`, then copies them into the packaged app's `Resources/<bundlesDir>` directory. That is exactly where `@wvb/electron` reads builtin bundles from when packaged (`process.resourcesPath/bundles`), so the runtime picks them up with no extra wiring.

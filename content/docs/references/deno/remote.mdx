@@ -1,0 +1,93 @@
+---
+title: Remote
+description: The Deno Remote class talks to a remote bundle server to list and download bundles over Deno FFI.
+---
+
+`Remote` is the Deno binding's client for a remote bundle server. It lists the bundles a server
+advertises and downloads their raw `.wvb` bytes, so an [`Updater`](/docs/references/deno/updater) can
+install newer versions over the air. It is the FFI peer of the
+[`@wvb/node`](/docs/references/node/remote) `Remote`, and crosses a native FFI boundary like the rest of
+[`@wvb/deno`](/docs/references/deno).
+
+For the server side of this relationship — the HTTP contract a remote implements and how to run one —
+see [Building a remote](/docs/guide/remote).
+
+## Constructing a Remote
+
+Load the native library first, then construct `Remote` with the loaded `lib`, the server endpoint, and
+optional `RemoteOptions`.
+
+```ts title="remote.ts"
+import { loadLibViaPlug, Remote } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+using remote = new Remote(lib, 'https://bundles.example.com');
+
+const list = await remote.listBundles();
+const { info, data } = await remote.download('app');
+// info: RemoteBundleInfo, data: Uint8Array (raw .wvb bytes)
+```
+
+The endpoint is the base URL of the remote bundle server. `RemoteOptions` carries optional request
+configuration, including an `HttpOptions` value. See [the type reference below](#options-and-types).
+
+## Methods
+
+| Method                                 | Description                                                                   |
+| -------------------------------------- | ----------------------------------------------------------------------------- |
+| `listBundles()`                        | Lists the bundles the remote advertises (name and version pairs).             |
+| `download(bundleName)`                 | Downloads the current bundle for `bundleName`; resolves to `{ info, data }`.  |
+| `downloadVersion(bundleName, version)` | Downloads a specific `version` of `bundleName`; resolves to `{ info, data }`. |
+| `free()`                               | Releases the native handle. Also invoked via `[Symbol.dispose]`.              |
+
+`download(bundleName)` and `downloadVersion(bundleName, version)` both resolve to `{ info, data }`,
+where `info` is a `RemoteBundleInfo` and `data` is a `Uint8Array` of the raw bundle bytes.
+
+```ts title="download.ts"
+const { info, data } = await remote.downloadVersion('app', '1.4.0');
+await Deno.writeFile('./bundles/remote/app.wvb', data);
+```
+
+## Options and types
+
+`Remote` works with these related types. The shapes mirror the [`@wvb/node` Remote
+reference](/docs/references/node/remote); refer to it for full field details.
+
+| Type               | Role                                                   |
+| ------------------ | ------------------------------------------------------ |
+| `RemoteOptions`    | Optional configuration passed to the constructor.      |
+| `HttpOptions`      | HTTP request configuration carried by `RemoteOptions`. |
+| `RemoteBundleInfo` | The `info` returned alongside downloaded bundle bytes. |
+
+<Callout type="warn">
+  `HttpOptions.defaultHeaders` is not yet supported on the Deno `Remote`. It crosses the FFI
+  boundary, so this `@wvb/node` feature is unavailable here.
+</Callout>
+
+## Disposing a Remote
+
+`Remote` owns a native handle and is `Disposable`. Bind it with `using` so it releases on scope exit,
+or call `free()` explicitly when you are done.
+
+```ts title="dispose.ts"
+const remote = new Remote(lib, 'https://bundles.example.com');
+try {
+  const list = await remote.listBundles();
+  // ...
+} finally {
+  remote.free();
+}
+```
+
+<Cards>
+  <Card
+    title="Deno API"
+    href="/docs/references/deno"
+    description="Load the native library and browse the rest of the @wvb/deno surface."
+  />
+  <Card
+    title="Building a remote"
+    href="/docs/guide/remote"
+    description="The HTTP contract a remote server implements and how to run one."
+  />
+</Cards>

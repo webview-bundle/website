@@ -4,17 +4,14 @@ description: How a .wvb archive is laid out on disk, section by section, and how
 ---
 
 A Webview Bundle is a single `.wvb` file that packs your built web assets into one compressed,
-integrity-checked archive. It is three sections written back to back:
+integrity-checked archive. It is three sections written back to back — a fixed 17-byte header followed
+by a variable-length index and data region:
 
-```text
-[ Header (17 bytes) ][ Index (variable) ][ Data (variable) ]
-```
-
-| Section | Holds                                              |
-| ------- | -------------------------------------------------- |
-| Header  | magic number, format version, index size, checksum |
-| Index   | path → offset/length/headers entry map             |
-| Data    | LZ4-compressed file contents, sorted by path       |
+| Offset      | Section | Size       | Holds                                              |
+| ----------- | ------- | ---------- | -------------------------------------------------- |
+| `0`         | Header  | `17 bytes` | magic number, format version, index size, checksum |
+| `17`        | Index   | variable   | path → offset/length/headers entry map             |
+| after index | Data    | variable   | LZ4-compressed file contents, sorted by path       |
 
 Every section carries its own checksum, so a truncated or corrupted archive is caught before any content
 is served. To produce one, see the [CLI](/docs/guide/cli) or the [Node API](/docs/references/node):

@@ -1,0 +1,87 @@
+---
+title: Source
+description: The Deno BundleSource class, which resolves bundles from a builtin directory and a remote directory.
+---
+
+`BundleSource` is the Deno binding's entry point for reading bundles off disk. It resolves a bundle from a builtin directory and a remote directory, with the remote directory taking priority, and exposes the same data API as [`@wvb/node`](/docs/references/node)'s `BundleSource`. Most other classes in the Deno binding — `BundleProtocol`, `Updater` — take a `BundleSource` and read through it.
+
+## Constructing a source
+
+Load the native library first, then pass the loaded `lib` and an options object to the constructor. See the [Deno API overview](/docs/references/deno) for the two ways to load the cdylib.
+
+```ts title="source.ts"
+import { loadLibViaPlug, BundleSource } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+
+const source = new BundleSource(lib, {
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+```
+
+The constructor takes two arguments:
+
+| Argument  | Type           | Description                                               |
+| --------- | -------------- | --------------------------------------------------------- |
+| `lib`     | loaded library | The cdylib handle returned by `loadLib`/`loadLibViaPlug`. |
+| `options` | object         | The builtin and remote directories to resolve from.       |
+
+Its options are:
+
+| Option       | Type     | Description                                                                                   |
+| ------------ | -------- | --------------------------------------------------------------------------------------------- |
+| `builtinDir` | `string` | Directory holding bundles the app ships with.                                                 |
+| `remoteDir`  | `string` | Directory holding bundles downloaded from a remote. Resolved with priority over `builtinDir`. |
+
+## What a source does
+
+A `BundleSource` exposes the same data API as the Node `BundleSource`:
+
+- List the bundles it can resolve.
+- Load a specific version.
+- Fetch a bundle or its descriptor.
+- Prune retained remote versions.
+
+For the exact method names, signatures, and return types of this shared surface, see the [Node API reference](/docs/references/node), which the Deno binding mirrors.
+
+## Using a source
+
+`BundleSource` is what protocols and the updater read through. Pass it to a `BundleProtocol` to serve a bundle's files to the webview, or to an `Updater` to install newer downloaded versions into the remote directory.
+
+```ts title="serve.ts"
+import { loadLibViaPlug, BundleProtocol, BundleSource, toResponse } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+
+const source = new BundleSource(lib, {
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+
+using protocol = new BundleProtocol(lib, source);
+
+Deno.serve(async req => {
+  const res = await protocol.handle('get', req.url, Object.fromEntries(req.headers));
+  return toResponse(res);
+});
+```
+
+For how the resolved files reach the webview, see [Protocols](/docs/references/deno/protocol).
+
+## Deno-specific notes
+
+The Deno binding talks to a Rust cdylib over Deno FFI, so a `BundleSource` is constructed from a loaded `lib` rather than imported directly. The FFI classes own native handles, so dispose of them when you are done — bind them with `using` to release on scope exit, or call `free()` explicitly.
+
+<Cards>
+  <Card
+    title="Deno API"
+    href="/docs/references/deno"
+    description="Load the native library and browse the full Deno binding surface."
+  />
+  <Card
+    title="Protocols"
+    href="/docs/references/deno/protocol"
+    description="Serve a source's files to the webview through a custom scheme."
+  />
+</Cards>
