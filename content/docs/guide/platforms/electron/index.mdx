@@ -179,74 +179,31 @@ Build your web app, then pack the output into the directory you set as `builtinD
 npx wvb pack ./dist --outfile bundles/app/app_1.0.0.wvb
 ```
 
-When packaging, ship the `bundles` directory as an extra resource and unpack the native `@wvb/node` binary from the ASAR archive. With Electron Forge:
+Ship the `bundles` directory with your app so the protocol can serve it at runtime. How you stage those files into the package depends on your packaging tool — see [Packaging](#packaging).
 
-```ts title="forge.config.ts"
-const config: ForgeConfig = {
-  packagerConfig: {
-    asar: true,
-    extraResource: ['bundles'], // ship the builtin bundles
-  },
-  plugins: [
-    // …vite plugin…
-    new AutoUnpackNativesPlugin({}), // unpack @wvb/node's .node binary from the ASAR
-  ],
-};
-```
+## Packaging
 
-<Callout type="warn">
-  The Forge Vite plugin can exclude `node_modules` from the package, dropping the native module. If
-  you hit a missing `@wvb/node` binary at runtime, override `packagerConfig.ignore` to keep
-  `node_modules`.
-</Callout>
+Packaging an Electron app that uses `@wvb/electron` needs two things to land in the final build: the builtin `bundles` directory has to ship with the app, and the native `@wvb/node` binary has to stay out of the ASAR archive so it can load at runtime. Dedicated integrations handle both and install builtin bundles at package time, so you never stage `.wvb` files by hand.
 
-## Forge and electron-builder integrations
-
-Two helper packages install builtin bundles at package time, so you do not stage `.wvb` files by hand.
-
-[`@wvb/electron-forge`](https://github.com/webview-bundle/webview-bundle/tree/main/packages/electron-forge) — an Electron Forge plugin (`WebviewBundlePlugin`, alias `WvbPlugin`) hooking `packageAfterCopy`:
-
-```ts title="forge.config.ts"
-import { WebviewBundlePlugin } from '@wvb/electron-forge';
-
-export default {
-  plugins: [new WebviewBundlePlugin({ bundlesDir: 'bundles', channel: 'beta' })],
-};
-```
-
-[`@wvb/electron-builder`](https://github.com/webview-bundle/webview-bundle/tree/main/packages/electron-builder) — an `afterPack` integration. Wrap your config with `withWebviewBundle(...)` (alias `withWvb`):
-
-```ts title="electron-builder.config.ts"
-import { withWebviewBundle } from '@wvb/electron-builder';
-
-export default withWebviewBundle({
-  appId: 'com.example.app',
-  asar: true,
-  mac: { target: 'dmg' },
-});
-```
-
-Or compose the raw `webviewBundleAfterPack(...)` hook (alias `wvbAfterPack`) yourself. Both plugins share these options:
-
-| Option                    | Type                | Default     | Meaning                                                                         |
-| ------------------------- | ------------------- | ----------- | ------------------------------------------------------------------------------- |
-| `bundlesDir`              | `string`            | `'bundles'` | dest dir under packaged `Resources`                                             |
-| `configFile`              | `string \| boolean` | `true`      | `true` auto-discovers + merges; a path loads explicitly; `false` is inline only |
-| `channel`                 | `string`            | —           | release channel to install from                                                 |
-| `throwWhenBuiltinIsEmpty` | `boolean`           | `true`      | throw if zero bundles installed                                                 |
-
-<Callout type="info">
-  Both packages live in the repository but are not yet published to npm. Install from source or pin
-  the workspace versions for now. The manual `extraResource` + `AutoUnpackNativesPlugin` setup above
-  works without them.
-</Callout>
+<Cards>
+  <Card
+    title="Electron Forge"
+    href="/docs/guide/platforms/electron/forge"
+    description="Install builtin bundles with the @wvb/electron-forge plugin."
+  />
+  <Card
+    title="Electron Builder"
+    href="/docs/guide/platforms/electron/builder"
+    description="Install builtin bundles with the @wvb/electron-builder afterPack hook."
+  />
+</Cards>
 
 ## Troubleshooting
 
 - **Blank window or `ERR_FAILED`** — confirm `wvb(...)` runs and `whenProtocolRegistered()` resolves before `loadURL`, and the URL's bundle name matches the packed file (`app://app.wvb` → bundle `app`).
 - **Renderer cannot reach the bridge API** — the preload is not loaded. Check `webPreferences.preload` and that it calls `preload()`.
 - **`remote_not_initialized` / `updater_not_initialized`** — a `remote.*` / `updater.*` call was made but no `updater` block was passed to `wvb(...)`. Add the [over-the-air updates](#configure-over-the-air-updates) config.
-- **Works in dev, fails when packaged** — the `bundles` resource or the native `@wvb/node` binary was not included. Verify `extraResource` and `AutoUnpackNativesPlugin`.
+- **Works in dev, fails when packaged** — the `bundles` resource or the native `@wvb/node` binary was not included in the package. See [Packaging](#packaging).
 
 ## Next steps
 

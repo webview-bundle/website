@@ -20,11 +20,11 @@
     "platforms/deno",
     "---CLI---",
     "cli",
+    "commands",
     "cli-programmatic",
     "---Remote---",
     "remote",
-    "providers/local",
-    "providers/aws",
-    "providers/cloudflare"
+    "providers",
+    "spec"
   ]
 }

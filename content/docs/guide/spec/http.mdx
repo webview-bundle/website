@@ -1,0 +1,171 @@
+---
+title: Remote HTTP Spec
+description: The precise HTTP contract a server must implement so the Webview Bundle client and updater can list, inspect, and download bundles.
+---
+
+Any HTTP server that implements the four endpoints below is a valid Webview Bundle remote. The client and updater speak this contract to list deployed bundles, read a bundle's current metadata, and download bundle bytes. Implement it directly, or use a provider that already does: [Local](/docs/guide/providers/local), [AWS](/docs/guide/providers/aws), and [Cloudflare](/docs/guide/providers/cloudflare) all serve this exact contract. For the conceptual update flow that drives these calls, see [Remote bundles & updates](/docs/guide/remote-bundles); to stand up and test a server, see [Building a remote](/docs/guide/remote).
+
+## Endpoints
+
+A remote exposes four routes under its configured `endpoint` base URL.
+
+| Method | Path                        | Query       | Purpose                             |
+| ------ | --------------------------- | ----------- | ----------------------------------- |
+| `GET`  | `/bundles`                  | `?channel=` | List deployed bundles               |
+| `HEAD` | `/bundles/{name}`           | `?channel=` | Current version's metadata, no body |
+| `GET`  | `/bundles/{name}`           | `?channel=` | Download the current version        |
+| `GET`  | `/bundles/{name}/{version}` | none        | Download a specific version         |
+
+The `?channel=` query is optional on the first three routes and selects a channel's deployment. The version-specific `GET /bundles/{name}/{version}` does not accept a channel.
+
+## Response headers
+
+Download responses (`GET /bundles/{name}` and `GET /bundles/{name}/{version}`) and metadata responses (`HEAD /bundles/{name}`) carry bundle metadata in headers. The client reads them case-insensitively; the canonical casing is shown here.
+
+| Header                     | Required | Meaning                             |
+| -------------------------- | -------- | ----------------------------------- |
+| `Webview-Bundle-Name`      | yes      | Bundle name                         |
+| `Webview-Bundle-Version`   | yes      | Bundle version                      |
+| `Webview-Bundle-Integrity` | no       | Integrity string `"<alg>:<base64>"` |
+| `Webview-Bundle-Signature` | no       | Base64 signature                    |
+| `ETag`                     | no       | Standard validator                  |
+| `Last-Modified`            | no       | Standard validator                  |
+
+The client rejects a response that omits `Webview-Bundle-Name` or `Webview-Bundle-Version`.
+
+Set `Content-Type: application/webview-bundle` on download responses, and `Content-Type: application/json` on the list response.
+
+## Status codes
+
+| Code  | When                                                                            |
+| ----- | ------------------------------------------------------------------------------- |
+| `200` | List, and downloads with a body                                                 |
+| `204` | `HEAD /bundles/{name}` returning metadata headers only                          |
+| `404` | The named bundle or version is not deployed                                     |
+| `403` | A specific version is requested but the server disables other-version downloads |
+
+The client treats any 2xx response as success. It maps `404` to a "bundle not found" error and `403` to a "forbidden" error. Any other non-2xx response is parsed as a JSON error body of the shape `{ "message": string }`.
+
+`403` is the deliberate signal that a version-specific download is disabled. Providers expose this as an `allowOtherVersions` option (default `false`); when disabled, `GET /bundles/{name}/{version}` returns `403` even though the version exists.
+
+<Callout type="info">
+  The client applies a default total request timeout of 120s to every call. It can be overridden in
+  the client's HTTP configuration, but a server should respond well within it.
+</Callout>
+
+## List response shape
+
+`GET /bundles` returns a JSON array of the currently deployed bundles. Each item has a `name` and a `version`; undeployed bundles are excluded.
+
+```json
+[
+  { "name": "app", "version": "1.2.0" },
+  { "name": "admin", "version": "0.4.1" }
+]
+```
+
+## Examples
+
+### List deployed bundles
+
+```sh
+$ curl -s http://localhost:4313/bundles
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+  { "name": "app", "version": "1.2.0" },
+  { "name": "admin", "version": "0.4.1" }
+]
+```
+
+Filter by channel:
+
+```sh
+$ curl -s 'http://localhost:4313/bundles?channel=beta'
+```
+
+### Read current metadata
+
+`HEAD` returns headers only, with no body.
+
+```sh
+$ curl -sI http://localhost:4313/bundles/app
+HTTP/1.1 204 No Content
+Webview-Bundle-Name: app
+Webview-Bundle-Version: 1.2.0
+Webview-Bundle-Integrity: sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+ETag: "abc123"
+Last-Modified: Tue, 01 Jul 2026 00:00:00 GMT
+```
+
+### Download the current version
+
+```sh
+$ curl -s http://localhost:4313/bundles/app -o app.wvb -D -
+HTTP/1.1 200 OK
+Content-Type: application/webview-bundle
+Webview-Bundle-Name: app
+Webview-Bundle-Version: 1.2.0
+Webview-Bundle-Integrity: sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+```
+
+Request a channel's current version with `?channel=`:
+
+```sh
+$ curl -s 'http://localhost:4313/bundles/app?channel=beta' -o app-beta.wvb
+```
+
+### Download a specific version
+
+```sh
+$ curl -s http://localhost:4313/bundles/app/1.1.0 -o app-1.1.0.wvb -D -
+HTTP/1.1 200 OK
+Content-Type: application/webview-bundle
+Webview-Bundle-Name: app
+Webview-Bundle-Version: 1.1.0
+```
+
+When the server disables other-version downloads, the same request returns `403`:
+
+```sh
+$ curl -sI http://localhost:4313/bundles/app/1.1.0
+HTTP/1.1 403 Forbidden
+```
+
+A bundle or version that is not deployed returns `404`:
+
+```sh
+$ curl -sI http://localhost:4313/bundles/unknown
+HTTP/1.1 404 Not Found
+```
+
+## Where to go next
+
+<Cards>
+  <Card
+    title="Building a remote"
+    href="/docs/guide/remote"
+    description="Stand up a server, choose a provider, and run the whole update loop locally."
+  />
+  <Card
+    title="Remote bundles & updates"
+    href="/docs/guide/remote-bundles"
+    description="The conceptual update lifecycle these endpoints drive."
+  />
+  <Card
+    title="Local provider"
+    href="/docs/guide/providers/local"
+    description="Serve bundles from disk for local development."
+  />
+  <Card
+    title="AWS provider"
+    href="/docs/guide/providers/aws"
+    description="Serve bundles from S3 and CloudFront."
+  />
+  <Card
+    title="Cloudflare provider"
+    href="/docs/guide/providers/cloudflare"
+    description="Serve bundles from R2 and Workers."
+  />
+</Cards>

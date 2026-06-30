@@ -1,6 +1,6 @@
 ---
-title: CLI
-description: The wvb command-line tool — pack, serve, upload, deploy, download, manage builtins, and run a local remote.
+title: Overview
+description: The wvb command-line tool packs your web assets into .wvb bundles and drives the full upload, deploy, and download workflow.
 ---
 
 The `wvb` command-line tool packs your built web assets into `.wvb` bundles and drives the full remote update workflow: upload, deploy, download, and inspect bundles on a remote server. It ships in the `@wvb/cli` package and exposes two equivalent binaries, `wvb` and `webview-bundle`.
@@ -13,7 +13,7 @@ Install it as a dev dependency:
   <Tab value="yarn">```sh yarn add -D @wvb/cli yarn wvb --help ```</Tab>
 </Tabs>
 
-Most commands read their defaults from a [`wvb.config`](/docs/config) file discovered in the working directory, so a typical project runs `wvb pack` or `wvb upload` with no arguments at all. The sections below document each command and its flags; for calling the same logic from JavaScript, see the [programmatic API](/docs/guide/cli-programmatic).
+Most commands read their defaults from a [`wvb.config`](/docs/config) file discovered in the working directory, so a typical project runs `wvb pack` or `wvb upload` with no arguments at all. Each command has its own page with the full option reference. To call the same logic from JavaScript, see the [programmatic API](/docs/guide/cli-programmatic).
 
 ## Global flags
 
@@ -31,237 +31,74 @@ Three flags apply to every command. They control output formatting and logging o
 
 Boolean flags accept `--flag`, `--flag=true|false`, and a `--no-flag` negation. For example, `--no-write` and `--no-pack` turn off the `--write` and `--pack` defaults.
 
-## Authoring bundles
+## Config file discovery
 
-### wvb pack [SRC_DIR]
+Commands load defaults from a `wvb.config` file in the working directory. Pass `--config <path>` to point at a specific file; otherwise `wvb` searches for the first matching file in this order:
 
-Pack a directory of built web assets into a single `.wvb` archive.
-
-```sh
-wvb pack ./dist
-wvb pack ./dist --outfile ./build/app.wvb
-wvb pack ./dist --ignore '*.map' --ignore 'node_modules/**'
-wvb pack ./dist --header '*.html' 'cache-control' 'max-age=3600'
+```text
+wvb.config.js
+wvb.config.cjs
+wvb.config.mjs
+wvb.config.ts
+wvb.config.cts
+wvb.config.mts
+webview-bundle.config.js
+webview-bundle.config.cjs
+webview-bundle.config.mjs
+webview-bundle.config.ts
+webview-bundle.config.cts
+webview-bundle.config.mts
+wvb.config.json
+wvb.config.jsonc
 ```
 
-| Option          | Default                   | Description                                                                 |
-| --------------- | ------------------------- | --------------------------------------------------------------------------- |
-| `SRC_DIR`       | `pack.srcDir` ?? `./dist` | Source directory to pack.                                                   |
-| `--outfile, -O` | `.wvb/<package name>`     | Output path. `.wvb` is appended if missing.                                 |
-| `--ignore`      | —                         | Glob of files to exclude. Repeatable.                                       |
-| `--header, -H`  | —                         | Set headers on matching files: `--header <glob> <key> <value>`. Repeatable. |
-| `--no-write`    | writes by default         | Run the pack without writing the file (dry run).                            |
-| `--overwrite`   | `true`                    | Overwrite an existing output file.                                          |
+Both the `wvb.config` and `webview-bundle.config` base names support the `.js`, `.cjs`, `.mjs`, `.ts`, `.cts`, and `.mts` extensions. The `.json` and `.jsonc` extensions are supported for the `wvb.config` base name only. See [Configuration](/docs/config) for the full schema.
 
-<Callout type="info">
-`pack` has no `--outdir` flag. The output directory is determined by `--outfile`; the default resolves to `.wvb/<package name>`, where the name comes from the nearest `package.json` with its scope stripped.
-</Callout>
-
-### wvb extract FILE
-
-Extract a `.wvb` archive's files back onto disk — useful for inspecting what a bundle contains.
-
-```sh
-wvb extract ./build/app.wvb --outdir ./unpacked
-wvb extract ./build/app.wvb --outdir ./unpacked --clean
-```
-
-| Option         | Default                        | Description                                      |
-| -------------- | ------------------------------ | ------------------------------------------------ |
-| `FILE`         | required                       | Bundle file to extract.                          |
-| `--outdir, -O` | `.wvb/<basename without .wvb>` | Destination directory.                           |
-| `--clean`      | `false`                        | Remove the output directory first if it exists.  |
-| `--no-write`   | writes by default              | Run the extract without writing files (dry run). |
-
-### wvb serve [FILE]
-
-Serve a single bundle's files over HTTP, so you can preview a packed bundle in a browser. Directory paths resolve to `index.html`.
-
-```sh
-wvb serve ./build/app.wvb                       # http://localhost:4312
-wvb serve ./build/app.wvb --port 8080 --hostname 0.0.0.0
-```
-
-| Option           | Default     | Env        | Description                                  |
-| ---------------- | ----------- | ---------- | -------------------------------------------- |
-| `FILE`           | from config | —          | Bundle to serve. Falls back to `serve.file`. |
-| `--hostname, -H` | `localhost` | `HOSTNAME` | Bind hostname.                               |
-| `--port, -P`     | `4312`      | `PORT`     | Port to listen on.                           |
-| `--silent`       | `false`     | —          | Disable request logging.                     |
-
-## Publishing and updating
-
-These commands talk to a remote server. They require `remote.*` settings in your [config](/docs/config/remote). For the full publishing model and a local-testing walkthrough, see [Remote bundles](/docs/guide/remote-bundles) and [Building a remote](/docs/guide/remote).
-
-### wvb upload [BUNDLE]
-
-Pack, hash, sign, and upload a bundle to the remote. The pipeline runs in order: pack, then integrity, then signature, then upload, and an optional deploy at the end.
-
-```sh
-wvb upload                                       # uses config defaults
-wvb upload app --version 1.2.0
-wvb upload app --version 1.2.0 --deploy --channel beta
-wvb upload --no-pack --file ./build/app.wvb --force
-```
-
-| Option             | Default                          | Description                                                         |
-| ------------------ | -------------------------------- | ------------------------------------------------------------------- |
-| `BUNDLE`           | from config / `--file` name      | Bundle name.                                                        |
-| `--version, -V`    | config or `package.json` version | Version to publish.                                                 |
-| `--file, -F`       | resolved output path             | Path to the `.wvb` to upload.                                       |
-| `--force`          | `false`                          | Overwrite if the version already exists on the remote.              |
-| `--deploy`         | `false`                          | Deploy the version after uploading.                                 |
-| `--channel`        | —                                | Channel to deploy to. Used with `--deploy`.                         |
-| `--pack, -P`       | `true`                           | Pack from `pack.srcDir` before uploading. Pass `--no-pack` to skip. |
-| `--skip-integrity` | `false`                          | Skip computing the integrity hash.                                  |
-| `--skip-signature` | `false`                          | Skip signing the bundle.                                            |
-
-<Callout type="info">
-  The version is the `--version` (`-V`) flag, not a positional argument. `--deploy` defaults to
-  `false`, so an upload publishes the version without making it current until you deploy it.
-</Callout>
-
-`upload` requires `remote.uploader` in your config; with `--deploy` it also requires `remote.deployer`. On success it prints the bundle endpoint.
-
-### wvb deploy [BUNDLE]
-
-Mark an already-uploaded version as the current one that clients receive.
-
-```sh
-wvb deploy app --version 1.2.0
-wvb deploy app --version 1.2.0 --channel beta
-```
-
-| Option          | Default                          | Description        |
-| --------------- | -------------------------------- | ------------------ |
-| `BUNDLE`        | from config                      | Bundle name.       |
-| `--version, -V` | config or `package.json` version | Version to deploy. |
-| `--channel`     | —                                | Release channel.   |
-
-The version is the `--version` (`-V`) flag — there is no positional version argument. `deploy` requires `remote.deployer` in your config.
-
-### wvb download [BUNDLE] [VERSION]
-
-Download a bundle from the remote and, by default, save it to disk. Omit `VERSION` to download the current deployed version.
-
-```sh
-wvb download app --endpoint https://updates.example.com
-wvb download app 1.2.0 --out ./bundles/app.wvb --overwrite
-wvb download app --no-write                       # fetch and print info only
-```
-
-| Option           | Default             | Description                          |
-| ---------------- | ------------------- | ------------------------------------ |
-| `BUNDLE`         | from config         | Bundle name.                         |
-| `VERSION`        | current deployed    | Specific version to download.        |
-| `--out, -O`      | `<bundle name>.wvb` | Output file path.                    |
-| `--endpoint, -E` | `remote.endpoint`   | Remote endpoint.                     |
-| `--channel`      | —                   | Release channel.                     |
-| `--no-write`     | writes by default   | Fetch and print info without saving. |
-| `--overwrite`    | `false`             | Overwrite an existing file.          |
-| `--progress`     | `true`              | Show a download progress bar.        |
-
-### wvb builtin
-
-Install the deployed bundles into a local directory so you can ship them as builtin fallbacks with your app. The source is taken from `builtin.target` in your config, which defaults to a remote target. See [Remote bundles](/docs/guide/remote-bundles) for how builtin and remote sources work together.
-
-```sh
-wvb builtin --endpoint https://updates.example.com --out .wvb/builtin/bundles
-wvb builtin --include 'app*' --exclude 'internal*'
-wvb builtin --android                              # install into the detected Android module
-```
-
-| Option                    | Default                | Description                                                          |
-| ------------------------- | ---------------------- | -------------------------------------------------------------------- |
-| `--out, -O`               | `.wvb/builtin/bundles` | Output directory.                                                    |
-| `--endpoint, -E`          | `remote.endpoint`      | Remote endpoint. Remote target only.                                 |
-| `--channel`               | —                      | Release channel. Remote target only.                                 |
-| `--include` / `--exclude` | —                      | Glob filters over the target bundles. Repeatable.                    |
-| `--clean`                 | `true`                 | Clear the output directory before installing.                        |
-| `--concurrency`           | CPU count, capped at 8 | Parallel downloads. Remote target only.                              |
-| `--android`               | —                      | Install into an Android module. Bare auto-detects; `=<dir>` sets it. |
-| `--ios`                   | —                      | Install into an iOS project. Bare auto-detects; `=<dir>` sets it.    |
-| `--no-write`              | writes by default      | Run without writing files (dry run).                                 |
-| `--progress`              | `true`                 | Show a progress bar. Remote target only.                             |
-
-<Callout type="warn">
-  You cannot pass both `--android` and `--ios` in the same run. The `--ios` folder-reference step
-  targets Tuist projects.
-</Callout>
-
-## Inspecting and testing the remote
-
-### wvb remote current [BUNDLE]
-
-Show the current deployed version and its metadata for a bundle, without downloading it. The output includes version, ETag, integrity, signature, and last-modified.
-
-```sh
-wvb remote current app --endpoint https://updates.example.com
-wvb remote current app --channel beta
-```
-
-| Option           | Default           | Description      |
-| ---------------- | ----------------- | ---------------- |
-| `BUNDLE`         | from config       | Bundle name.     |
-| `--endpoint, -E` | `remote.endpoint` | Remote endpoint. |
-| `--channel`      | —                 | Release channel. |
-
-### wvb remote list
-
-List every bundle available on the remote. The command also has the alias `wvb remote ls`. Output is JSON, so it pipes cleanly into other tools.
-
-```sh
-wvb remote list --endpoint https://updates.example.com
-wvb remote ls --channel beta
-```
-
-| Option           | Default           | Description      |
-| ---------------- | ----------------- | ---------------- |
-| `--endpoint, -E` | `remote.endpoint` | Remote endpoint. |
-| `--channel`      | —                 | Release channel. |
-
-### wvb remote local
-
-Start a local remote server backed by a directory. It implements the same HTTP contract as a production remote, so you can test the full update loop offline. See [Building a remote](/docs/guide/remote) for how to wire it into your app.
-
-```sh
-wvb remote local                                  # http://localhost:4313, serving ~/.wvb/local
-wvb remote local --base-dir ./.wvb/local --port 4313 --allow-other-versions
-```
-
-| Option                   | Default        | Env        | Description                                |
-| ------------------------ | -------------- | ---------- | ------------------------------------------ |
-| `--base-dir`             | `~/.wvb/local` | —          | Directory to serve.                        |
-| `--allow-other-versions` | `false`        | —          | Allow serving versions other than current. |
-| `--hostname, -H`         | `localhost`    | `HOSTNAME` | Bind hostname.                             |
-| `--port, -P`             | `4313`         | `PORT`     | Port to listen on.                         |
-| `--silent`               | `false`        | —          | Disable request logging.                   |
-
-<Callout type="info">
-  `remote local` requires the optional `@wvb/remote-local-provider` package, which the command
-  imports on demand. Unlike the other commands, it does not read `--config` or `--cwd`.
-</Callout>
-
-## Next steps
+## Commands
 
 <Cards>
   <Card
-    title="Configuration"
-    href="/docs/config"
-    description="The wvb.config file that supplies defaults to every command."
+    title="wvb pack"
+    href="/docs/guide/commands/pack"
+    description="Pack a directory of built web assets into a single .wvb archive."
   />
   <Card
-    title="Remote bundles"
-    href="/docs/guide/remote-bundles"
-    description="How updating, integrity, and signatures fit together."
+    title="wvb extract"
+    href="/docs/guide/commands/extract"
+    description="Extract a .wvb archive's files back onto disk for inspection."
   />
   <Card
-    title="Building a remote"
-    href="/docs/guide/remote"
-    description="The remote HTTP contract, local testing, and choosing a provider."
+    title="wvb serve"
+    href="/docs/guide/commands/serve"
+    description="Serve a single bundle over HTTP to preview it in a browser."
   />
   <Card
-    title="Programmatic API"
+    title="wvb upload"
+    href="/docs/guide/commands/upload"
+    description="Pack, hash, sign, and upload a bundle to the remote server."
+  />
+  <Card
+    title="wvb deploy"
+    href="/docs/guide/commands/deploy"
+    description="Mark an uploaded version as the current one clients receive."
+  />
+  <Card
+    title="wvb download"
+    href="/docs/guide/commands/download"
+    description="Download a bundle from the remote and save it to disk."
+  />
+  <Card
+    title="wvb builtin"
+    href="/docs/guide/commands/builtin"
+    description="Install deployed bundles locally to ship as builtin fallbacks."
+  />
+  <Card
+    title="wvb remote"
+    href="/docs/guide/commands/remote"
+    description="Inspect a remote and run a local server: current, list, local."
+  />
+  <Card
+    title="Programmatically Usage"
     href="/docs/guide/cli-programmatic"
     description="Call pack, serve, upload, and more from JavaScript via @wvb/cli/api."
   />
