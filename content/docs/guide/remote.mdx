@@ -1,0 +1,130 @@
+---
+title: Building a remote
+description: Stand up an update server for over-the-air bundle delivery, run the whole loop locally, and choose a provider.
+---
+
+A remote is any HTTP server that serves bundles to your app's updater over a small, fixed contract. This page is the practical, server-side companion to [Remote bundles](/docs/guide/remote-bundles): it shows the packages that build a remote, how to run the full publish-and-update loop on your machine with no cloud account, and how to pick a provider when you go to production.
+
+Webview Bundle ships a remote for three backends — `local`, `aws`, and `cloudflare` — and each backend is split into three packages with clear roles. You only need the ones for the job in front of you.
+
+## Package roles
+
+For every backend there are up to three packages, each playing a distinct role.
+
+| Role | Package | What it does |
+| --- | --- | --- |
+| Config client | `@wvb/remote-<backend>` | A `wvb.config` plug-in that produces `{ uploader, deployer }`. Runs on the publisher's machine or CI to push and deploy bundles. |
+| HTTP server | `@wvb/remote-<backend>-provider` | The server that implements the HTTP contract and serves bundles to clients. |
+| Pulumi IaC | `@wvb/remote-<backend>-provider-pulumi` | Infrastructure-as-code that provisions the cloud resources and deploys the provider. |
+
+Concretely, per backend:
+
+| Backend | Config client | HTTP server | Pulumi IaC |
+| --- | --- | --- | --- |
+| `local` | `@wvb/remote-local` | `@wvb/remote-local-provider` | — |
+| `aws` | `@wvb/remote-aws` | `@wvb/remote-aws-provider` | `@wvb/remote-aws-provider-pulumi` |
+| `cloudflare` | `@wvb/remote-cloudflare` | `@wvb/remote-cloudflare-provider` | `@wvb/remote-cloudflare-provider-pulumi` |
+
+The config client is what you wire into the `remote` block of `wvb.config.ts`. The `uploader` writes a packed `.wvb` to storage; the `deployer` marks a version as the one clients should receive. The publish-side integrity and signature options live alongside them — see [Remote, integrity & signature config](/docs/config/remote).
+
+<Callout type="info">
+  The `local` packages and `@wvb/remote-local-provider` are pre-release (`0.0.0`); the AWS and Cloudflare packages are at `0.1.0`. Treat all of them as not-yet-published and install from source for now.
+</Callout>
+
+## The HTTP contract
+
+Every provider implements the same four-endpoint contract, so the client never cares which backend is behind it.
+
+| Method and path | Purpose |
+| --- | --- |
+| `GET /bundles` | List deployed bundles as `[{ "name", "version" }]` |
+| `HEAD /bundles/{name}` | Current version's metadata (headers only) |
+| `GET /bundles/{name}` | Download the current version |
+| `GET /bundles/{name}/{version}` | Download a specific version |
+
+Metadata travels in response headers (`Webview-Bundle-Name` and `Webview-Bundle-Version` are required; `Webview-Bundle-Integrity`, `Webview-Bundle-Signature`, `ETag`, and `Last-Modified` are optional), and downloads use `Content-Type: application/webview-bundle`. The full endpoint, header, status-code, and channel-query spec is in [Remote bundles](/docs/guide/remote-bundles).
+
+Because the contract is small and transport-only, you can also implement your own server to it instead of using a provider — anything that answers these four routes with the required headers works.
+
+## Test the loop locally
+
+You can exercise the entire update loop on your machine. `@wvb/remote-local` gives you an uploader and deployer that write to a local directory (default `~/.wvb/local`), and `wvb remote local` serves that directory over HTTP using the same contract a production server implements.
+
+### Point your config at the local provider
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+import { localRemote } from '@wvb/remote-local';
+
+export default defineConfig({
+  pack: {
+    outFile: 'app', // → app.wvb
+  },
+  remote: {
+    endpoint: 'http://localhost:4313',
+    bundleName: 'app',
+    ...localRemote(), // { uploader, deployer } writing to ~/.wvb/local
+  },
+});
+```
+
+`localRemote()` defaults its `baseDir` to `~/.wvb/local`; pass `localRemote({ baseDir: './.wvb/local' })` to keep the store inside your project instead.
+
+### Publish a version
+
+```sh
+wvb pack                                # build the .wvb from your config
+wvb upload app --version 1.1.0 --deploy  # write app_1.1.0.wvb into ~/.wvb/local and deploy it
+```
+
+`wvb upload` packs before uploading by default, so the explicit `wvb pack` above is optional. `--deploy` is off by default; pass it (or run `wvb deploy app --version 1.1.0` separately) to make the version the one clients receive. See the [CLI reference](/docs/guide/cli) for every flag.
+
+### Serve it
+
+```sh
+wvb remote local                        # serves ~/.wvb/local on http://localhost:4313
+# options: --base-dir ./.wvb/local  --port 4313  --allow-other-versions
+```
+
+`wvb remote local` listens on port `4313` by default. Pass `--allow-other-versions` to let clients fetch a specific non-deployed version through `GET /bundles/{name}/{version}` instead of getting a `403`.
+
+### Point your app at it
+
+Set your app's updater endpoint to `http://localhost:4313`. Now `getUpdate`, `download`, and `install` hit your local server and download, verify, and activate the bundle exactly as production would.
+
+<Callout type="info">
+  On the Android emulator, the host machine is not `localhost`. Point the updater at `http://10.0.2.2:4313` instead.
+</Callout>
+
+### Inspect with the client commands
+
+The CLI can act as a client against any remote, which is handy for confirming a server behaves before you point an app at it.
+
+```sh
+wvb remote list     --endpoint http://localhost:4313
+wvb remote current app --endpoint http://localhost:4313
+wvb remote download app --endpoint http://localhost:4313 --outfile ./app.wvb
+```
+
+`wvb remote list` (alias `wvb remote ls`) calls `GET /bundles`, `wvb remote current` calls `HEAD /bundles/{name}`, and `wvb remote download` pulls the current bundle to disk.
+
+### Preview a single bundle
+
+To look at what is inside a `.wvb` without a server or a deployment, serve its files directly:
+
+```sh
+wvb serve ./app.wvb             # serves the bundle's files at http://localhost:4312
+wvb serve ./app.wvb --port 8080
+```
+
+`wvb serve` listens on port `4312` by default. Use it to confirm a pack produced the files and headers you expect before you upload.
+
+## Choose a provider
+
+When you move past local testing, swap `localRemote()` for a cloud backend. Each provider exposes a compatible `uploader` and `deployer` for `wvb.config.ts` and a server that implements the contract above, plus Pulumi packages to provision it.
+
+<Cards>
+  <Card title="Local provider" href="/docs/guide/providers/local" description="Serve bundles from ~/.wvb/local with wvb remote local — the zero-setup option for development and CI." />
+  <Card title="AWS provider" href="/docs/guide/providers/aws" description="S3 storage behind CloudFront, served by Lambda@Edge, with optional KMS signing." />
+  <Card title="Cloudflare provider" href="/docs/guide/providers/cloudflare" description="R2 storage and a KV-backed deployment pointer, served by a Cloudflare Worker." />
+</Cards>

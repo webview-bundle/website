@@ -1,0 +1,138 @@
+---
+title: Introduction
+description: An offline-first web resource delivery system for webview-based frameworks and platforms.
+---
+
+Webview Bundle (`wvb`) is an offline-first web resource delivery system for webview-based
+frameworks and platforms. Instead of fetching your web app over the network, it packs your built
+assets (HTML/JS/CSS/media) into a single compressed, integrity-checked archive (`.wvb`) that your
+app ships with and serves to its webview through a custom URL scheme. Configure a remote, and your
+app downloads newer bundles over the air (OTA = over-the-air) — delivering updated app code without
+a native app-store release. One `.wvb` format runs on every webview platform via a shared Rust core.
+
+```text
+ build output            .wvb archive              your app's webview
+┌──────────────┐  pack  ┌───────────────┐  serve  ┌─────────────────────┐
+│ dist/        │ ─────▶ │ app_1.0.0.wvb │ ──────▶ │ app://app/index.html│
+│  index.html  │        │  (compressed, │         │  (offline, instant) │
+│  app.js …    │        │   verified)   │         └─────────────────────┘
+└──────────────┘        └───────────────┘
+                              │  upload + deploy        ▲ download + verify
+                              ▼                         │
+                        ┌───────────────┐   updater     │
+                        │ remote server │ ──────────────┘
+                        └───────────────┘
+```
+
+## Why Webview Bundle?
+
+- **Offline-first.** Resources are bundled locally, so the first paint never waits on the network.
+- **Over-the-air updates.** Ship a fix or feature by deploying a new bundle version — no native
+  release required.
+- **Integrity and authenticity.** Every bundle carries internal checksums, and downloads can be
+  verified with SHA-2 integrity hashes (`sha256`, `sha384`, `sha512`) and digital signatures
+  (ECDSA, Ed25519, RSA).
+- **One format, every platform.** The same `.wvb` archive runs on Electron, Tauri, Android, iOS,
+  and Deno Desktop through a shared Rust core.
+
+## Start here
+
+<Cards>
+  <Card
+    title="Why Webview Bundle?"
+    href="/docs/guide/why-webview-bundle"
+    description="The problem it solves: offline-first delivery and over-the-air updates for web developers shipping into native shells."
+  />
+  <Card
+    title="Platform Support"
+    href="/docs/guide/platform-support"
+    description="The full platform matrix and current status, including which integrations are published and which are pre-release."
+  />
+  <Card
+    title="Electron"
+    href="/docs/guide/platforms/electron"
+    description="Serve a bundle through a custom protocol in an Electron app with @wvb/electron."
+  />
+  <Card
+    title="Tauri"
+    href="/docs/guide/platforms/tauri"
+    description="Add the wvb-tauri crate to a Tauri app, on desktop and mobile."
+  />
+  <Card
+    title="Android"
+    href="/docs/guide/platforms/android"
+    description="Serve a WebView from a bundle with the Kotlin bindings (pre-release; build from source for now)."
+  />
+  <Card
+    title="iOS"
+    href="/docs/guide/platforms/ios"
+    description="Serve a WKWebView from a bundle with the Swift bindings (pre-release; iOS 16 minimum)."
+  />
+  <Card
+    title="Deno Desktop"
+    href="/docs/guide/platforms/deno"
+    description="Run bundles in Deno Desktop (experimental / preview)."
+  />
+</Cards>
+
+## Features
+
+<Cards>
+  <Card
+    title="Bundle format"
+    href="/docs/guide/bundle-format"
+    description="The .wvb archive on disk: header, index, and LZ4-compressed data."
+  />
+  <Card
+    title="Bundle sources"
+    href="/docs/guide/bundle-sources"
+    description="Builtin and remote sources, the manifest, versions, and channels."
+  />
+  <Card
+    title="Protocol handling"
+    href="/docs/guide/protocol-handling"
+    description="Serve files to the webview through the bundle and local URL schemes."
+  />
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/remote-bundles"
+    description="Update over the air, with integrity and signature verification."
+  />
+  <Card
+    title="Platform integration"
+    href="/docs/guide/platform-integration"
+    description="How the Rust core reaches each platform, plus the @wvb/bridge."
+  />
+</Cards>
+
+## Packages
+
+The core is a Rust crate. Each platform consumes it through a thin integration package.
+
+| Package | Version | What it is |
+| --- | --- | --- |
+| [`wvb`](https://docs.rs/wvb) | 0.2.0 | Rust core: bundle format, source, remote, updater, protocol, integrity, signature |
+| `@wvb/cli` | 0.1.0 | Command-line tool (bins `wvb` and `webview-bundle`): pack, serve, upload, deploy, local remote |
+| `@wvb/config` | 0.1.0 | `defineConfig` for `wvb.config.ts` |
+| `@wvb/node` | 0.1.0 | N-API bindings to the core for Node.js |
+| `@wvb/bridge` | 0.1.0 | Bridge for the web app to talk to the native host |
+| `@wvb/electron` | 0.1.0 | Electron integration (protocols, IPC, updater) |
+| `@wvb/electron-builder` | unpublished | electron-builder integration (in-repo, not yet on npm) |
+| `@wvb/electron-forge` | unpublished | Electron Forge plugin (in-repo, not yet on npm) |
+| `wvb-tauri` | 0.1.0 | Tauri integration, published as a Rust crate on crates.io |
+| `@wvb/remote-aws` | 0.1.0 | Remote configuration and provider for AWS |
+| `@wvb/remote-cloudflare` | 0.1.0 | Remote configuration and provider for Cloudflare |
+| `@wvb/remote-local` | 0.0.0 | Remote configuration for local simulation |
+
+<Callout type="info">
+  The Tauri integration is the **`wvb-tauri` crate** on crates.io — there is no `@wvb/tauri` npm
+  package. The Android (Kotlin) and iOS (Swift) bindings are built from the core via UniFFI and
+  are **pre-release**: they are not yet published to Maven Central or tagged for Swift Package
+  Manager, so install from source for now. See [Platform Support](/docs/guide/platform-support)
+  for the full status.
+</Callout>
+
+## Next steps
+
+Read [the `.wvb` bundle format](/docs/guide/bundle-format) to understand what ships inside an
+archive, or browse the [Rust crate docs](https://docs.rs/wvb) for the full API.

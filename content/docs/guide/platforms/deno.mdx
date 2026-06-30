@@ -1,0 +1,146 @@
+---
+title: Deno Desktop
+description: Serve and update Webview Bundle archives in a Deno desktop webview through a Deno.serve request handler.
+---
+
+Deno Desktop renders a native webview with `Deno.BrowserWindow` and serves it over `Deno.serve`.
+Webview Bundle plugs in as the request handler, so the window loads your packed `.wvb` assets offline
+instead of fetching them over the network. The `@wvb/deno-desktop` integration builds the bundle
+source, wires an optional remote and updater, and exposes a `Deno.serve`-compatible `fetch` handler.
+Underneath, `@wvb/deno` is the foreign-function-interface (FFI) peer of `@wvb/node` that drives the
+shared Rust core.
+
+<Callout type="warn">
+Deno Desktop is **experimental / preview** and not production-ready. The integration source currently
+lives on an un-merged branch, and `main` ships only a prebuilt dylib artifact. The JSR packages
+`@wvb/deno` and `@wvb/deno-desktop` are published at version **`0.0.0`**, and their APIs may change.
+Treat the examples below as preview snippets, not a stable contract.
+</Callout>
+
+## What it is
+
+A Deno desktop app opens a window with `Deno.BrowserWindow` and points it at a local server started by
+`Deno.serve`. Webview Bundle becomes that server's handler: every request the window makes is answered
+from a `.wvb` bundle on disk. Because the window talks to a single local origin, the integration is
+**single-origin** — it allows exactly one protocol. See
+[Platform integration](/docs/guide/platform-integration) for how the shared core reaches each platform,
+and [Protocol handling](/docs/guide/protocol-handling) for the protocol model.
+
+## @wvb/deno-desktop
+
+`@wvb/deno-desktop` (`0.0.0`, experimental) is the desktop integration layer. It ties `@wvb/deno` to
+Deno's desktop runtime and to the [bridge](/docs/guide/platform-integration).
+
+Call `webviewBundle(config)` — aliased as `wvb`, backed by the `WebviewBundle` class — to build a
+`BundleSource` (plus an optional `Remote` and `Updater`) and get back a `fetch` handler you can hand
+straight to `Deno.serve`. Because Deno desktop is single-origin, the config accepts **exactly one**
+protocol.
+
+```ts title="main.ts (preview)"
+// Preview: @wvb/deno-desktop is experimental (0.0.0) and the API may change.
+import { webviewBundle, bundleProtocol } from "@wvb/deno-desktop";
+
+const wvb = await webviewBundle({
+  protocols: [bundleProtocol({ scheme: "app" })],
+  updater: {
+    remote: { endpoint: "https://bundles.example.com" },
+  },
+});
+
+const server = Deno.serve(wvb.fetch);
+
+const win = new Deno.BrowserWindow({ url: `http://localhost:${server.addr.port}` });
+await win.closed;
+```
+
+### Bindings
+
+Call `registerBindings(win, wvb)` to expose the native commands to your web app. It registers a single
+`Deno.BrowserWindow` binding named `wvbInvoke`, reachable from the page as `window.bindings.wvbInvoke`.
+That one binding dispatches every `@wvb/bridge` command in the `source.*`, `remote.*`, and `updater.*`
+groups.
+
+```ts title="main.ts (preview)"
+import { webviewBundle, bundleProtocol, registerBindings } from "@wvb/deno-desktop";
+
+const wvb = await webviewBundle({
+  protocols: [bundleProtocol({ scheme: "app" })],
+});
+
+const server = Deno.serve(wvb.fetch);
+const win = new Deno.BrowserWindow({ url: `http://localhost:${server.addr.port}` });
+
+registerBindings(win, wvb); // wires window.bindings.wvbInvoke
+
+await win.closed;
+```
+
+The binding never throws across the FFI boundary. Each call resolves to an `InvokeResult` envelope:
+`{ ok: true, value }` on success, or `{ ok: false, error: { code?, message } }` on failure. The
+`@wvb/bridge` client unwraps this envelope for you when it detects the `deno` platform, so web code
+keeps calling `invoke()`, `source.*`, `remote.*`, and `updater.*` exactly as on other platforms.
+
+## @wvb/deno
+
+`@wvb/deno` (`0.0.0`, experimental) is the FFI peer of [`@wvb/node`](/docs/references/node). It loads a
+prebuilt Rust `cdylib` through `Deno.dlopen` and exposes the same core surface: the classes
+`BundleProtocol`, `LocalProtocol`, `Remote`, `BundleSource`, and `Updater`. Each class is `Disposable`
+— free it with `free()` or a `using` declaration that calls `[Symbol.dispose]`.
+
+### Load the native library
+
+Load the `cdylib` one of three ways:
+
+```ts title="load.ts (preview)"
+import { loadLib, loadLibViaPlug } from "@wvb/deno";
+
+// 1. Load from an explicit path or URL.
+const lib = loadLib("./vendor/wvb/libwvb_deno.dylib");
+
+// 2. Download a sha256-verified prebuilt via @denosaurs/plug.
+const libViaPlug = await loadLibViaPlug();
+```
+
+`loadLib(libPath)` opens a library you already have on disk. `loadLibViaPlug(options?)` downloads the
+prebuilt library and verifies it against its SHA-256 checksum before loading. You can also set the
+`WVB_DENO_LIB` environment variable to point at a library file.
+
+The third option vendors the library ahead of time with the installer subcommand:
+
+```sh
+deno run -A jsr:@wvb/deno/install --out vendor/wvb
+```
+
+`@wvb/deno/install` downloads the cdylib from GitHub Releases and verifies its SHA-256 checksum by
+default. The supported targets are:
+
+| Target triple |
+|---|
+| `aarch64-apple-darwin` |
+| `x86_64-apple-darwin` |
+| `aarch64-unknown-linux-gnu` |
+| `x86_64-unknown-linux-gnu` |
+| `x86_64-pc-windows-msvc` |
+
+For the full class and method reference, see the [Deno API reference](/docs/references/deno).
+
+## Limitations
+
+Beyond the experimental status, two gaps apply to the Deno bindings today:
+
+- **Custom verifier callbacks are not supported.** The `Updater` accepts only the **declarative**
+  `signatureVerifier` (a `SignatureVerifierOptions` with an `algorithm` and a `key`). The custom
+  `integrityChecker` / `signatureVerifier` function callbacks available in `@wvb/node` cannot cross the
+  FFI boundary yet.
+- **`HttpOptions.defaultHeaders` is not yet supported** on the Deno `Remote`.
+
+For how integrity and signatures work across platforms, see
+[Remote bundles](/docs/guide/remote-bundles).
+
+## Next steps
+
+<Cards>
+  <Card title="Deno API reference" href="/docs/references/deno" description="The full @wvb/deno class and method surface (experimental)." />
+  <Card title="Platform support" href="/docs/guide/platform-support" description="Where each platform stands, including experimental ones." />
+  <Card title="Remote bundles" href="/docs/guide/remote-bundles" description="How updating, integrity, and signatures work across platforms." />
+</Cards>

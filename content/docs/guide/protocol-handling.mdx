@@ -1,0 +1,163 @@
+---
+title: Protocol handling
+description: How a webview request maps to a file inside a .wvb bundle through the bundle and local protocols.
+---
+
+When your webview asks for a URL, something has to turn that request into bytes from a bundle instead of bytes from the network. That something is a protocol handler. Webview Bundle ships two: the **bundle protocol**, which serves files straight out of a `.wvb` source, and the **local protocol**, a development proxy that forwards to your bundler's dev server so you keep hot reload. This page explains how a request is mapped to a file, what the bundle protocol guarantees, and how each platform wires a scheme to the handler.
+
+The Rust core does not register or validate the scheme. It does not care whether the URL starts with `app://`, `bundle://`, or `https://`. Only the URI **host** and **path** are read. Picking a scheme and registering it with the OS is the platform integration's job.
+
+## The bundle protocol
+
+The bundle protocol resolves a request against a bundle source and returns the matching file. Two parts of the URI drive resolution.
+
+### Mapping a request to a bundle and file
+
+The **bundle name** is the first label of the host, taken up to the first `.`. The **path** is the percent-decoded URI path.
+
+```text
+app://app.wvb/index.html        -> bundle "app",   file "/index.html"
+app://myapp.wvb/assets/logo.png -> bundle "myapp", file "/assets/logo.png"
+```
+
+Path resolution fills in `index.html` the way a static file server does:
+
+- A path that ends with `/` resolves to `index.html` in that directory. `/` becomes `/index.html`.
+- A last segment with no `.` in it is treated as a directory. `/about` becomes `/about/index.html`.
+- A last segment that contains a `.` is served as-is. `/a.js` stays `/a.js`.
+
+If the host has no label, the request fails with a bundle-not-found error. If the resolved path is not present in the bundle index, the handler returns **404 Not Found**.
+
+### Methods, headers, and responses
+
+The bundle protocol serves only `GET` and `HEAD`. Any other method returns **405 Method Not Allowed**. A `HEAD` request returns the response headers with an empty body.
+
+For a served file, the handler first replays the HTTP headers stored for that file in the bundle index, then sets `Content-Type` from the index entry and `Content-Length` from the uncompressed size. These two always reflect the index, overriding anything stored in the replayed headers.
+
+<Callout type="info">
+Headers are stored per file when the bundle is built, so caching directives and other response headers you set at build time survive into the served response.
+</Callout>
+
+### Range requests
+
+The bundle protocol supports HTTP range requests, which webviews rely on for seeking media and resuming large downloads.
+
+- A request with a `Range` header gets **206 Partial Content**, an `Accept-Ranges: bytes` header, and a `Content-Range` describing the slice.
+- Each returned range is capped at roughly 1 MB (`1000 * 1024` bytes); a larger requested range is truncated.
+- Multiple ranges come back as a `multipart/byteranges` response.
+- A range that cannot be satisfied returns **416 Range Not Satisfiable** with `Content-Range: bytes */<length>`.
+
+Ranges are computed over the uncompressed file content, so offsets always match the file your build produced.
+
+## The local protocol
+
+The local protocol is a development proxy. Instead of reading from a `.wvb` file, it maps a host to a localhost base URL and forwards the request there. You keep the same custom scheme your app uses in production while your bundler serves live, hot-reloading assets.
+
+```text
+app://myapp/api/data?foo=bar  ->  http://localhost:3000/api/data?foo=bar
+```
+
+You provide a host-to-URL map. A request whose host has no mapping fails with a resolve error. The proxy caches responses and honors upstream `304 Not Modified` by replaying the cached response.
+
+<Callout type="info">
+Use the local protocol during development and the bundle protocol for shipped builds. Because both share the same scheme, your web app's URLs do not change between the two.
+</Callout>
+
+## Per-platform schemes
+
+Each platform decides how a request reaches the handler. Electron, Tauri, and iOS register a real custom scheme with the webview. Android takes a different route: it intercepts ordinary `https://<bundle>.wvb` requests through `WebViewClient.shouldInterceptRequest`, so there is no custom scheme to register.
+
+In every case the bundle name still comes from the host label and the path still comes from the URI path. The examples below register a scheme named `app` (Electron) or `bundle` (Tauri); the name is yours to choose.
+
+<Tabs items={['Electron', 'Tauri', 'Android', 'iOS']}>
+<Tab value="Electron">
+
+`@wvb/electron` registers the scheme as privileged and wires the handler for you. Pass `bundleProtocol(scheme, ...)` to `webviewBundle`, then load `<scheme>://<bundle>.wvb`.
+
+```js title="main.cjs"
+const { app, BrowserWindow } = require('electron');
+const { bundleProtocol, wvb } = require('@wvb/electron');
+
+const instance = wvb({
+  source: { builtinDir: path.join(__dirname, 'bundles') },
+  protocols: [bundleProtocol('app')],
+});
+
+app.whenReady().then(async () => {
+  await instance.whenProtocolRegistered();
+  const window = new BrowserWindow();
+  await window.loadURL('app://app.wvb/index.html');
+});
+```
+
+See the [Electron guide](/docs/guide/platforms/electron) for privileges and the renderer bridge.
+
+</Tab>
+<Tab value="Tauri">
+
+The `wvb-tauri` crate registers an async URI-scheme protocol per configured `Protocol`. Pass `Protocol::bundle(scheme)` to the plugin config, then point the window at `<scheme>://<bundle>.wvb`.
+
+```rust title="src-tauri/src/lib.rs"
+use wvb_tauri::{Config, Protocol, Source};
+
+tauri::Builder::default()
+    .plugin(wvb_tauri::init(
+        Config::new()
+            .source(Source::new())
+            .protocol(Protocol::bundle("bundle")),
+    ))
+    .run(tauri::generate_context!())
+    .unwrap();
+```
+
+See the [Tauri guide](/docs/guide/platforms/tauri) for the full plugin setup.
+
+</Tab>
+<Tab value="Android">
+
+Android does not register a custom scheme. The integration intercepts plain `https://<bundle>.wvb` navigations from a `WebViewClient` and serves the matching file. The same host-and-path mapping applies, so `https://app.wvb/index.html` resolves to bundle `app`, file `/index.html`.
+
+```kotlin
+class BundleWebViewClient : WebViewClient() {
+  override fun shouldInterceptRequest(
+    view: WebView,
+    request: WebResourceRequest,
+  ): WebResourceResponse? {
+    // Hand the request to the Webview Bundle handler.
+    return webviewBundle.handle(request)
+  }
+}
+```
+
+See the [Android guide](/docs/guide/platforms/android) for the working setup.
+
+<Callout type="warn">
+Android and iOS are pre-release and not yet published to Maven Central or tagged for SPM. Install from source for now.
+</Callout>
+
+</Tab>
+<Tab value="iOS">
+
+iOS registers a real custom scheme on the `WKWebView` configuration through a `WKURLSchemeHandler`, then loads `<scheme>://<bundle>.wvb`. The minimum deployment target is iOS 16.
+
+```swift
+let configuration = WKWebViewConfiguration()
+configuration.setURLSchemeHandler(bundleSchemeHandler, forURLScheme: "app")
+
+let webView = WKWebView(frame: .zero, configuration: configuration)
+webView.load(URLRequest(url: URL(string: "app://app.wvb/index.html")!))
+```
+
+See the [iOS guide](/docs/guide/platforms/ios) for the working setup.
+
+</Tab>
+</Tabs>
+
+## Related
+
+<Cards>
+  <Card title="Bundle sources" href="/docs/guide/bundle-sources" description="How builtin and remote bundles resolve to the file a protocol serves." />
+  <Card title="Platform integration" href="/docs/guide/platform-integration" description="How the core reaches each platform, plus the bridge." />
+  <Card title="Electron" href="/docs/guide/platforms/electron" description="Register the bundle protocol in an Electron app." />
+  <Card title="Tauri" href="/docs/guide/platforms/tauri" description="Register the bundle protocol with the wvb-tauri plugin." />
+</Cards>

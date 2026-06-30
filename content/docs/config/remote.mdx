@@ -1,0 +1,197 @@
+---
+title: Remote, integrity & signature config
+description: Configure the remote block of wvb.config, plus the publish-side integrity and signature options.
+---
+
+The `remote` block of `wvb.config.ts` tells the `wvb` CLI how to publish a bundle: where the
+remote server lives, how to name and version each bundle, and which provider uploads and deploys
+it. Two adjacent options harden the result — `integrity` computes a content hash, and `signature`
+signs that hash with your private key so clients can verify who published the bundle. This page
+documents those three options and ends with a complete, copy-pasteable config.
+
+For the rest of the config file (top-level fields, `pack`, `serve`, `builtin`), see
+[The wvb.config file](/docs/config). For the runtime side — how a client downloads, verifies, and
+activates these bundles over the air — see [Remote bundles](/docs/guide/remote-bundles).
+
+## remote
+
+`remote` is a `RemoteConfig` object. Every field is optional; the `uploader` and `deployer` you
+supply come from a provider package.
+
+| Field              | Type                                   | Default | Description                                                       |
+| ------------------ | -------------------------------------- | ------- | ---------------------------------------------------------------- |
+| `endpoint`         | `string`                               | —       | Base URL of the remote server.                                   |
+| `bundleName`       | `BundleNameResolver`                   | `{ from: 'package.json' }` | How to resolve the bundle name.               |
+| `version`          | `VersionResolver`                      | `{ from: 'package.json' }` | How to resolve the version to publish.        |
+| `packBeforeUpload` | `boolean`                              | `true`  | Pack the bundle before uploading.                                |
+| `uploader`         | `BaseRemoteUploader`                   | —       | Uploads the `.wvb` to the server (from a provider).              |
+| `deployer`         | `BaseRemoteDeployer`                   | —       | Marks a version deployed (from a provider).                      |
+| `integrity`        | `boolean \| IntegrityMakeConfig \| fn` | —       | Compute an integrity hash on upload. See [integrity](#integrity).|
+| `signature`        | `SignatureSignConfig \| fn`            | —       | Sign the integrity hash on upload. See [signature](#signature).  |
+
+<Callout type="info">
+`RemoteConfig` has no `channel` or `allowOtherVersions` field. A channel is a deploy-time argument
+(`wvb deploy --channel <ch>`), not a property of the config object.
+</Callout>
+
+### Resolvers
+
+`bundleName` and `version` accept a literal string, a resolver object, or a function. The function
+form receives `{ packageJson, dir, file }` and returns a string (or a `Promise` of one).
+
+```ts title="wvb.config.ts"
+remote: {
+  // Bundle name: 'package.json' (name field, scope stripped) or a string or a function.
+  bundleName: { from: 'package.json' },
+
+  // Version: 'package.json' (version field), 'git' (HEAD commit hash), a string, or a function.
+  version: { from: 'git' },
+}
+```
+
+| Resolver     | Accepted forms                                                                            |
+| ------------ | ----------------------------------------------------------------------------------------- |
+| `bundleName` | `{ from: 'package.json' }` \| `string` \| `(params) => string \| Promise<string>`         |
+| `version`    | `{ from: 'package.json' }` \| `{ from: 'git' }` \| `string` \| `(params) => string \| Promise<string>` |
+
+`{ from: 'package.json' }` reads the `name`/`version` field and throws when it is missing.
+`{ from: 'git' }` (version only) uses the current `HEAD` commit hash.
+
+### Providers
+
+`uploader` and `deployer` are not built into `@wvb/config` — they come from a provider package.
+Each provider exports a factory that returns `{ uploader, deployer }` (AWS also returns a
+`signature` signer) ready to spread into `remote`.
+
+<Cards>
+  <Card title="Local provider" href="/docs/guide/providers/local" description="Serve bundles from disk for development and testing." />
+  <Card title="AWS provider" href="/docs/guide/providers/aws" description="S3 + CloudFront, with optional KMS signing." />
+  <Card title="Cloudflare provider" href="/docs/guide/providers/cloudflare" description="R2 storage with a Workers handler." />
+</Cards>
+
+## integrity
+
+Integrity computes a cryptographic hash of the bundle bytes and stores it alongside the bundle.
+Clients recompute the hash on download and reject a bundle whose hash does not match — proof the
+bytes were not corrupted or tampered with in transit. The hash uses **SHA-2**.
+
+`integrity` accepts three forms:
+
+```ts title="wvb.config.ts"
+// 1. Boolean — enable with the default algorithm (sha256).
+integrity: true,
+
+// 2. Pick the algorithm.
+integrity: { algorithm: 'sha384' },   // 'sha256' | 'sha384' | 'sha512'
+
+// 3. Custom function — return the full "<alg>:<base64>" string yourself.
+integrity: async ({ data }) => `sha256:${await myHash(data)}`,
+```
+
+| Form                            | Type                                          | Notes                                  |
+| ------------------------------- | --------------------------------------------- | -------------------------------------- |
+| Boolean                         | `boolean`                                     | `true` uses the default algorithm.     |
+| Config object                   | `{ algorithm?: 'sha256' \| 'sha384' \| 'sha512' }` | Default `algorithm` is `'sha256'`. |
+| Function                        | `(params: { data: Buffer }) => Promise<string>` | Returns the serialized string.       |
+
+The serialized output is `"<alg>:<base64>"` — the algorithm name, a colon, then the base64-encoded
+digest, for example `sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=`.
+
+## signature
+
+A signature proves *who* published a bundle. It signs the bytes of the integrity string (the
+`"<alg>:<base64>"` value above) with your private key, and the client verifies the result with the
+matching public key. Because the signed message is the integrity string, signature verification
+requires an integrity value to be present.
+
+`signature` is a `SignatureSignConfig` — a discriminated union on `algorithm` — or a custom signing
+function. This is the **publish (sign) side**, shipped in `@wvb/config`.
+
+| `algorithm`        | Required fields                  | Optional fields  |
+| ------------------ | -------------------------------- | ---------------- |
+| `'ecdsa'`          | `curve` (`'p256'` \| `'p384'`), `hash`, `key` | —   |
+| `'ed25519'`        | `key`                            | —                |
+| `'rsa-pkcs1-v1.5'` | `hash`, `key`                    | —                |
+| `'rsa-pss'`        | `hash`, `key`                    | `saltLength`     |
+
+`hash` is one of `'sha256' | 'sha384' | 'sha512'`. The `key` is a `SignatureSigningKeyConfig`:
+
+| `format`                         | `data` type   |
+| -------------------------------- | ------------- |
+| `'jwk'`                          | `JsonWebKey`  |
+| `'raw'` \| `'pkcs8'` \| `'spki'` | `Buffer`      |
+
+```ts title="wvb.config.ts"
+// ECDSA
+signature: {
+  algorithm: 'ecdsa',
+  curve: 'p256',                  // 'p256' | 'p384'
+  hash: 'sha256',
+  key: { format: 'pkcs8', data: privateKeyDerBuffer },
+},
+
+// Ed25519
+signature: {
+  algorithm: 'ed25519',
+  key: { format: 'pkcs8', data: privateKeyDerBuffer },
+},
+
+// RSA-PSS (or 'rsa-pkcs1-v1.5')
+signature: {
+  algorithm: 'rsa-pss',
+  hash: 'sha256',
+  saltLength: 32,                 // rsa-pss only; defaults from the hash when omitted
+  key: { format: 'pkcs8', data: privateKeyDerBuffer },
+},
+
+// Custom signer — receives the integrity-string bytes, returns a base64 signature.
+signature: async ({ message }) => myExternalSigner(message),
+```
+
+<Callout type="info">
+Clients verify with the matching **public** key, and the verify side accepts different key formats
+than the sign side — SPKI, PKCS#1 (RSA only), SEC1 (ECDSA only), and raw 32-byte (Ed25519 only),
+but not JWK. See [Remote bundles](/docs/guide/remote-bundles) for verification and the
+[Node API reference](/docs/references/node) for the client-side helpers.
+</Callout>
+
+## Complete example
+
+A full `wvb.config.ts` that publishes through the AWS provider, hashes with SHA-384, and signs with
+Ed25519. Swap `awsRemote` for `localRemote` or `cloudflareRemote` to target a different provider.
+
+```ts title="wvb.config.ts"
+import { readFileSync } from 'node:fs';
+import { defineConfig } from '@wvb/config';
+import { awsRemote } from '@wvb/remote-aws';
+
+export default defineConfig(() => {
+  const provider = awsRemote({
+    bucket: 'my-app-bundles',
+    aws: { region: 'us-east-1' },
+  });
+
+  return {
+    remote: {
+      endpoint: 'https://updates.example.com',
+      bundleName: { from: 'package.json' },
+      version: { from: 'git' },
+      uploader: provider.uploader,
+      deployer: provider.deployer,
+      integrity: { algorithm: 'sha384' },
+      signature: {
+        algorithm: 'ed25519',
+        key: {
+          format: 'pkcs8',
+          data: readFileSync('./keys/signing-key.pkcs8.der'),
+        },
+      },
+    },
+  };
+});
+```
+
+To publish, run `wvb upload` to push the `.wvb` (which packs first when `packBeforeUpload` is
+`true`), then `wvb deploy --version <v>` to mark a version live. See the
+[CLI reference](/docs/guide/cli) for the full command set and the
+[remote guide](/docs/guide/remote) for building and testing a remote end to end.

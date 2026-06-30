@@ -1,0 +1,159 @@
+---
+title: Platform integration
+description: How one Rust core reaches Electron, Tauri, Android, iOS, and Deno through thin bindings and the @wvb/bridge web layer.
+---
+
+Webview Bundle is one system, not five. The format, the bundle source, the protocol handlers, the remote client, the updater, and the integrity and signature checks all live in a single Rust crate. Every platform consumes that same crate through a thin binding, so a `.wvb` produced for Electron behaves identically on Tauri, Android, iOS, and Deno. This page explains how the core reaches each host and how your web app talks back to the native side through the bridge. Read it before the individual platform guides — those guides assume you know which package belongs where.
+
+## One core, many hosts
+
+The Rust crate `wvb` (published on [crates.io](https://crates.io/crates/wvb), version 0.2.0) is the single source of truth. It implements:
+
+- the `.wvb` bundle format (header, index, LZ4-compressed data),
+- the bundle source (builtin and remote directories),
+- the bundle and local protocol handlers,
+- the remote HTTP client,
+- the updater (check, download, verify, install),
+- integrity (SHA-2) and signature verification.
+
+Each platform binding is intentionally thin. It does not reimplement the format or the update logic. It exposes the core to the host's language and runtime, registers a URL scheme with that host, and forwards requests into the core. When the core gains a feature or a fix, every platform inherits it on the next binding release. You can browse the core API on [docs.rs/wvb](https://docs.rs/wvb).
+
+<Callout type="info">
+The Rust core never registers a URL scheme or validates one. Picking a scheme such as `app://` or `bundle://` and registering it with the operating system is the binding's job. See [Protocol handling](/docs/guide/protocol-handling) for how a request maps to a file.
+</Callout>
+
+## Delivery mechanisms
+
+Each platform reaches the core through a different distribution channel. The binding language and the package you install depend on the host.
+
+| Platform | Binding | How it is shipped |
+|---|---|---|
+| Electron / Node.js | `@wvb/node` | N-API native addon (NAPI-RS), prebuilt per-platform binaries on npm |
+| Tauri (desktop + mobile) | `wvb-tauri` Rust crate | Tauri v2 plugin on crates.io, version 0.1.0 |
+| Android | `packages/ffi` (UniFFI) | Kotlin bindings, consumed by the `webview-bundle-android` repo |
+| iOS | `packages/ffi` (UniFFI) | Swift bindings, consumed by the `webview-bundle-ios` repo |
+| Deno Desktop | `@wvb/deno` | Deno FFI over a prebuilt dylib (experimental) |
+
+### Electron and Node.js
+
+`@wvb/node` (version 0.1.0 on npm) wraps the core as an N-API native addon built with NAPI-RS. It ships prebuilt binaries for the common targets, so you install it like any npm dependency and get the native `.node` addon for your platform.
+
+```sh
+npm install @wvb/node
+```
+
+For Electron specifically, use `@wvb/electron` (version 0.1.0), which builds on `@wvb/node` and handles scheme privileges, protocol registration, and the IPC channel for you. The two electron-builder and Electron Forge packaging helpers, `@wvb/electron-builder` and `@wvb/electron-forge`, exist in the repository but are not published to npm yet. See the [Electron guide](/docs/guide/platforms/electron) and the [Node API reference](/docs/references/node).
+
+### Tauri
+
+The Tauri integration is the Rust crate `wvb-tauri` (version 0.1.0 on crates.io). There is no `@wvb/tauri` npm package — you add the crate to your `src-tauri` project and register it as a Tauri v2 plugin.
+
+```toml title="src-tauri/Cargo.toml"
+[dependencies]
+wvb-tauri = "0.1.0"
+```
+
+The same crate handles desktop and mobile. On Android, builtin bundles ship inside the APK as `asset://` resources, so an app that ships builtin bundles must also register `tauri_plugin_fs`. See the [Tauri guide](/docs/guide/platforms/tauri).
+
+### Android and iOS
+
+Android and iOS share one binding generator: `packages/ffi`, a Rust crate that uses [UniFFI](https://mozilla.github.io/uniffi-rs/) to generate Kotlin and Swift bindings from the core. The build produces native libraries plus language bindings, packaged as GitHub release assets:
+
+- `android.zip` — Kotlin bindings and `jniLibs` for Android,
+- `apple.zip` — Swift bindings and static libraries for Apple platforms,
+- `WebViewBundleFFI.xcframework.zip` — the xcframework for iOS.
+
+Two dedicated repositories consume these assets: `webview-bundle-android` (Kotlin) and `webview-bundle-ios` (Swift). They resolve assets by release tag — stable releases use `ffi/<version>` (for example `ffi/0.1.0`) and prereleases use `prerelease/<sha>`.
+
+<Callout type="warn">
+Android and iOS are implemented and end-to-end tested, but the bindings are pre-release. They are not yet published to Maven Central, and there is no Swift Package Manager tag — install from source for now. The minimum supported iOS version is iOS 16. The currently committed xcframework contains a simulator-only slice; the device slice is pending. See the [Android](/docs/guide/platforms/android) and [iOS](/docs/guide/platforms/ios) guides.
+</Callout>
+
+### Deno
+
+`@wvb/deno` reaches the core through Deno FFI over a prebuilt dynamic library. It is experimental: the binding source lives on an unmerged branch, and `main` ships only a prebuilt dylib. Treat it as a preview, not a production target. See the [Deno guide](/docs/guide/platforms/deno) and the [Deno API reference](/docs/references/deno).
+
+## The bridge
+
+The bindings above run on the native side. The bridge, `@wvb/bridge` (version 0.1.0 on npm), is the web side. It lets JavaScript running inside the webview call native source, remote, and updater operations through one uniform API, regardless of which host renders the page.
+
+The single entry point is `invoke()`:
+
+```ts
+import { invoke } from '@wvb/bridge';
+
+const update = await invoke('updaterGetUpdate', { bundleName: 'app' });
+```
+
+You rarely call `invoke()` by name. The bridge groups the native commands into three typed objects, each method of which is a typed `invoke()` call:
+
+- `source.*` — list bundles, resolve filepaths, read metadata, manage downloaded versions.
+- `remote.*` — list, inspect, and download bundles from a remote server.
+- `updater.*` — check for an update, download it, and install it.
+
+```ts
+import { source, remote, updater } from '@wvb/bridge';
+
+const bundles = await source.listBundles();
+const info = await updater.getUpdate('app');
+if (info.isAvailable) {
+  await updater.download('app');
+  await updater.install('app', info.version);
+}
+```
+
+The bridge detects the host at runtime and routes each call over the right transport:
+
+| Platform | Transport |
+|---|---|
+| Electron | `window.wvbElectron.invoke(name, params)` |
+| Tauri | Tauri `invoke('plugin:wvb-tauri\|<command>', params)` |
+| Android | `window.wvbAndroid.postMessage(...)` |
+| iOS | `window.webkit.messageHandlers.wvbIos.postMessage(...)` |
+
+Detection and transport are internal — your code uses the same `source`, `remote`, and `updater` methods everywhere. The shipping `@wvb/bridge` 0.1.0 supports electron, tauri, android, and ios. The Deno platform exists only on the experimental Deno branch and is not part of the published bridge.
+
+<Callout type="info">
+Import `@wvb/bridge/testing` to test webview code without a native host. It provides `mockInvoke`, `mockPlatform`, and `mockBridge` helpers so you can stub command responses in unit tests.
+</Callout>
+
+## Architecture at a glance
+
+A request from your web app flows down through the bridge to the native host, into the core, and out to a bundle source or a remote server.
+
+```text
+  ┌─────────────────────────────────────────────┐
+  │  web app (HTML / JS in the webview)          │
+  │      @wvb/bridge  invoke()                    │
+  └───────────────────────┬─────────────────────┘
+                          │  (electron / tauri / android / ios)
+  ┌───────────────────────▼─────────────────────┐
+  │  native host                                 │
+  │   @wvb/node | wvb-tauri | UniFFI | @wvb/deno  │
+  └───────────────────────┬─────────────────────┘
+                          │
+  ┌───────────────────────▼─────────────────────┐
+  │  wvb core (Rust)                             │
+  │   source · protocol · remote · updater       │
+  └──────────┬──────────────────────┬────────────┘
+            │                      │
+  ┌─────────▼─────────┐   ┌────────▼───────────┐
+  │  source           │   │  remote server      │
+  │  (builtin/remote) │   │  (OTA bundles)       │
+  └───────────────────┘   └─────────────────────┘
+```
+
+The webview also loads its assets through the same core: the bundle protocol serves files straight out of the source, so the page bytes and the `invoke()` commands share one bundle source.
+
+## Where to go next
+
+<Cards>
+  <Card title="Why Webview Bundle" href="/docs/guide/why-webview-bundle" description="Offline-first delivery and over-the-air updates for web developers." />
+  <Card title="Electron guide" href="/docs/guide/platforms/electron" description="Register a scheme, wire IPC, and serve bundles in Electron." />
+  <Card title="Tauri guide" href="/docs/guide/platforms/tauri" description="Add the wvb-tauri plugin on desktop and mobile." />
+  <Card title="Android guide" href="/docs/guide/platforms/android" description="Consume the UniFFI Kotlin bindings (pre-release)." />
+  <Card title="iOS guide" href="/docs/guide/platforms/ios" description="Consume the UniFFI Swift bindings (pre-release, iOS 16+)." />
+  <Card title="Deno guide" href="/docs/guide/platforms/deno" description="Run the experimental Deno Desktop integration." />
+  <Card title="Node API reference" href="/docs/references/node" description="The full @wvb/node surface." />
+  <Card title="Deno API reference" href="/docs/references/deno" description="The experimental @wvb/deno surface." />
+</Cards>

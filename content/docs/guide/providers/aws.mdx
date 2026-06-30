@@ -1,0 +1,166 @@
+---
+title: AWS provider
+description: Host, serve, and provision remote Webview Bundles on AWS using S3, CloudFront, Lambda@Edge, and optional KMS signing.
+---
+
+The AWS provider lets you publish bundles to your own AWS account and serve them over a global CDN.
+Bundles live in **S3**, **CloudFront** fronts them as a cache, two **Lambda@Edge** functions translate
+the remote HTTP contract into S3 reads, and **KMS** can optionally sign each bundle. You wire the
+publish side into `wvb.config.ts`, run the serving side as Lambda@Edge, and provision the whole stack
+with Pulumi.
+
+All AWS packages are at `0.1.0` and pre-release. Treat them as preview and install from source until a
+published release lands. For the contract these pieces implement and how to choose a provider, see
+[Building a remote](/docs/guide/remote).
+
+## Backing services
+
+The AWS provider maps the remote contract onto four AWS services.
+
+| Service | Role |
+|---|---|
+| S3 | Stores each bundle object and the `deployment.json` pointer that records the current version. |
+| CloudFront | CDN in front of S3; the deployer can issue cache invalidations after a deploy. |
+| Lambda@Edge | Two functions — an origin-request handler that rewrites the URL to the bundle key, and an origin-response handler that turns S3 object metadata into the contract response headers. |
+| KMS | Optional. Signs the integrity string of each bundle so clients can verify who published it. |
+
+## Packages
+
+Three packages cover the three roles. The publish side runs in your CI or on your machine, the provider
+runs at the edge, and the Pulumi package provisions everything.
+
+| Package | Version | Role |
+|---|---|---|
+| `@wvb/remote-aws` | `0.1.0` | Publish side. Produces the `uploader`, `deployer`, and optional `signature` for `wvb.config.ts`. |
+| `@wvb/remote-aws-provider` | `0.1.0` | The Lambda@Edge server (a Hono app) that serves bundles. Exposes `./origin-request` and `./origin-response` subpaths. |
+| `@wvb/remote-aws-provider-pulumi` | `0.1.0` | Pulumi component that provisions S3, CloudFront, the two Lambda@Edge functions, and IAM. |
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+<Tab value="npm">
+```sh
+npm install @wvb/remote-aws @wvb/remote-aws-provider @wvb/remote-aws-provider-pulumi
+```
+</Tab>
+<Tab value="pnpm">
+```sh
+pnpm add @wvb/remote-aws @wvb/remote-aws-provider @wvb/remote-aws-provider-pulumi
+```
+</Tab>
+<Tab value="yarn">
+```sh
+yarn add @wvb/remote-aws @wvb/remote-aws-provider @wvb/remote-aws-provider-pulumi
+```
+</Tab>
+</Tabs>
+
+## Configure the publish side
+
+`@wvb/remote-aws` exports `awsRemote()`. Pass a `bucket`, optional `signature`, and shared `aws` client
+defaults; it returns `{ uploader, deployer, signature? }` that you spread into the `remote` block of your
+config. See [Remote, integrity and signature config](/docs/config/remote) for the full `remote` schema.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+import { awsRemote, awsKmsSignatureSigner } from '@wvb/remote-aws';
+
+export default defineConfig({
+  remote: {
+    endpoint: 'https://bundles.example.com',
+    ...awsRemote({
+      bucket: 'my-app-bundles',
+      aws: {
+        region: 'us-east-1',
+        profile: 'my-app-deploy',
+      },
+      // Optional: sign each bundle's integrity string with KMS.
+      signature: {
+        keyId: 'arn:aws:kms:us-east-1:111122223333:key/abcd-1234',
+        algorithm: 'ECDSA_SHA_256',
+      },
+    }),
+  },
+});
+```
+
+The `signature` field is `false` or a KMS signer config. You can also build the signer directly with
+`awsKmsSignatureSigner({ keyId, algorithm })`, which returns a signing function. The signer calls KMS
+with `MessageType: 'DIGEST'` and returns a base64 signature over the bundle's integrity string.
+
+The uploader streams the bundle to S3 with a multipart upload and stores the contract values as S3
+object metadata (`webview-bundle-name`, `webview-bundle-version`, and, when present,
+`webview-bundle-integrity` and `webview-bundle-signature`). The deployer reads and rewrites
+`deployment.json` in S3, then optionally issues a CloudFront invalidation if you pass an `invalidation`
+with a `distributionId`.
+
+<Callout type="warn">
+The default uploader key and the provider's expected key do not match. The uploader writes to
+`bundles/{name}/{name}_{version}.wvb`, but the Lambda@Edge provider rewrites incoming requests to
+`bundles/{name}/{version}/{name}_{version}.wvb` — an extra `{version}` directory segment. For an
+end-to-end AWS setup you must reconcile the two: set a custom uploader `key` (a string or a
+`(bundleName, version) => string` function) that produces the provider's layout, or otherwise arrange a
+matching S3 layout. Verify the intended layout against the package source before relying on the defaults.
+</Callout>
+
+## Serve from Lambda@Edge
+
+`@wvb/remote-aws-provider` exports a Hono app that implements the remote contract and runs as
+Lambda@Edge. The app is split across two CloudFront event handlers, imported from subpaths:
+
+```ts title="origin-request handler"
+import { originRequest } from '@wvb/remote-aws-provider/origin-request';
+
+export const handler = originRequest({
+  bucketName: 'my-app-bundles',
+  region: 'us-east-1',
+  // allowOtherVersions: true, // allow GET /bundles/{name}/{version}; otherwise 403
+});
+```
+
+```ts title="origin-response handler"
+import { originResponse } from '@wvb/remote-aws-provider/origin-response';
+
+export const handler = originResponse();
+```
+
+The origin-request handler reads `deployment.json` for the requested bundle, resolves the version
+(falling back from a channel to the default version), rewrites the origin URI to the bundle key, and
+tags the request so the origin-response handler can act on it. The origin-response handler converts the
+S3 `x-amz-meta-webview-bundle-*` metadata into the `webview-bundle-*` response headers the client
+expects. A request for `GET /bundles/{name}/{version}` returns `403` unless you set
+`allowOtherVersions: true`.
+
+## Provision with Pulumi
+
+`@wvb/remote-aws-provider-pulumi` exports `WebViewBundleRemoteProvider`, a Pulumi `ComponentResource`
+(token `webview-bundle:aws:RemoteProvider`). It creates the S3 bucket and bucket policy, an IAM role for
+Lambda@Edge, the two Lambda@Edge functions in `us-east-1` (required for Lambda@Edge), and a CloudFront
+distribution with both functions attached as origin-request and origin-response associations.
+
+```ts title="index.ts"
+import { WebViewBundleRemoteProvider } from '@wvb/remote-aws-provider-pulumi';
+
+const provider = new WebViewBundleRemoteProvider('webview-bundle', {
+  // Override defaults here, e.g. lambda names or CloudFront settings.
+});
+
+export const bucketName = provider.bucketName;
+export const distributionDomainName = provider.cloudfrontDistributionDomainName;
+export const distributionId = provider.cloudfrontDistributionId;
+```
+
+The component bundles the Lambda code at deploy time and injects the bucket name, region, and
+`allowOtherVersions` flag into each function. The functions default to the `nodejs22.x` runtime. Useful
+outputs include `bucketName`, `cloudfrontDistributionDomainName`, `cloudfrontDistributionId`, and the
+two Lambda ARNs.
+
+<Callout type="info">
+Lambda@Edge functions must live in `us-east-1`. Configure that region for the Pulumi AWS provider when
+you deploy this component.
+</Callout>
+
+## Related
+
+<Cards>
+  <Card title="Building a remote" href="/docs/guide/remote" description="The HTTP contract every provider implements, local testing, and how to choose a provider." />
+  <Card title="Remote config" href="/docs/config/remote" description="The remote, integrity, and signature blocks of wvb.config." />
+</Cards>

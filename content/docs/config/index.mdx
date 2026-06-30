@@ -1,0 +1,290 @@
+---
+title: Configuration
+description: The wvb.config file that the CLI and the programmatic API read for pack, remote, serve, and builtin options.
+---
+
+A single `wvb.config` file drives every Webview Bundle workflow. Both the `wvb` CLI
+and the programmatic API (`@wvb/cli/api`) load it, so one config keeps packing,
+serving, remote publishing, and builtin installs consistent. Author it with
+`defineConfig` from `@wvb/config` to get full type-checking and editor autocompletion.
+
+This page covers the config file itself and the top-level `pack`, `serve`, and
+`builtin` sections. Remote publishing, integrity, and signature options live on a
+dedicated page.
+
+<Cards>
+  <Card title="Remote, integrity & signature" href="/docs/config/remote" description="The remote section: endpoint, uploader/deployer, integrity hashing, and signing." />
+  <Card title="CLI commands" href="/docs/guide/cli" description="Every wvb command and how flags override config." />
+  <Card title="Node API" href="/docs/references/node" description="The @wvb/node runtime that consumes the packed bundle." />
+</Cards>
+
+## The config file
+
+Place the config in your project root. The CLI auto-discovers the first matching
+file in the working directory, in this order:
+
+```text
+wvb.config.js
+wvb.config.cjs
+wvb.config.mjs
+wvb.config.ts
+wvb.config.cts
+wvb.config.mts
+webview-bundle.config.js
+webview-bundle.config.cjs
+webview-bundle.config.mjs
+webview-bundle.config.ts
+webview-bundle.config.cts
+webview-bundle.config.mts
+wvb.config.json
+wvb.config.jsonc
+```
+
+Both base names `wvb.config.*` and `webview-bundle.config.*` are supported with the
+`.js`, `.cjs`, `.mjs`, `.ts`, `.cts`, and `.mts` extensions. The `.json` and `.jsonc`
+forms are only recognized for the `wvb.config` base name. Pass `--config` (alias
+`-C`) to any command to point at a specific file instead of relying on discovery.
+
+```sh
+wvb pack --config ./configs/wvb.prod.ts
+```
+
+### defineConfig
+
+Wrap your config with `defineConfig` from `@wvb/config`. It is an identity function
+at runtime — its only job is to attach types. It accepts an object, a promise that
+resolves to a config, or a synchronous or asynchronous function that returns one, so
+you can compute values at load time.
+
+<Tabs items={['Object', 'Async function']}>
+  <Tab value="Object">
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  root: process.cwd(),
+  pack: {
+    srcDir: './dist',
+  },
+  serve: {
+    port: 4312,
+  },
+});
+```
+  </Tab>
+  <Tab value="Async function">
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig(async () => {
+  const endpoint = process.env.WVB_ENDPOINT;
+  return {
+    remote: {
+      endpoint,
+    },
+  };
+});
+```
+  </Tab>
+</Tabs>
+
+<Callout type="info">
+Install the package as a dev dependency: `npm install -D @wvb/config`.
+</Callout>
+
+## Top-level fields
+
+The config object has five optional fields. Nothing else is read at the top level.
+
+| Field     | Type            | Default            |
+| --------- | --------------- | ------------------ |
+| `root`    | `string`        | `process.cwd()`    |
+| `pack`    | `PackConfig`    | —                  |
+| `remote`  | `RemoteConfig`  | —                  |
+| `serve`   | `ServeConfig`   | —                  |
+| `builtin` | `BuiltinConfig` | —                  |
+
+`root` sets the project root used to resolve relative paths. It may be absolute or
+relative to the config file. The `remote` field is documented on the
+[Remote, integrity & signature](/docs/config/remote) page.
+
+## pack
+
+`pack` (`PackConfig`) sets the defaults for `wvb pack`. CLI flags override these per
+invocation.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+    outFile: '.wvb/app',
+    overwrite: true,
+    ignore: ['*.map', /\.DS_Store$/],
+    headers: {
+      '*.html': { 'cache-control': 'max-age=0' },
+      '*.js': { 'cache-control': 'max-age=31536000' },
+    },
+  },
+});
+```
+
+| Field       | Type                                                                                  | Default       |
+| ----------- | ------------------------------------------------------------------------------------- | ------------- |
+| `srcDir`    | `string`                                                                              | `./dist`      |
+| `outFile`   | `string`                                                                              | `.wvb/<name>` |
+| `overwrite` | `boolean`                                                                             | `true`        |
+| `ignore`    | `Array<string \| RegExp> \| ((file: string) => boolean \| Promise<boolean>)`          | —             |
+| `headers`   | `Record<glob, HeadersInit> \| Array<[glob, HeadersInit]> \| ((file) => HeadersInit)`  | —             |
+
+`outFile` is a single output path. The `.wvb` extension is appended automatically
+when you omit it, and the path resolves relative to `root` unless it is absolute. The
+default `.wvb/<name>` derives `<name>` from your `package.json` name with any scope
+prefix stripped.
+
+<Callout type="warn">
+The field is `outFile`, a complete path. There is no `outFileName` or `outDir` on
+`pack` — write the full output path, including any subdirectory, in `outFile`.
+</Callout>
+
+`ignore` accepts an array of globs and regular expressions, or a predicate that
+returns a boolean (optionally async). `headers` attaches HTTP headers to matching
+files and accepts three shapes:
+
+```ts
+// 1. Record keyed by glob
+headers: {
+  '*.html': { 'cache-control': 'max-age=3600' },
+}
+
+// 2. Array of [glob, HeadersInit] tuples
+headers: [
+  ['*.html', { 'cache-control': 'max-age=3600' }],
+  ['*.png', ['cache-control', 'max-age=0']],
+]
+
+// 3. Function returning headers per file
+headers: (file) => (file.endsWith('.html') ? { 'cache-control': 'max-age=0' } : undefined)
+```
+
+## serve
+
+`serve` (`ServeConfig`) sets the defaults for `wvb serve`, the local server that
+serves a packed bundle for development.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  serve: {
+    file: './.wvb/app.wvb',
+    port: 4312,
+    silent: false,
+  },
+});
+```
+
+| Field    | Type      | Default            |
+| -------- | --------- | ------------------ |
+| `file`   | `string`  | the `pack.outFile` path |
+| `port`   | `number`  | `4312`             |
+| `silent` | `boolean` | —                  |
+
+`file` falls back to the resolved `pack.outFile` path when omitted. Set `silent` to
+disable request-log output.
+
+<Callout type="info">
+`serve` has no `hostname` field. To bind a different host, pass `--hostname` (alias
+`-H`) to `wvb serve` on the command line.
+</Callout>
+
+## builtin
+
+`builtin` (`BuiltinConfig`) sets the defaults for `wvb builtin`, which installs
+bundles that ship inside your app — either downloaded from a remote or collected from
+local workspaces.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  builtin: {
+    outDir: '.wvb/builtin/bundles',
+    target: { type: 'remote' },
+    include: ['app*'],
+    exclude: [/^internal-/],
+    clean: true,
+  },
+});
+```
+
+| Field     | Type                                                                              | Default                 |
+| --------- | --------------------------------------------------------------------------------- | ----------------------- |
+| `outDir`  | `string`                                                                          | `.wvb/builtin/bundles`  |
+| `target`  | `BuiltinTarget`                                                                   | `{ type: 'remote' }`    |
+| `include` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)`              | —                       |
+| `exclude` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)`              | —                       |
+| `clean`   | `boolean`                                                                         | `true`                  |
+
+`include` and `exclude` filter the candidate bundles. Each accepts a glob string, a
+regular expression, an array of either, or a predicate
+`(info: { name: string; version: string }) => boolean` (optionally async). With
+`clean` enabled, the output directory is cleared before install.
+
+### target
+
+`target` is a discriminated union on `type`. Choose `remote` to download bundles from
+a server, or `local` to collect them from workspaces in your repository.
+
+```ts
+// Remote target — download from a server
+target: {
+  type: 'remote',
+  endpoint: 'https://updates.example.com',
+  download: {
+    concurrency: 4,
+    // http: { /* HttpOptions from @wvb/node */ },
+  },
+}
+
+// Local target — collect from workspaces
+target: {
+  type: 'local',
+  workspaces: ['packages/*'],
+  bundleName: { from: 'package.json' },
+  version: { from: 'package.json' },
+  packBeforeInstall: true,
+}
+```
+
+For the `remote` target, `endpoint` and `download` are optional. The only concurrency
+knob is `download.concurrency`; `download.http` accepts the `HttpOptions` type from
+[`@wvb/node`](/docs/references/node).
+
+| `remote` field         | Type                | Default |
+| ---------------------- | ------------------- | ------- |
+| `endpoint`             | `string`            | —       |
+| `download.concurrency` | `number`            | —       |
+| `download.http`        | `HttpOptions`       | —       |
+
+For the `local` target, `workspaces` is required — it is the only required field
+anywhere in the config. The `integrity` and `signature` options share the same shapes
+as the remote section; see [Remote, integrity & signature](/docs/config/remote).
+
+| `local` field       | Type                                                       | Default |
+| ------------------- | ---------------------------------------------------------- | ------- |
+| `workspaces`        | `string[] \| (() => string[] \| Promise<string[]>)`        | required |
+| `bundleName`        | `BundleNameResolver`                                       | —       |
+| `version`           | `VersionResolver`                                          | —       |
+| `integrity`         | `boolean \| IntegrityMakeConfig`                           | —       |
+| `signature`         | `SignatureSignConfig`                                      | —       |
+| `packBeforeInstall` | `boolean`                                                  | `true`  |
+
+## Next steps
+
+<Cards>
+  <Card title="Remote, integrity & signature" href="/docs/config/remote" description="Configure the remote endpoint, uploader/deployer, integrity hashing, and signing." />
+  <Card title="CLI commands" href="/docs/guide/cli" description="Run pack, serve, upload, deploy, and builtin from the command line." />
+  <Card title="Node API" href="/docs/references/node" description="Serve and verify bundles at runtime with @wvb/node." />
+</Cards>

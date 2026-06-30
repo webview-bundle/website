@@ -11,7 +11,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Demo', href: '#demo' },
   { label: 'How it works', href: '#how-it-works' },
   { label: 'Platforms', href: '#platforms' },
-  { label: 'Reference', href: '/docs/cli' },
+  { label: 'Reference', href: '/docs/references' },
 ];
 
 /** Files shown on the left ("your source") of the architecture diagram. */

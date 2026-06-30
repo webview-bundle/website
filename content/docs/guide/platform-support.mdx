@@ -1,0 +1,93 @@
+---
+title: Platform Support
+description: Which platforms run Webview Bundle, the package to install for each, and where each one sits on the road to 1.0.
+---
+
+Webview Bundle runs the same `.wvb` archive on every platform that provides a webview. One shared
+Rust core powers each integration, so a bundle you pack once loads identically in Electron, Tauri,
+Android, iOS, and Deno Desktop. For how the core reaches each host — and how the webview talks back
+through the bridge — see [Platform integration](/docs/guide/platform-integration).
+
+This page is the support matrix: the package or crate to install per platform, its minimum host
+version, and how close that integration is to a stable release.
+
+## Support matrix
+
+| Platform | Webview host | Package / crate | Min version | Status |
+| --- | --- | --- | --- | --- |
+| [Electron](/docs/guide/platforms/electron) | Chromium | `@wvb/electron` 0.1.0 (npm) | — | Stable (pre-1.0) |
+| [Tauri desktop](/docs/guide/platforms/tauri) | System WebView | `wvb-tauri` 0.1.0 (crate) | Tauri v2 | Stable (pre-1.0) |
+| Tauri mobile | System WebView | `wvb-tauri` 0.1.0 (crate) | See [Android](/docs/guide/platforms/android) / [iOS](/docs/guide/platforms/ios) | Pre-release |
+| [Android](/docs/guide/platforms/android) | System WebView | `webview-bundle-android` (Kotlin) | minSdk 24 / Android 7.0 | Pre-release — not yet on Maven Central |
+| [iOS](/docs/guide/platforms/ios) | WKWebView | `webview-bundle-ios` (Swift) | iOS 16 / macOS 12 | Pre-release — no SPM tag yet |
+| [Deno Desktop](/docs/guide/platforms/deno) | Deno webview | `@wvb/deno-desktop` 0.0.0 (JSR) | — | Experimental |
+
+All integrations are still pre-1.0, so APIs may change between minor versions.
+
+## Desktop
+
+Electron and Tauri desktop are the most mature integrations. Both are published — `@wvb/electron` on
+npm and the `wvb-tauri` crate on crates.io — and both serve bundles through a custom URL scheme backed
+by the Rust core.
+
+- **Electron** ships as the `@wvb/electron` package and runs on `electron >= 15`. Start with the
+  [Electron guide](/docs/guide/platforms/electron).
+- **Tauri** ships as the `wvb-tauri` Rust crate (there is no `@wvb/tauri` npm package) and targets
+  **Tauri v2**. The same crate also drives Tauri's mobile targets. Start with the
+  [Tauri guide](/docs/guide/platforms/tauri).
+
+## Mobile
+
+Android and iOS are real, functional integrations, exercised by end-to-end tests against a live remote.
+They are **pre-release**: neither has a published artifact yet, so you install them from source for now.
+
+- **Android** lives in the `webview-bundle-android` Kotlin library, namespace `dev.wvb`. It requires
+  **minSdk 24 (Android 7.0)** and serves bundles through a `WebViewClient`. See the
+  [Android guide](/docs/guide/platforms/android).
+- **iOS** lives in the `webview-bundle-ios` Swift package. Its minimum deployment targets are
+  **iOS 16** and **macOS 12**, and it serves bundles through a `WKURLSchemeHandler`. See the
+  [iOS guide](/docs/guide/platforms/ios).
+
+<Callout type="warn">
+  Android and iOS are functional and end-to-end tested, but **pre-release**. The Android library is
+  not yet published to Maven Central, and the iOS package has no Swift Package Manager tag — install
+  both from source for now, following their guides. The committed iOS `xcframework` is currently
+  **simulator-only**: on-device builds will not link until a device-bearing binary is published.
+</Callout>
+
+## Deno Desktop
+
+Deno Desktop is the newest integration, distributed as the `@wvb/deno-desktop` package on JSR
+(version 0.0.0). It builds a bundle source and exposes a `Deno.serve`-compatible handler, with one
+protocol per window.
+
+<Callout type="info">
+  Deno Desktop is **experimental** and offered as a preview. Treat it as not yet production-ready, and
+  expect breaking changes. See the [Deno Desktop guide](/docs/guide/platforms/deno) and the
+  [Deno API reference](/docs/references/deno).
+</Callout>
+
+## Next steps
+
+<Cards>
+  <Card
+    title="Platform integration"
+    href="/docs/guide/platform-integration"
+    description="How the shared Rust core reaches each platform, and how the webview bridge connects your web app to the native host."
+  />
+  <Card
+    title="Why Webview Bundle?"
+    href="/docs/guide/why-webview-bundle"
+    description="Offline-first delivery and over-the-air updates, explained for web developers."
+  />
+  <Card
+    title="The .wvb bundle format"
+    href="/docs/guide/bundle-format"
+    description="How a bundle is laid out on disk: header, index, and data."
+  />
+  <Card
+    title="CLI commands"
+    href="/docs/guide/cli"
+    description="Pack, serve, upload, deploy, and run a local remote with the wvb command."
+  />
+</Cards>

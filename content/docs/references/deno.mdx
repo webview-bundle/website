@@ -1,0 +1,204 @@
+---
+title: Deno API
+description: Reference for the experimental @wvb/deno package, the Deno FFI peer of @wvb/node.
+---
+
+`@wvb/deno` is the Deno binding for Webview Bundle. It is the FFI peer of [`@wvb/node`](/docs/references/node):
+the same protocol, source, remote, and updater surface, served to a Deno desktop webview through a
+native cdylib loaded over Deno FFI. Use this page to load the native library and to look up the
+classes, options, and limitations of the Deno binding.
+
+<Callout type="warn">
+  **Experimental.** `@wvb/deno` is published on JSR at version `0.0.0`, its source lives on an
+  unmerged branch, and `main` ships only a prebuilt cdylib. The API surface described here may change
+  before a stable release. Do not depend on it for production.
+</Callout>
+
+## Loading the native library
+
+The Deno binding talks to a Rust cdylib over Deno FFI. Load it before constructing any class. You have
+two options.
+
+Use `loadLib(libPath)` when you already have the cdylib on disk and want to point at it directly:
+
+```ts title="main.ts"
+import { loadLib } from 'jsr:@wvb/deno';
+
+const lib = loadLib('./vendor/wvb/libwvb_deno.dylib');
+```
+
+Use `loadLibViaPlug(options)` to download the prebuilt cdylib on demand. It fetches the matching
+artifact through [`@denosaurs/plug`](https://jsr.io/@denosaurs/plug), verifies it against a published
+SHA-256, and caches it locally:
+
+```ts title="main.ts"
+import { loadLibViaPlug } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+```
+
+Set the `WVB_DENO_LIB` environment variable to override the library path that loading resolves to.
+
+### Installing the cdylib
+
+You can vendor the cdylib ahead of time instead of downloading it at runtime. Run the installer:
+
+```sh
+deno run -A jsr:@wvb/deno/install --out vendor/wvb
+```
+
+Pass `--target <triple>` to fetch a specific platform build instead of the host's:
+
+```sh
+deno run -A jsr:@wvb/deno/install --out vendor/wvb --target aarch64-unknown-linux-gnu
+```
+
+The installer downloads the asset from GitHub Releases and verifies its SHA-256 by default. Supported
+targets:
+
+| Target triple | Platform |
+|---|---|
+| `aarch64-apple-darwin` | macOS (Apple silicon) |
+| `x86_64-apple-darwin` | macOS (Intel) |
+| `aarch64-unknown-linux-gnu` | Linux (arm64, glibc) |
+| `x86_64-unknown-linux-gnu` | Linux (x64, glibc) |
+| `x86_64-pc-windows-msvc` | Windows (x64) |
+
+## API surface
+
+The Deno binding mirrors `@wvb/node`. The classes below all take a loaded `lib` and serve the same
+roles described in the [Node API reference](/docs/references/node).
+
+### Protocols
+
+`BundleProtocol` serves a bundle's files to the webview through a custom scheme. `LocalProtocol`
+proxies an `app://host/...` URL to a localhost address for development. Both resolve a request to an
+FFI response that you convert to a standard `Response` with `toResponse(res)`:
+
+```ts title="serve.ts"
+import { loadLibViaPlug, BundleProtocol, BundleSource, toResponse } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+
+const source = new BundleSource(lib, {
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+
+using protocol = new BundleProtocol(lib, source);
+
+Deno.serve(async (req) => {
+  const res = await protocol.handle('get', req.url, Object.fromEntries(req.headers));
+  return toResponse(res);
+});
+```
+
+`HttpMethod` is the union of accepted request methods (for example `'get'` and `'head'`).
+
+### BundleSource
+
+`BundleSource` resolves bundles from a builtin directory and a remote directory, with remote taking
+priority. It exposes the same data API as `@wvb/node`'s `BundleSource` — listing bundles, loading a
+version, fetching a bundle or descriptor, and pruning retained remote versions.
+
+### Remote
+
+`Remote` talks to a remote bundle server. Construct it with an endpoint and optional `RemoteOptions`:
+
+```ts title="remote.ts"
+import { loadLibViaPlug, Remote } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+using remote = new Remote(lib, 'https://bundles.example.com');
+
+const list = await remote.listBundles();
+const { info, data } = await remote.download('app');
+// info: RemoteBundleInfo, data: Uint8Array (raw .wvb bytes)
+```
+
+`download(bundleName)` and `downloadVersion(bundleName, version)` both resolve to `{ info, data }`,
+where `info` is a `RemoteBundleInfo` and `data` is a `Uint8Array` of the raw bundle bytes. Related
+types: `RemoteOptions`, `HttpOptions`, and `RemoteBundleInfo`.
+
+### Updater
+
+`Updater` checks a remote for newer versions and installs them. It accepts a `BundleSource`, a
+`Remote`, and optional `UpdaterOptions`. Configure verification declaratively with a
+`SignatureVerifierOptions` value:
+
+```ts title="updater.ts"
+import { loadLibViaPlug, BundleSource, Remote, Updater } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+
+const source = new BundleSource(lib, {
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+using remote = new Remote(lib, 'https://bundles.example.com');
+
+using updater = new Updater(lib, source, remote, {
+  integrityPolicy: 'strict',
+  signatureVerifier: {
+    algorithm: 'ed25519',
+    key: { format: 'raw', data: publicKeyBytes },
+  },
+});
+
+const update = await updater.getUpdate('app');
+if (update.isAvailable) {
+  await updater.download('app');
+  await updater.install('app', update.version);
+}
+```
+
+Related types: `UpdaterOptions`, `IntegrityPolicy` (`'strict' | 'optional' | 'none'`),
+`SignatureAlgorithm`, `SignatureVerifierOptions`, and `BundleUpdateInfo`.
+
+### Disposing instances
+
+The FFI classes own native handles. They are `Disposable`: call `free()` when you are done, or bind
+them with `using` so they release on scope exit through `[Symbol.dispose]`.
+
+```ts
+using protocol = new BundleProtocol(lib, source);
+// released automatically at end of scope
+
+const remote = new Remote(lib, 'https://bundles.example.com');
+try {
+  // ...
+} finally {
+  remote.free();
+}
+```
+
+## Limitations
+
+The Deno binding crosses an FFI boundary, so a few `@wvb/node` features are not available:
+
+- **Declarative verification only.** `Updater` supports the declarative `signatureVerifier`
+  (`SignatureVerifierOptions`). The custom-function `integrityChecker` and `signatureVerifier`
+  callbacks of `@wvb/node` are not supported over FFI.
+- **`HttpOptions.defaultHeaders` is not yet supported** on the Deno `Remote`.
+
+## Deno Desktop integration
+
+`@wvb/deno-desktop` (JSR, `0.0.0`, experimental) ties `@wvb/deno` to Deno's desktop runtime. Its
+`webviewBundle` factory builds a `BundleSource` (and an optional `Remote`/`Updater`) and exposes a
+`Deno.serve`-compatible handler, while `registerBindings` wires the [`@wvb/bridge`](/docs/guide/platform-integration)
+`source.*`/`remote.*`/`updater.*` commands into a `Deno.BrowserWindow`.
+
+For an end-to-end walkthrough, see the Deno Desktop guide.
+
+<Cards>
+  <Card
+    title="Deno Desktop guide"
+    href="/docs/guide/platforms/deno"
+    description="Set up an experimental Deno desktop app with Webview Bundle."
+  />
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="The stable @wvb/node binding this package mirrors."
+  />
+</Cards>

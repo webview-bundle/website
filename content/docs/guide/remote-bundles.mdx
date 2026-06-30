@@ -1,0 +1,194 @@
+---
+title: Remote bundles & updates
+description: How over-the-air updating works — the lifecycle, the updater model, the HTTP contract, and how integrity and signatures protect each bundle.
+---
+
+Webview Bundle can download newer bundles over the air (OTA), so you ship updated app code without a
+native app-store release. This page is the conceptual hub for that capability: it explains the update
+lifecycle, the language-neutral updater model, the HTTP contract every remote server implements, and
+how integrity and signatures keep each bundle trustworthy. To stand up a server and test the loop
+locally, see [Building a remote](/docs/guide/remote); for the exact per-language updater APIs, see the
+[Node](/docs/references/node) and [Deno](/docs/references/deno) references.
+
+## The update lifecycle
+
+A bundle travels from your build output to a device in five stages. The first three run on your
+machine or CI; the last two run inside the app, driven by the updater.
+
+```text
+  developer machine / CI                       remote server                  end-user device
+┌──────────────────────────┐             ┌──────────────────────┐        ┌──────────────────────┐
+│ wvb pack ./dist          │             │                      │        │                      │
+│   → app_1.1.0.wvb        │             │                      │        │  updater.getUpdate() │
+│ wvb upload  ─────────────── upload ───▶ │  store version       │        │   isAvailable? ──┐   │
+│   (+integrity +signature)│             │                      │        │                  │   │
+│ wvb deploy  ─────────────── deploy ───▶ │  mark deployed       │ ◀──────── HEAD /bundles/app  │
+│   (--channel beta)       │             │  (per channel)       │ ───────▶ GET  /bundles/app   │
+└──────────────────────────┘             └──────────────────────┘        │  verify + install ◀┘ │
+                                                                         └──────────────────────┘
+```
+
+1. **Pack** your build into a `.wvb` archive.
+2. **Upload** that archive to the server, optionally attaching an integrity hash and a signature.
+3. **Deploy** the uploaded version so clients on a given channel start seeing it.
+4. On the device, the **updater checks** for a newer deployed version, then **downloads** it.
+5. The updater **verifies** the download and **installs** it into the `remote` source, after which the
+   app serves it instead of the builtin bundle.
+
+Stages 1 through 3 are CLI commands — see the [CLI reference](/docs/guide/cli) for `pack`, `upload`,
+`deploy`, and `download`. Stages 4 and 5 are the updater, covered next.
+
+## The updater model
+
+The updater ties a [bundle source](/docs/guide/bundle-sources) to a remote endpoint and exposes three
+operations. They are deliberately separate so you control exactly when a device fetches bytes and when
+it switches versions. The names below are conceptual; each platform exposes the same three operations
+under its own API.
+
+- **`getUpdate`** is a check only. It asks the server for the current deployed version and compares it
+  to the local version. It reports `isAvailable` as `true` when there is no local version, or when the
+  local version differs from the deployed version. It downloads nothing.
+- **`download`** fetches the bundle, verifies it against your integrity and signature policy, and
+  stages it into the `remote` source. It does **not** activate the new version — the app keeps serving
+  the current one.
+- **`install`** re-verifies the staged bundle from disk, activates it as the current version, unloads
+  the old descriptor, and prunes versions that are no longer retained.
+
+This split lets you, for example, download in the background and install on the next app launch.
+
+<Callout type="info">
+  The `builtin` source — the bundle shipped inside the app — always remains as a fallback. The `remote`
+  source takes priority once a version is installed, so a downloaded update wins over the builtin
+  bundle; if no remote version exists, the app falls back to builtin. See
+  [Bundle sources](/docs/guide/bundle-sources).
+</Callout>
+
+A typical flow in the Rust core looks like this; platform wrappers mirror it one-to-one:
+
+```rust
+let update = updater.get_update("app").await?;
+if update.is_available {
+    // download fetches, verifies, and stages — but does not activate
+    let info = updater.download("app", None).await?;
+    // install re-verifies, activates, and prunes old versions
+    updater.install("app", info.version).await?;
+    // reload the webview to serve the new version
+}
+```
+
+The platform guides show the idiomatic call for each target:
+[Electron](/docs/guide/platforms/electron), [Tauri](/docs/guide/platforms/tauri),
+[Android](/docs/guide/platforms/android), [iOS](/docs/guide/platforms/ios), and
+[Deno Desktop](/docs/guide/platforms/deno).
+
+## The remote HTTP contract
+
+A Webview Bundle server is any HTTP server that implements four endpoints. The provider packages
+(local, AWS, Cloudflare) implement this spec, and you can build your own to match it.
+
+| Method and path                 | Purpose                                            |
+| ------------------------------- | -------------------------------------------------- |
+| `GET /bundles`                  | List deployed bundles: `[{ "name", "version" }]`   |
+| `HEAD /bundles/{name}`          | Current version's metadata (headers only, no body) |
+| `GET /bundles/{name}`           | Download the current version                       |
+| `GET /bundles/{name}/{version}` | Download a specific version                        |
+
+`GET /bundles`, `HEAD /bundles/{name}`, and `GET /bundles/{name}` accept an optional `?channel=` query
+to scope the response to a channel. Metadata travels in response headers:
+
+- `Webview-Bundle-Name` — bundle name **(required)**
+- `Webview-Bundle-Version` — version **(required)**
+- `Webview-Bundle-Integrity` — integrity string (optional)
+- `Webview-Bundle-Signature` — signature (optional)
+- `ETag` and `Last-Modified` — standard validators (optional)
+
+Downloads use `Content-Type: application/webview-bundle`; the list endpoint returns
+`application/json`. A missing bundle or version returns `404`; requesting a specific non-deployed
+version returns `403` when that server disallows it. Both missing required headers and any other
+non-2xx response cause the client to reject the download. For a worked server implementation and local
+testing, see [Building a remote](/docs/guide/remote).
+
+## Integrity
+
+An integrity hash lets a device confirm that the bytes it downloaded are exactly the bytes you
+published. Webview Bundle uses **SHA-2**: `sha256` (the default), `sha384`, or `sha512`. The hash is
+serialized as `"<alg>:<base64>"`, for example:
+
+```text
+sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+```
+
+The publisher attaches this string at upload time (configured in
+[Remote config](/docs/config/remote)), the server returns it in the `Webview-Bundle-Integrity` header,
+and the updater enforces it on download according to an **integrity policy**:
+
+- **`Strict`** — an integrity value must be present and must match, or the download is rejected.
+- **`Optional`** — the **default**. Verify the integrity value if one is present; allow the download
+  if none is attached.
+- **`None`** — skip integrity checking entirely.
+
+## Signatures
+
+Where integrity proves the bytes are intact, a signature proves *who* published them. The signature
+covers the **integrity string bytes** (`"<alg>:<base64>"`), not the raw bundle, so signature
+verification requires an integrity value to be present. Configure the updater with a public key, and it
+rejects any download whose signature does not verify.
+
+The core verifies these algorithms:
+
+- **ECDSA** with curve P-256 (secp256r1) or P-384 (secp384r1)
+- **Ed25519**
+- **RSA** with PKCS#1 v1.5 or PSS padding, hashing with SHA-256
+
+Public keys can be supplied in these formats:
+
+- **SPKI** as PEM or DER (all algorithms)
+- **PKCS#1** as PEM or DER (RSA only)
+- **SEC1** point bytes (ECDSA only)
+- **Raw** 32-byte key (Ed25519 only)
+
+A Rust updater that requires both a matching integrity hash and a valid Ed25519 signature:
+
+```rust
+use wvb::integrity::IntegrityPolicy;
+use wvb::signature::{Ed25519Verifier, SignatureVerifier};
+use wvb::updater::{Updater, UpdaterConfig};
+use std::sync::Arc;
+
+let verifier = SignatureVerifier::Ed25519(Arc::new(
+    Ed25519Verifier::from_public_key_pem(PUBLIC_KEY_PEM)?,
+));
+let config = UpdaterConfig::new()
+    .integrity_policy(IntegrityPolicy::Strict)
+    .signature_verifier(verifier);
+let updater = Updater::new(source, remote, Some(config));
+```
+
+The publish-side counterpart — which algorithm signs, and the private-key format — is set in
+[Remote config](/docs/config/remote).
+
+## Channels
+
+A channel routes different versions to different audiences, which makes staged rollouts possible. Deploy
+a version to a channel, and only clients that request that channel receive it; clients with no channel
+get the default deployment.
+
+```sh
+wvb upload --version 1.2.0 --deploy --channel beta   # only beta clients see 1.2.0
+wvb deploy --version 1.2.0                            # later, promote to the default channel
+```
+
+On the device, the updater carries the channel in its configuration and forwards it as the `?channel=`
+query parameter when it checks for and downloads updates. A channel is a free-form string; there is no
+hardcoded default name — when no channel is set, the query parameter is simply omitted.
+
+## Where to go next
+
+<Cards>
+  <Card title="Building a remote" href="/docs/guide/remote" description="Stand up a server, choose a provider, and run the whole update loop locally." />
+  <Card title="Remote config" href="/docs/config/remote" description="Publish-side integrity and signature options for wvb.config." />
+  <Card title="CLI reference" href="/docs/guide/cli" description="pack, upload, deploy, and download commands and their flags." />
+  <Card title="Bundle sources" href="/docs/guide/bundle-sources" description="How builtin and remote sources, manifests, and channels fit together." />
+  <Card title="Node API" href="/docs/references/node" description="The @wvb/node updater API." />
+  <Card title="Deno API" href="/docs/references/deno" description="The @wvb/deno updater API (experimental)." />
+</Cards>

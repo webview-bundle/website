@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from '@tanstack/react-router';
+import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
@@ -11,7 +11,11 @@ import { useMDXComponents } from '../../mdx';
 export const Route = createFileRoute('/docs/$')({
   component: Page,
   loader: async ({ params }) => {
-    const slugs = params._splat?.split('/') ?? [];
+    const slugs = params._splat?.split('/').filter(Boolean) ?? [];
+    // `/docs` has no tab context; send readers to the Guide tab.
+    if (slugs.length === 0) {
+      throw redirect({ href: '/docs/guide' });
+    }
     const data = await serverLoader({ data: slugs });
     await clientLoader.preload(data.path);
     return data;
@@ -59,6 +63,7 @@ function Page() {
       nav={{
         title: 'Webview Bundle',
       }}
+      tabMode="top"
       tree={data.pageTree}
     >
       <Suspense>{clientLoader.useContent(data.path)}</Suspense>
