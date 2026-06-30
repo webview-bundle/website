@@ -103,10 +103,11 @@
   border-inline-end: 1px solid var(--color-fd-border);
 }
 
-/* From `lg` up the section switcher lives in the header, so fumadocs hides the
- * sidebar's dropdown but its padded container still reserves space at the top.
- * Collapse that container on desktop so the page tree starts flush with the top. */
-@media (width >= 64rem) {
+/* From `md` up the section switcher lives in the header, so the sidebar's own
+ * section dropdown is redundant. Hide its container (the static sidebar shows at
+ * `md`+) so the page tree starts flush with the top and no dropdown appears on
+ * tablet or desktop. The mobile drawer keeps its own switcher. */
+@media (width >= 48rem) {
   #nd-notebook-layout #nd-sidebar > :first-child {
     display: none;
   }

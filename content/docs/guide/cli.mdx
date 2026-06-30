@@ -8,9 +8,30 @@ The `wvb` command-line tool packs your built web assets into `.wvb` bundles and 
 Install it as a dev dependency:
 
 <Tabs items={['npm', 'pnpm', 'yarn']}>
-  <Tab value="npm">```sh npm install -D @wvb/cli npx wvb --help ```</Tab>
-  <Tab value="pnpm">```sh pnpm add -D @wvb/cli pnpm wvb --help ```</Tab>
-  <Tab value="yarn">```sh yarn add -D @wvb/cli yarn wvb --help ```</Tab>
+  <Tab value="npm">
+
+```sh
+npm install -D @wvb/cli
+npx wvb --help
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/cli
+pnpm wvb --help
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/cli
+yarn wvb --help
+```
+
+  </Tab>
 </Tabs>
 
 Most commands read their defaults from a [`wvb.config`](/docs/config) file discovered in the working directory, so a typical project runs `wvb pack` or `wvb upload` with no arguments at all. Each command has its own page with the full option reference. To call the same logic from JavaScript, see the [programmatic API](/docs/guide/cli-programmatic).

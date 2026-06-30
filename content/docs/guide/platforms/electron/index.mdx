@@ -3,16 +3,37 @@ title: Electron
 description: Serve your Electron UI from a .wvb bundle through a custom protocol, with dev-server proxying and over-the-air updates.
 ---
 
-`@wvb/electron` wires Webview Bundle into Electron in three moves: serve your UI from a `.wvb` bundle through a custom protocol, proxy to a dev server while developing, and (optionally) update bundles over the air. The runnable [`e2e/fixtures/app`](https://github.com/webview-bundle/webview-bundle/tree/main/packages/electron) is a minimal main-process setup you can read alongside this guide.
+`@wvb/electron` wires Webview Bundle into Electron in three moves: serve your UI from a `.wvb` bundle through a custom protocol, proxy to a dev server while developing, and (optionally) update bundles over the air.
 
 ## Install
 
 `@wvb/electron` requires Electron 15+ and pulls in `@wvb/node` (prebuilt N-API binaries — no Rust toolchain). `@wvb/cli` packs bundles at build time.
 
 <Tabs items={['npm', 'pnpm', 'yarn']}>
-  <Tab value="npm">```sh npm install @wvb/electron npm install -D @wvb/cli ```</Tab>
-  <Tab value="pnpm">```sh pnpm add @wvb/electron pnpm add -D @wvb/cli ```</Tab>
-  <Tab value="yarn">```sh yarn add @wvb/electron yarn add -D @wvb/cli ```</Tab>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/electron
+npm install -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/electron
+pnpm add -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/electron
+yarn add -D @wvb/cli
+```
+
+  </Tab>
 </Tabs>
 
 ## Register the protocol in the main process
