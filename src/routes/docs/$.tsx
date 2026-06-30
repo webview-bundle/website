@@ -3,11 +3,12 @@ import { createServerFn } from '@tanstack/react-start';
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
 import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/notebook/page';
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import browserCollections from '~source/browser';
 import { docSource } from '../../doc';
 import { DocsNavbar } from '../../layouts/docs/DocsNavbar';
 import { MobileTocBar } from '../../layouts/docs/MobileTocBar';
+import { withExperimentalBadges } from '../../layouts/docs/sidebar-badges';
 import { GITHUB_URL } from '../../layouts/home/data';
 import { useMDXComponents } from '../../mdx';
 
@@ -60,10 +61,11 @@ const clientLoader = browserCollections.docs.createClientLoader({
 
 function Page() {
   const data = useFumadocsLoader(Route.useLoaderData());
+  const tree = useMemo(() => withExperimentalBadges(data.pageTree), [data.pageTree]);
 
   return (
     <DocsLayout
-      tree={data.pageTree}
+      tree={tree}
       tabMode="navbar"
       nav={{ mode: 'top', component: <DocsNavbar /> }}
       githubUrl={GITHUB_URL}
