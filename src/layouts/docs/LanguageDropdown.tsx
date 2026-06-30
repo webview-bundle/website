@@ -55,7 +55,7 @@ export function LanguageDropdown() {
         onClick={() => setOpen(value => !value)}
         aria-label="Select language"
         aria-expanded={open}
-        className="flex items-center gap-1 rounded-md border border-zinc-300 px-2 py-1.5 text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
+        className="flex h-8 items-center gap-1 rounded-md border border-zinc-300 px-2 text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
       >
         <GlobeIcon className="size-[15px]" />
         <ChevronDownIcon className={cn('size-3 transition-transform', open && 'rotate-180')} />

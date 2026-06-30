@@ -12,7 +12,7 @@ export function MobileMenu() {
     <Dialog.Root>
       <Dialog.Trigger
         aria-label="Open menu"
-        className="rounded-md border border-zinc-300 p-1.5 text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-900 md:hidden dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
+        className="flex size-8 items-center justify-center rounded-md border border-zinc-300 text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-900 md:hidden dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
       >
         <MenuIcon className="size-[18px]" />
       </Dialog.Trigger>

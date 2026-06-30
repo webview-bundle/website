@@ -9,10 +9,10 @@ import { MenuIcon } from '../home/components/icons';
 export function MobileTocBar() {
   return (
     <>
-      <TOCPopover trigger={{ className: 'ps-14' }} />
+      <TOCPopover trigger={{ className: 'max-md:ps-14' }} />
       <SidebarTrigger
         aria-label="Toggle navigation sidebar"
-        className="fixed start-0 top-(--fd-docs-row-2) z-20 flex h-10 items-center px-4 text-fd-muted-foreground transition-colors hover:text-fd-foreground xl:hidden"
+        className="fixed start-0 top-(--fd-docs-row-2) z-20 flex h-10 items-center px-4 text-fd-muted-foreground transition-colors hover:text-fd-foreground md:hidden"
       >
         <MenuIcon className="size-[18px]" />
       </SidebarTrigger>
