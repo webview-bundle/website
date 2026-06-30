@@ -13,9 +13,21 @@ This page covers the config file itself and the top-level `pack`, `serve`, and
 dedicated page.
 
 <Cards>
-  <Card title="Remote, integrity & signature" href="/docs/config/remote" description="The remote section: endpoint, uploader/deployer, integrity hashing, and signing." />
-  <Card title="CLI commands" href="/docs/guide/cli" description="Every wvb command and how flags override config." />
-  <Card title="Node API" href="/docs/references/node" description="The @wvb/node runtime that consumes the packed bundle." />
+  <Card
+    title="Remote, integrity & signature"
+    href="/docs/config/remote"
+    description="The remote section: endpoint, uploader/deployer, integrity hashing, and signing."
+  />
+  <Card
+    title="CLI commands"
+    href="/docs/guide/cli"
+    description="Every wvb command and how flags override config."
+  />
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="The @wvb/node runtime that consumes the packed bundle."
+  />
 </Cards>
 
 ## The config file
@@ -89,20 +101,20 @@ export default defineConfig(async () => {
 </Tabs>
 
 <Callout type="info">
-Install the package as a dev dependency: `npm install -D @wvb/config`.
+  Install the package as a dev dependency: `npm install -D @wvb/config`.
 </Callout>
 
 ## Top-level fields
 
 The config object has five optional fields. Nothing else is read at the top level.
 
-| Field     | Type            | Default            |
-| --------- | --------------- | ------------------ |
-| `root`    | `string`        | `process.cwd()`    |
-| `pack`    | `PackConfig`    | —                  |
-| `remote`  | `RemoteConfig`  | —                  |
-| `serve`   | `ServeConfig`   | —                  |
-| `builtin` | `BuiltinConfig` | —                  |
+| Field     | Type            | Default         |
+| --------- | --------------- | --------------- |
+| `root`    | `string`        | `process.cwd()` |
+| `pack`    | `PackConfig`    | —               |
+| `remote`  | `RemoteConfig`  | —               |
+| `serve`   | `ServeConfig`   | —               |
+| `builtin` | `BuiltinConfig` | —               |
 
 `root` sets the project root used to resolve relative paths. It may be absolute or
 relative to the config file. The `remote` field is documented on the
@@ -130,13 +142,13 @@ export default defineConfig({
 });
 ```
 
-| Field       | Type                                                                                  | Default       |
-| ----------- | ------------------------------------------------------------------------------------- | ------------- |
-| `srcDir`    | `string`                                                                              | `./dist`      |
-| `outFile`   | `string`                                                                              | `.wvb/<name>` |
-| `overwrite` | `boolean`                                                                             | `true`        |
-| `ignore`    | `Array<string \| RegExp> \| ((file: string) => boolean \| Promise<boolean>)`          | —             |
-| `headers`   | `Record<glob, HeadersInit> \| Array<[glob, HeadersInit]> \| ((file) => HeadersInit)`  | —             |
+| Field       | Type                                                                                 | Default       |
+| ----------- | ------------------------------------------------------------------------------------ | ------------- |
+| `srcDir`    | `string`                                                                             | `./dist`      |
+| `outFile`   | `string`                                                                             | `.wvb/<name>` |
+| `overwrite` | `boolean`                                                                            | `true`        |
+| `ignore`    | `Array<string \| RegExp> \| ((file: string) => boolean \| Promise<boolean>)`         | —             |
+| `headers`   | `Record<glob, HeadersInit> \| Array<[glob, HeadersInit]> \| ((file) => HeadersInit)` | —             |
 
 `outFile` is a single output path. The `.wvb` extension is appended automatically
 when you omit it, and the path resolves relative to `root` unless it is absolute. The
@@ -144,8 +156,8 @@ default `.wvb/<name>` derives `<name>` from your `package.json` name with any sc
 prefix stripped.
 
 <Callout type="warn">
-The field is `outFile`, a complete path. There is no `outFileName` or `outDir` on
-`pack` — write the full output path, including any subdirectory, in `outFile`.
+  The field is `outFile`, a complete path. There is no `outFileName` or `outDir` on `pack` — write
+  the full output path, including any subdirectory, in `outFile`.
 </Callout>
 
 `ignore` accepts an array of globs and regular expressions, or a predicate that
@@ -161,7 +173,7 @@ headers: {
 // 2. Array of [glob, HeadersInit] tuples
 headers: [
   ['*.html', { 'cache-control': 'max-age=3600' }],
-  ['*.png', ['cache-control', 'max-age=0']],
+  ['*.png', [['cache-control', 'max-age=0']]], // HeadersInit also accepts [name, value] pairs
 ]
 
 // 3. Function returning headers per file
@@ -185,18 +197,18 @@ export default defineConfig({
 });
 ```
 
-| Field    | Type      | Default            |
-| -------- | --------- | ------------------ |
+| Field    | Type      | Default                 |
+| -------- | --------- | ----------------------- |
 | `file`   | `string`  | the `pack.outFile` path |
-| `port`   | `number`  | `4312`             |
-| `silent` | `boolean` | —                  |
+| `port`   | `number`  | `4312`                  |
+| `silent` | `boolean` | —                       |
 
 `file` falls back to the resolved `pack.outFile` path when omitted. Set `silent` to
 disable request-log output.
 
 <Callout type="info">
-`serve` has no `hostname` field. To bind a different host, pass `--hostname` (alias
-`-H`) to `wvb serve` on the command line.
+  `serve` has no `hostname` field. To bind a different host, pass `--hostname` (alias `-H`) to `wvb
+  serve` on the command line.
 </Callout>
 
 ## builtin
@@ -219,13 +231,13 @@ export default defineConfig({
 });
 ```
 
-| Field     | Type                                                                              | Default                 |
-| --------- | --------------------------------------------------------------------------------- | ----------------------- |
-| `outDir`  | `string`                                                                          | `.wvb/builtin/bundles`  |
-| `target`  | `BuiltinTarget`                                                                   | `{ type: 'remote' }`    |
-| `include` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)`              | —                       |
-| `exclude` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)`              | —                       |
-| `clean`   | `boolean`                                                                         | `true`                  |
+| Field     | Type                                                                 | Default                |
+| --------- | -------------------------------------------------------------------- | ---------------------- |
+| `outDir`  | `string`                                                             | `.wvb/builtin/bundles` |
+| `target`  | `BuiltinTarget`                                                      | `{ type: 'remote' }`   |
+| `include` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)` | —                      |
+| `exclude` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)` | —                      |
+| `clean`   | `boolean`                                                            | `true`                 |
 
 `include` and `exclude` filter the candidate bundles. Each accepts a glob string, a
 regular expression, an array of either, or a predicate
@@ -262,29 +274,41 @@ For the `remote` target, `endpoint` and `download` are optional. The only concur
 knob is `download.concurrency`; `download.http` accepts the `HttpOptions` type from
 [`@wvb/node`](/docs/references/node).
 
-| `remote` field         | Type                | Default |
-| ---------------------- | ------------------- | ------- |
-| `endpoint`             | `string`            | —       |
-| `download.concurrency` | `number`            | —       |
-| `download.http`        | `HttpOptions`       | —       |
+| `remote` field         | Type          | Default |
+| ---------------------- | ------------- | ------- |
+| `endpoint`             | `string`      | —       |
+| `download.concurrency` | `number`      | —       |
+| `download.http`        | `HttpOptions` | —       |
 
 For the `local` target, `workspaces` is required — it is the only required field
 anywhere in the config. The `integrity` and `signature` options share the same shapes
 as the remote section; see [Remote, integrity & signature](/docs/config/remote).
 
-| `local` field       | Type                                                       | Default |
-| ------------------- | ---------------------------------------------------------- | ------- |
-| `workspaces`        | `string[] \| (() => string[] \| Promise<string[]>)`        | required |
-| `bundleName`        | `BundleNameResolver`                                       | —       |
-| `version`           | `VersionResolver`                                          | —       |
-| `integrity`         | `boolean \| IntegrityMakeConfig`                           | —       |
-| `signature`         | `SignatureSignConfig`                                      | —       |
-| `packBeforeInstall` | `boolean`                                                  | `true`  |
+| `local` field       | Type                                                | Default  |
+| ------------------- | --------------------------------------------------- | -------- |
+| `workspaces`        | `string[] \| (() => string[] \| Promise<string[]>)` | required |
+| `bundleName`        | `BundleNameResolver`                                | —        |
+| `version`           | `VersionResolver`                                   | —        |
+| `integrity`         | `boolean \| IntegrityMakeConfig`                    | —        |
+| `signature`         | `SignatureSignConfig`                               | —        |
+| `packBeforeInstall` | `boolean`                                           | `true`   |
 
 ## Next steps
 
 <Cards>
-  <Card title="Remote, integrity & signature" href="/docs/config/remote" description="Configure the remote endpoint, uploader/deployer, integrity hashing, and signing." />
-  <Card title="CLI commands" href="/docs/guide/cli" description="Run pack, serve, upload, deploy, and builtin from the command line." />
-  <Card title="Node API" href="/docs/references/node" description="Serve and verify bundles at runtime with @wvb/node." />
+  <Card
+    title="Remote, integrity & signature"
+    href="/docs/config/remote"
+    description="Configure the remote endpoint, uploader/deployer, integrity hashing, and signing."
+  />
+  <Card
+    title="CLI commands"
+    href="/docs/guide/cli"
+    description="Run pack, serve, upload, deploy, and builtin from the command line."
+  />
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="Serve and verify bundles at runtime with @wvb/node."
+  />
 </Cards>

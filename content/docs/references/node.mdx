@@ -14,42 +14,30 @@ The addon resolves a prebuilt binary from one of the `@wvb/node-<platform>` opti
 ## Install
 
 <Tabs items={['npm', 'pnpm', 'yarn']}>
-<Tab value="npm">
-```sh
-npm install @wvb/node
-```
-</Tab>
-<Tab value="pnpm">
-```sh
-pnpm add @wvb/node
-```
-</Tab>
-<Tab value="yarn">
-```sh
-yarn add @wvb/node
-```
-</Tab>
+  <Tab value="npm">```sh npm install @wvb/node ```</Tab>
+  <Tab value="pnpm">```sh pnpm add @wvb/node ```</Tab>
+  <Tab value="yarn">```sh yarn add @wvb/node ```</Tab>
 </Tabs>
 
 ## Top-level functions
 
 These functions read and write `.wvb` archives.
 
-| Function | Signature | Returns |
-|---|---|---|
-| `readBundle` | `readBundle(filepath: string): Promise<Bundle>` | Parsed bundle read from disk. |
-| `readBundleFromBuffer` | `readBundleFromBuffer(buffer: Buffer): Bundle` | Parsed bundle from an in-memory buffer. |
-| `writeBundle` | `writeBundle(bundle: Bundle, filepath: string): Promise<bigint>` | Number of bytes written. |
-| `writeBundleIntoBuffer` | `writeBundleIntoBuffer(bundle: Bundle): Buffer` | Serialized `.wvb` bytes. |
+| Function                | Signature                                                        | Returns                                 |
+| ----------------------- | ---------------------------------------------------------------- | --------------------------------------- |
+| `readBundle`            | `readBundle(filepath: string): Promise<Bundle>`                  | Parsed bundle read from disk.           |
+| `readBundleFromBuffer`  | `readBundleFromBuffer(buffer: Buffer): Bundle`                   | Parsed bundle from an in-memory buffer. |
+| `writeBundle`           | `writeBundle(bundle: Bundle, filepath: string): Promise<bigint>` | Number of bytes written.                |
+| `writeBundleIntoBuffer` | `writeBundleIntoBuffer(bundle: Bundle): Buffer`                  | Serialized `.wvb` bytes.                |
 
 ## Classes
 
 ### Bundle and builder
 
-| Class | Constructor | Key methods |
-|---|---|---|
-| `Bundle` | Produced by `readBundle` / `BundleBuilder.build` | `descriptor(): BundleDescriptor`; `getData(path: string): Buffer \| null`; `getDataChecksum(path: string): number \| null` |
-| `BundleBuilder` | `new BundleBuilder(version?: Version)` | `get version: Version`; `entryPaths(): Array<string>`; `insertEntry(path, data: Buffer, contentType?, headers?: Record<string, string>): boolean`; `removeEntry(path): boolean`; `containsEntry(path): boolean`; `build(options?: BuildOptions): Bundle` |
+| Class           | Constructor                                      | Key methods                                                                                                                                                                                                                                              |
+| --------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Bundle`        | Produced by `readBundle` / `BundleBuilder.build` | `descriptor(): BundleDescriptor`; `getData(path: string): Buffer \| null`; `getDataChecksum(path: string): number \| null`                                                                                                                               |
+| `BundleBuilder` | `new BundleBuilder(version?: Version)`           | `get version: Version`; `entryPaths(): Array<string>`; `insertEntry(path, data: Buffer, contentType?, headers?: Record<string, string>): boolean`; `removeEntry(path): boolean`; `containsEntry(path): boolean`; `build(options?: BuildOptions): Bundle` |
 
 `getDataChecksum` returns the internal xxHash-32 checksum of a file's bytes. It is distinct from the bundle's integrity hash, which uses SHA-2.
 
@@ -57,12 +45,12 @@ These functions read and write `.wvb` archives.
 
 A descriptor exposes a bundle's structure without loading every file into memory.
 
-| Class | Key methods |
-|---|---|
+| Class              | Key methods                                                                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `BundleDescriptor` | `header(): Header`; `index(): Index`; `getData(filepath, path): Buffer \| null`; `getDataChecksum(filepath, path): number \| null`; `asyncGetData(...)`; `asyncGetDataChecksum(...)` |
-| `Header` | `version(): Version`; `indexEndOffset(): bigint`; `indexSize(): number` |
-| `Index` | `entries(): Record<string, IndexEntry>`; `getEntry(path): IndexEntry \| null`; `containsPath(path): boolean` |
-| `LoadedDescriptor` | `descriptor(): BundleDescriptor`; `getData(path): Promise<Buffer \| null>` (lazy disk read); `getDataChecksum(path): Promise<number \| null>` |
+| `Header`           | `version(): Version`; `indexEndOffset(): bigint`; `indexSize(): number`                                                                                                              |
+| `Index`            | `entries(): Record<string, IndexEntry>`; `getEntry(path): IndexEntry \| null`; `containsPath(path): boolean`                                                                         |
+| `LoadedDescriptor` | `descriptor(): BundleDescriptor`; `getData(path): Promise<Buffer \| null>` (lazy disk read); `getDataChecksum(path): Promise<number \| null>`                                        |
 
 `LoadedDescriptor` holds a reference-counted handle that is released on garbage collection, so reads stay lazy against the file on disk.
 
@@ -70,33 +58,33 @@ A descriptor exposes a bundle's structure without loading every file into memory
 
 `new BundleSource(config: BundleSourceConfig)` manages bundles across a builtin directory (the bundles shipped with the app) and a remote directory (bundles downloaded over the air). When both contain a bundle, the remote directory takes priority.
 
-| Method | Signature |
-|---|---|
-| `listBundles` | `(): Promise<ListBundleItem[]>` |
-| `loadVersion` | `(bundleName): Promise<BundleSourceVersion \| null>` |
-| `updateRemoteVersion` | `(bundleName, version): Promise<void>` |
-| `resolveFilepath` | `(bundleName): Promise<string>` |
-| `getBuiltinBundleFilepath` | `(bundleName, version): string` |
-| `getRemoteBundleFilepath` | `(bundleName, version): string` |
-| `fetchBundle` | `(bundleName): Promise<Bundle>` |
-| `fetchBuiltinBundle` | `(name, version): Promise<Bundle>` |
-| `fetchRemoteBundle` | `(name, version): Promise<Bundle>` |
-| `fetchDescriptor` | `(bundleName): Promise<BundleDescriptor>` |
-| `loadBuiltinMetadata` | `(name, version): Promise<BundleManifestMetadata \| null>` |
-| `loadRemoteMetadata` | `(name, version): Promise<BundleManifestMetadata \| null>` |
-| `writeRemoteBundle` | `(name, version, bundle, metadata): Promise<void>` |
-| `loadDescriptor` | `(bundleName): Promise<LoadedDescriptor>` (single-flight cached) |
-| `unloadDescriptor` | `(bundleName): boolean` |
-| `removeRemoteBundle` | `(name, version): Promise<boolean>` |
-| `remoteRetainedVersions` | `(name): Promise<string[]>` (current + previous) |
-| `pruneRemoteBundles` | `(name): Promise<string[]>` |
+| Method                     | Signature                                                        |
+| -------------------------- | ---------------------------------------------------------------- |
+| `listBundles`              | `(): Promise<ListBundleItem[]>`                                  |
+| `loadVersion`              | `(bundleName): Promise<BundleSourceVersion \| null>`             |
+| `updateRemoteVersion`      | `(bundleName, version): Promise<void>`                           |
+| `resolveFilepath`          | `(bundleName): Promise<string>`                                  |
+| `getBuiltinBundleFilepath` | `(bundleName, version): string`                                  |
+| `getRemoteBundleFilepath`  | `(bundleName, version): string`                                  |
+| `fetchBundle`              | `(bundleName): Promise<Bundle>`                                  |
+| `fetchBuiltinBundle`       | `(name, version): Promise<Bundle>`                               |
+| `fetchRemoteBundle`        | `(name, version): Promise<Bundle>`                               |
+| `fetchDescriptor`          | `(bundleName): Promise<BundleDescriptor>`                        |
+| `loadBuiltinMetadata`      | `(name, version): Promise<BundleManifestMetadata \| null>`       |
+| `loadRemoteMetadata`       | `(name, version): Promise<BundleManifestMetadata \| null>`       |
+| `writeRemoteBundle`        | `(name, version, bundle, metadata): Promise<void>`               |
+| `loadDescriptor`           | `(bundleName): Promise<LoadedDescriptor>` (single-flight cached) |
+| `unloadDescriptor`         | `(bundleName): boolean`                                          |
+| `removeRemoteBundle`       | `(name, version): Promise<boolean>`                              |
+| `remoteRetainedVersions`   | `(name): Promise<string[]>` (current + previous)                 |
+| `pruneRemoteBundles`       | `(name): Promise<string[]>`                                      |
 
 ### Protocol handlers
 
-| Class | Constructor | Method |
-|---|---|---|
-| `BundleProtocol` | `new BundleProtocol(source: BundleSource)` | `handle(method: HttpMethod, uri: string, headers?): Promise<HttpResponse>` |
-| `LocalProtocol` | `new LocalProtocol(hosts: Record<string, string>)` | `handle(method, uri, headers?): Promise<HttpResponse>` |
+| Class            | Constructor                                        | Method                                                                     |
+| ---------------- | -------------------------------------------------- | -------------------------------------------------------------------------- |
+| `BundleProtocol` | `new BundleProtocol(source: BundleSource)`         | `handle(method: HttpMethod, uri: string, headers?): Promise<HttpResponse>` |
+| `LocalProtocol`  | `new LocalProtocol(hosts: Record<string, string>)` | `handle(method, uri, headers?): Promise<HttpResponse>`                     |
 
 `BundleProtocol` serves `scheme://bundle_name/path` requests from a `BundleSource`. It answers `GET` and `HEAD`, and turns a `Range` request into a `206` response. `LocalProtocol` proxies `app://host/...` requests to a localhost URL (useful in development), caching responses and returning `304` when unchanged. See [Protocol handling](/docs/guide/protocol-handling).
 
@@ -104,12 +92,12 @@ A descriptor exposes a bundle's structure without loading every file into memory
 
 `new Remote(endpoint: string, options?: RemoteOptions)` is the HTTP client for a [bundle remote](/docs/guide/remote-bundles). It speaks the remote's HTTP contract over the configured `endpoint`.
 
-| Method | Signature |
-|---|---|
-| `listBundles` | `(channel?: string): Promise<ListRemoteBundleInfo[]>` |
-| `getInfo` | `(bundleName: string, channel?: string): Promise<RemoteBundleInfo>` |
-| `download` | `(bundleName, channel?): Promise<[RemoteBundleInfo, Bundle, Buffer]>` |
-| `downloadVersion` | `(bundleName, version): Promise<[RemoteBundleInfo, Bundle, Buffer]>` |
+| Method            | Signature                                                             |
+| ----------------- | --------------------------------------------------------------------- |
+| `listBundles`     | `(channel?: string): Promise<ListRemoteBundleInfo[]>`                 |
+| `getInfo`         | `(bundleName: string, channel?: string): Promise<RemoteBundleInfo>`   |
+| `download`        | `(bundleName, channel?): Promise<[RemoteBundleInfo, Bundle, Buffer]>` |
+| `downloadVersion` | `(bundleName, version): Promise<[RemoteBundleInfo, Bundle, Buffer]>`  |
 
 `download` and `downloadVersion` resolve to a tuple of the bundle info, the parsed `Bundle`, and the raw bytes. `RemoteOptions` accepts an `http` config and an `onDownload` progress callback:
 
@@ -127,33 +115,35 @@ type RemoteOnDownloadData = {
 ```
 
 <Callout type="info">
-The default request timeout is 120 seconds. Override it through `HttpOptions.timeout` (milliseconds). `HttpOptions` also exposes `userAgent`, `defaultHeaders`, connection-pool tuning, and transport flags.
+  The default request timeout is 120 seconds. Override it through `HttpOptions.timeout`
+  (milliseconds). `HttpOptions` also exposes `userAgent`, `defaultHeaders`, connection-pool tuning,
+  and transport flags.
 </Callout>
 
 ### Updater
 
 `new Updater(source: BundleSource, remote: Remote, options?: UpdaterOptions)` checks a remote for newer bundles, downloads them, and activates them. Downloads and installs are serialized per bundle.
 
-| Method | Signature | Behavior |
-|---|---|---|
-| `listRemotes` | `(): Promise<ListRemoteBundleInfo[]>` | Lists bundles on the remote. |
-| `getUpdate` | `(bundleName): Promise<BundleUpdateInfo>` | Checks the remote's current version against the local one. |
-| `download` | `(bundleName, version?): Promise<RemoteBundleInfo>` | Stages a version into the remote directory, verifying integrity and signature if configured. Does not activate it. |
-| `install` | `(bundleName, version): Promise<void>` | Activates a staged version: re-verifies, swaps the current version, drops the cached descriptor, and prunes old versions. |
+| Method        | Signature                                           | Behavior                                                                                                                  |
+| ------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `listRemotes` | `(): Promise<ListRemoteBundleInfo[]>`               | Lists bundles on the remote.                                                                                              |
+| `getUpdate`   | `(bundleName): Promise<BundleUpdateInfo>`           | Checks the remote's current version against the local one.                                                                |
+| `download`    | `(bundleName, version?): Promise<RemoteBundleInfo>` | Stages a version into the remote directory, verifying integrity and signature if configured. Does not activate it.        |
+| `install`     | `(bundleName, version): Promise<void>`              | Activates a staged version: re-verifies, swaps the current version, drops the cached descriptor, and prunes old versions. |
 
 `getUpdate` is the check step — there is no method named `check`. A separate `download` then `install` keeps download and activation as distinct, restartable phases.
 
 ## Enums and unions
 
-| Type | Values |
-|---|---|
-| `Version` | `'v1'` |
-| `HttpMethod` | `'get' \| 'head' \| 'options' \| 'post' \| 'put' \| 'patch' \| 'delete' \| 'trace' \| 'connect'` |
-| `BundleSourceKind` | `'builtin' \| 'remote'` |
-| `IntegrityAlgorithm` | `'sha256' \| 'sha384' \| 'sha512'` (SHA-2; `sha384` recommended) |
-| `IntegrityPolicy` | `'strict' \| 'optional' \| 'none'` (`optional` is the default) |
-| `SignatureAlgorithm` | `'ecdsaSecp256R1' \| 'ecdsaSecp384R1' \| 'ed25519' \| 'rsaPkcs1V15' \| 'rsaPss'` |
-| `VerifyingKeyFormat` | `'spkiDer' \| 'spkiPem' \| 'pkcs1Der' \| 'pkcs1Pem' \| 'sec1' \| 'raw'` |
+| Type                 | Values                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| `Version`            | `'v1'`                                                                                           |
+| `HttpMethod`         | `'get' \| 'head' \| 'options' \| 'post' \| 'put' \| 'patch' \| 'delete' \| 'trace' \| 'connect'` |
+| `BundleSourceKind`   | `'builtin' \| 'remote'`                                                                          |
+| `IntegrityAlgorithm` | `'sha256' \| 'sha384' \| 'sha512'` (SHA-2; `sha384` recommended)                                 |
+| `IntegrityPolicy`    | `'strict' \| 'optional' \| 'none'` (`optional` is the default)                                   |
+| `SignatureAlgorithm` | `'ecdsaSecp256R1' \| 'ecdsaSecp384R1' \| 'ed25519' \| 'rsaPkcs1V15' \| 'rsaPss'`                 |
+| `VerifyingKeyFormat` | `'spkiDer' \| 'spkiPem' \| 'pkcs1Der' \| 'pkcs1Pem' \| 'sec1' \| 'raw'`                          |
 
 Key-format constraints: `pkcs1Der`/`pkcs1Pem` apply to RSA only, `sec1` to ECDSA only, and `raw` to Ed25519 only (a 32-byte key). A signature covers the integrity string's bytes, so signature verification requires an integrity value to be present. See [Remote, integrity & signature config](/docs/config/remote).
 
@@ -183,6 +173,53 @@ type SignatureVerifierOptions = {
 ```
 
 `UpdaterOptions` accepts both a declarative `signatureVerifier` (algorithm + key) and a custom callback. The same applies to `integrityChecker`, which can replace the built-in SHA-2 check with your own function.
+
+## Result types
+
+Shapes returned by the methods above.
+
+```ts
+type BundleManifestMetadata = {
+  etag?: string;
+  integrity?: string; // "<alg>:<base64>", e.g. "sha256:n4bQ…"
+  signature?: string; // base64
+  lastModified?: string;
+};
+
+// loadVersion()
+type BundleSourceVersion = {
+  type: BundleSourceKind; // 'builtin' | 'remote'
+  version: string;
+};
+
+// listBundles()
+type ListBundleItem = {
+  type: BundleSourceKind;
+  name: string;
+  version: string;
+  current: boolean;
+  metadata: BundleManifestMetadata;
+};
+
+// updater.getUpdate()
+type BundleUpdateInfo = {
+  name: string;
+  version: string; // the deployed version
+  localVersion?: string; // the installed version, if any
+  isAvailable: boolean; // true when version !== localVersion
+  etag?: string;
+  integrity?: string;
+  signature?: string;
+  lastModified?: string;
+};
+
+// BundleBuilder.build() — seeds are for tests
+type BuildOptions = {
+  header?: { checksumSeed?: number };
+  index?: { checksumSeed?: number };
+  dataChecksumSeed?: number;
+};
+```
 
 ## Examples
 
@@ -255,7 +292,19 @@ if (update.isAvailable) {
 ## Related
 
 <Cards>
-  <Card title="Remote bundles" href="/docs/guide/remote-bundles" description="How updating, integrity, and signature verification fit together." />
-  <Card title="Remote & signature config" href="/docs/config/remote" description="Configure remotes, integrity policy, and signing in wvb.config." />
-  <Card title="Deno API" href="/docs/references/deno" description="The experimental Deno peer of @wvb/node." />
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/remote-bundles"
+    description="How updating, integrity, and signature verification fit together."
+  />
+  <Card
+    title="Remote & signature config"
+    href="/docs/config/remote"
+    description="Configure remotes, integrity policy, and signing in wvb.config."
+  />
+  <Card
+    title="Deno API"
+    href="/docs/references/deno"
+    description="The experimental Deno peer of @wvb/node."
+  />
 </Cards>

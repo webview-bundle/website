@@ -10,24 +10,9 @@ description: Serve your Electron UI from a .wvb bundle through a custom protocol
 `@wvb/electron` requires Electron 15+ and pulls in `@wvb/node` (prebuilt N-API binaries — no Rust toolchain). `@wvb/cli` packs bundles at build time.
 
 <Tabs items={['npm', 'pnpm', 'yarn']}>
-  <Tab value="npm">
-```sh
-npm install @wvb/electron
-npm install -D @wvb/cli
-```
-  </Tab>
-  <Tab value="pnpm">
-```sh
-pnpm add @wvb/electron
-pnpm add -D @wvb/cli
-```
-  </Tab>
-  <Tab value="yarn">
-```sh
-yarn add @wvb/electron
-yarn add -D @wvb/cli
-```
-  </Tab>
+  <Tab value="npm">```sh npm install @wvb/electron npm install -D @wvb/cli ```</Tab>
+  <Tab value="pnpm">```sh pnpm add @wvb/electron pnpm add -D @wvb/cli ```</Tab>
+  <Tab value="yarn">```sh yarn add @wvb/electron yarn add -D @wvb/cli ```</Tab>
 </Tabs>
 
 ## Register the protocol in the main process
@@ -44,9 +29,9 @@ const instance = wvb({
     builtinDir: path.join(process.resourcesPath, 'bundles'),
   },
   protocols: [
-    // Dev: proxy `app-local://simple.wvb/...` to the Vite dev server for hot reload.
+    // Dev: proxy `app-local://app.wvb/...` to the Vite dev server for hot reload.
     localProtocol('app-local', {
-      hosts: { 'simple.wvb': MAIN_WINDOW_VITE_DEV_SERVER_URL },
+      hosts: { 'app.wvb': MAIN_WINDOW_VITE_DEV_SERVER_URL },
     }),
     // Prod: serve `app://<bundle>.wvb/...` straight from the bundle.
     bundleProtocol('app', { onError: e => console.error('[wvb]', e) }),
@@ -64,13 +49,13 @@ async function createWindow() {
       nodeIntegration: false,
     },
   });
-  await win.loadURL('app://simple.wvb');
+  await win.loadURL('app://app.wvb');
 }
 
 app.whenReady().then(createWindow);
 ```
 
-URL shape is `<scheme>://<bundle-name>.wvb/<path>` — `app://simple.wvb/index.html` resolves to bundle `simple`, file `/index.html`.
+URL shape is `<scheme>://<bundle-name>.wvb/<path>` — `app://app.wvb/index.html` resolves to bundle `app`, file `/index.html`.
 
 - **`bundleProtocol(scheme, options?)`** serves files directly from bundles in the source.
 - **`localProtocol(scheme, { hosts })`** proxies matching hosts to a dev server. `hosts` is required — a `Record<string, string>` (or a function returning one) mapping host to URL.
@@ -78,7 +63,7 @@ URL shape is `<scheme>://<bundle-name>.wvb/<path>` — `app://simple.wvb/index.h
 Choose which URL to load based on `app.isPackaged`:
 
 ```ts
-await win.loadURL(app.isPackaged ? 'app://simple.wvb' : 'app-local://simple.wvb');
+await win.loadURL(app.isPackaged ? 'app://app.wvb' : 'app-local://app.wvb');
 ```
 
 `whenProtocolRegistered()` resolves after every protocol is registered and `app.whenReady()` fires — always await it before navigating.
@@ -92,7 +77,9 @@ bundleProtocol('app', {
 ```
 
 <Callout type="info">
-  Each scheme is registered as privileged with these defaults: `standard`, `secure`, `bypassCSP`, `allowServiceWorkers`, `supportFetchAPI`, `corsEnabled`, `codeCache` all `true`; `stream` `false`. See [Protocol handling](/docs/guide/protocol-handling) for the full model.
+  Each scheme is registered as privileged with these defaults: `standard`, `secure`, `bypassCSP`,
+  `allowServiceWorkers`, `supportFetchAPI`, `corsEnabled`, `codeCache` all `true`; `stream` `false`.
+  See [Protocol handling](/docs/guide/protocol-handling) for the full model.
 </Callout>
 
 ## Add the preload script
@@ -120,21 +107,23 @@ const current = await source.loadVersion('app');
 // Is a newer version deployed on the remote?
 const update = await updater.getUpdate('app');
 if (update) {
-  const downloaded = await updater.download('app');     // download + verify + stage
-  await updater.install('app', downloaded.version);     // activate
+  const downloaded = await updater.download('app'); // download + verify + stage
+  await updater.install('app', downloaded.version); // activate
   // Reload the window to pick up the new bundle — your app's responsibility.
 }
 ```
 
 <Callout type="info">
-  `source`, `remote`, and `updater` come from `@wvb/bridge`, which auto-detects the Electron transport installed by `@wvb/electron/preload`. Result shapes for `getUpdate`/`download` are in the [Node API reference](/docs/references/node).
+  `source`, `remote`, and `updater` come from `@wvb/bridge`, which auto-detects the Electron
+  transport installed by `@wvb/electron/preload`. Result shapes for `getUpdate`/`download` are in
+  the [Node API reference](/docs/references/node).
 </Callout>
 
 The same surfaces are reachable in the main process on the instance returned by `wvb(...)`:
 
 ```ts
-instance.source;  // BundleSource
-instance.remote;  // Remote | null   (null unless `updater` is configured)
+instance.source; // BundleSource
+instance.remote; // Remote | null   (null unless `updater` is configured)
 instance.updater; // Updater | null  (null unless `updater` is configured)
 await instance.whenProtocolRegistered();
 ```
@@ -156,7 +145,7 @@ wvb({
 });
 ```
 
-Pin a signing key to verify *who* published an update:
+Pin a signing key to verify _who_ published an update:
 
 ```ts
 updater: {
@@ -174,10 +163,10 @@ updater: {
 
 `source` accepts `builtinDir` (shipped, read-only) and `remoteDir` (downloaded updates), both with Electron-aware defaults:
 
-| Option | Default |
-| --- | --- |
+| Option       | Default                                                                     |
+| ------------ | --------------------------------------------------------------------------- |
 | `builtinDir` | `process.resourcesPath/bundles` when packaged, else `process.cwd()/bundles` |
-| `remoteDir` | `app.getPath('userData')/bundles` |
+| `remoteDir`  | `app.getPath('userData')/bundles`                                           |
 
 Downloaded versions take priority over builtin ones, so an installed update is served automatically after `updater.download(...)` and `updater.install(...)`. See [Bundle sources](/docs/guide/bundle-sources) for resolution details.
 
@@ -206,7 +195,9 @@ const config: ForgeConfig = {
 ```
 
 <Callout type="warn">
-  The Forge Vite plugin can exclude `node_modules` from the package, dropping the native module. If you hit a missing `@wvb/node` binary at runtime, override `packagerConfig.ignore` to keep `node_modules`.
+  The Forge Vite plugin can exclude `node_modules` from the package, dropping the native module. If
+  you hit a missing `@wvb/node` binary at runtime, override `packagerConfig.ignore` to keep
+  `node_modules`.
 </Callout>
 
 ## Forge and electron-builder integrations
@@ -219,9 +210,7 @@ Two helper packages install builtin bundles at package time, so you do not stage
 import { WebviewBundlePlugin } from '@wvb/electron-forge';
 
 export default {
-  plugins: [
-    new WebviewBundlePlugin({ bundlesDir: 'bundles', channel: 'beta' }),
-  ],
+  plugins: [new WebviewBundlePlugin({ bundlesDir: 'bundles', channel: 'beta' })],
 };
 ```
 
@@ -239,20 +228,22 @@ export default withWebviewBundle({
 
 Or compose the raw `webviewBundleAfterPack(...)` hook (alias `wvbAfterPack`) yourself. Both plugins share these options:
 
-| Option | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `bundlesDir` | `string` | `'bundles'` | dest dir under packaged `Resources` |
-| `configFile` | `string \| boolean` | `true` | `true` auto-discovers + merges; a path loads explicitly; `false` is inline only |
-| `channel` | `string` | — | release channel to install from |
-| `throwWhenBuiltinIsEmpty` | `boolean` | `true` | throw if zero bundles installed |
+| Option                    | Type                | Default     | Meaning                                                                         |
+| ------------------------- | ------------------- | ----------- | ------------------------------------------------------------------------------- |
+| `bundlesDir`              | `string`            | `'bundles'` | dest dir under packaged `Resources`                                             |
+| `configFile`              | `string \| boolean` | `true`      | `true` auto-discovers + merges; a path loads explicitly; `false` is inline only |
+| `channel`                 | `string`            | —           | release channel to install from                                                 |
+| `throwWhenBuiltinIsEmpty` | `boolean`           | `true`      | throw if zero bundles installed                                                 |
 
 <Callout type="info">
-  Both packages live in the repository but are not yet published to npm. Install from source or pin the workspace versions for now. The manual `extraResource` + `AutoUnpackNativesPlugin` setup above works without them.
+  Both packages live in the repository but are not yet published to npm. Install from source or pin
+  the workspace versions for now. The manual `extraResource` + `AutoUnpackNativesPlugin` setup above
+  works without them.
 </Callout>
 
 ## Troubleshooting
 
-- **Blank window or `ERR_FAILED`** — confirm `wvb(...)` runs and `whenProtocolRegistered()` resolves before `loadURL`, and the URL's bundle name matches the packed file (`app://simple.wvb` → bundle `simple`).
+- **Blank window or `ERR_FAILED`** — confirm `wvb(...)` runs and `whenProtocolRegistered()` resolves before `loadURL`, and the URL's bundle name matches the packed file (`app://app.wvb` → bundle `app`).
 - **Renderer cannot reach the bridge API** — the preload is not loaded. Check `webPreferences.preload` and that it calls `preload()`.
 - **`remote_not_initialized` / `updater_not_initialized`** — a `remote.*` / `updater.*` call was made but no `updater` block was passed to `wvb(...)`. Add the [over-the-air updates](#configure-over-the-air-updates) config.
 - **Works in dev, fails when packaged** — the `bundles` resource or the native `@wvb/node` binary was not included. Verify `extraResource` and `AutoUnpackNativesPlugin`.
@@ -260,8 +251,24 @@ Or compose the raw `webviewBundleAfterPack(...)` hook (alias `wvbAfterPack`) you
 ## Next steps
 
 <Cards>
-  <Card title="Remote bundles" href="/docs/guide/remote-bundles" description="Integrity, signatures, and updating bundles over the air." />
-  <Card title="Building a remote" href="/docs/guide/remote" description="Stand up an update server and test it locally." />
-  <Card title="Bundle sources" href="/docs/guide/bundle-sources" description="How builtin and remote bundles resolve at runtime." />
-  <Card title="Node API" href="/docs/references/node" description="The @wvb/node surface behind @wvb/electron." />
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/remote-bundles"
+    description="Integrity, signatures, and updating bundles over the air."
+  />
+  <Card
+    title="Building a remote"
+    href="/docs/guide/remote"
+    description="Stand up an update server and test it locally."
+  />
+  <Card
+    title="Bundle sources"
+    href="/docs/guide/bundle-sources"
+    description="How builtin and remote bundles resolve at runtime."
+  />
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="The @wvb/node surface behind @wvb/electron."
+  />
 </Cards>

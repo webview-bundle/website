@@ -15,18 +15,19 @@ install the native FFI from source (see below). Releases are tagged `ffi/<versio
 </Callout>
 
 <Callout type="warn">
-The xcframework committed to the package today is **simulator-only** — it ships the
-`ios-arm64_x86_64-simulator` slice with no device slice. On-device builds will not link until a
-device-bearing `WebViewBundleFFI.xcframework` is installed. Develop against the iOS Simulator for now.
+  The xcframework committed to the package today is **simulator-only** — it ships the
+  `ios-arm64_x86_64-simulator` slice with no device slice. On-device builds will not link until a
+  device-bearing `WebViewBundleFFI.xcframework` is installed. Develop against the iOS Simulator for
+  now.
 </Callout>
 
 ## Requirements
 
-| Requirement | Value |
-|---|---|
-| Minimum OS | iOS 16, macOS 12 (`platforms: [.macOS(.v12), .iOS(.v16)]`) |
-| Swift tools | 6.1, language mode 6 |
-| SwiftPM product | `WebViewBundle` |
+| Requirement     | Value                                                      |
+| --------------- | ---------------------------------------------------------- |
+| Minimum OS      | iOS 16, macOS 12 (`platforms: [.macOS(.v12), .iOS(.v16)]`) |
+| Swift tools     | 6.1, language mode 6                                       |
+| SwiftPM product | `WebViewBundle`                                            |
 
 The package binds the Rust core through a UniFFI-generated module named `WebViewBundleLibrary`, both
 exposed under the `WebViewBundle` module. See [Platform integration](/docs/guide/platform-integration)
@@ -160,9 +161,9 @@ iframe messages are dropped) and exposes the source, remote, and updater command
 
 ```ts title="web app"
 window.webkit.messageHandlers.wvbIos.postMessage({
-  name: "updaterGetUpdate",
-  params: { bundleName: "app" },
-})
+  name: 'updaterGetUpdate',
+  params: { bundleName: 'app' },
+});
 ```
 
 ## Sources
@@ -189,8 +190,8 @@ WebViewBundleConfig(
 ```
 
 <Callout type="warn">
-Inside the `WebViewBundle` module, unqualified `Bundle` resolves to the FFI bundle class, not
-`Foundation.Bundle`. Write `Foundation.Bundle` explicitly when you mean the app bundle.
+  Inside the `WebViewBundle` module, unqualified `Bundle` resolves to the FFI bundle class, not
+  `Foundation.Bundle`. Write `Foundation.Bundle` explicitly when you mean the app bundle.
 </Callout>
 
 ## OTA updates
@@ -213,11 +214,11 @@ let updaterConfig = WebViewBundleUpdaterConfig(
 `integrityPolicy` is `.strict`, `.optional`, or `.none`. Integrity values are SHA-2 digests serialized
 as `sha256:<base64>`. The `signatureVerifier` proves who published a bundle:
 
-| Field | Values |
-|---|---|
-| `algorithm` | `.ecdsaSecp256r1`, `.ecdsaSecp384r1`, `.ed25519`, `.rsaPkcs1V15`, `.rsaPss` |
-| `key.format` | `.spkiDer`, `.spkiPem`, `.pkcs1Der`, `.pkcs1Pem`, `.sec1`, `.raw` |
-| `key.pem` / `key.der` | `pem` for text keys, `der` for binary keys |
+| Field                 | Values                                                                      |
+| --------------------- | --------------------------------------------------------------------------- |
+| `algorithm`           | `.ecdsaSecp256r1`, `.ecdsaSecp384r1`, `.ed25519`, `.rsaPkcs1V15`, `.rsaPss` |
+| `key.format`          | `.spkiDer`, `.spkiPem`, `.pkcs1Der`, `.pkcs1Pem`, `.sec1`, `.raw`           |
+| `key.pem` / `key.der` | `pem` for text keys, `der` for binary keys                                  |
 
 Drive the update cycle through the updater:
 
@@ -248,7 +249,19 @@ For the remote HTTP contract, integrity, and signing details, see
 ## Next steps
 
 <Cards>
-  <Card title="Remote bundles" href="/docs/guide/remote-bundles" description="How updating, integrity, and signatures work across platforms." />
-  <Card title="Building a remote" href="/docs/guide/remote" description="The remote HTTP contract, local testing, and choosing a provider." />
-  <Card title="References" href="/docs/references" description="API references for the core and language bindings." />
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/remote-bundles"
+    description="How updating, integrity, and signatures work across platforms."
+  />
+  <Card
+    title="Building a remote"
+    href="/docs/guide/remote"
+    description="The remote HTTP contract, local testing, and choosing a provider."
+  />
+  <Card
+    title="References"
+    href="/docs/references"
+    description="API references for the core and language bindings."
+  />
 </Cards>

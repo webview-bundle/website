@@ -36,7 +36,9 @@ const res = await protocol.handle('get', 'bundle://app/index.html');
 First paint never waits on the network. The app paints from the local bundle on the subway, on a plane, or mid-session when the connection drops; the network becomes an optimization.
 
 <Callout type="info">
-The bundle protocol supports `GET` and `HEAD`, replays the headers stored for each file, and answers `Range` requests for media with `206`. See [Protocol handling](/docs/guide/protocol-handling) for the full request mapping.
+  The bundle protocol supports `GET` and `HEAD`, replays the headers stored for each file, and
+  answers `Range` requests for media with `206`. See [Protocol
+  handling](/docs/guide/protocol-handling) for the full request mapping.
 </Callout>
 
 ## Over-the-air updates
@@ -48,7 +50,7 @@ Two sources back the update model. The `builtin` source is the read-only bundle 
 ```ts title="Two sources: remote wins, builtin is the floor"
 new BundleSource({
   builtinDir: '/path/to/builtin', // shipped in the app, read-only
-  remoteDir: '/path/to/remote',   // OTA downloads, takes priority
+  remoteDir: '/path/to/remote', // OTA downloads, takes priority
 });
 ```
 
@@ -61,7 +63,7 @@ const updater = new Updater(source, remote);
 
 const info = await updater.getUpdate('app');
 if (info.isAvailable) {
-  await updater.download('app');             // stage + verify
+  await updater.download('app'); // stage + verify
   await updater.install('app', info.version); // activate
 }
 ```
@@ -101,7 +103,10 @@ const updater = new Updater(source, remote, {
 Verification supports ECDSA (`ecdsaSecp256R1`, `ecdsaSecp384R1`), `ed25519`, and RSA (`rsaPkcs1V15`, `rsaPss`).
 
 <Callout type="info">
-Integrity is SHA-2, not SHA-3. The signature covers the integrity string, not the raw archive bytes, and requires an integrity value to be present. See [Remote bundles](/docs/guide/remote-bundles) for the verification flow and [Remote, integrity & signature config](/docs/config/remote) for the schema.
+  Integrity is SHA-2, not SHA-3. The signature covers the integrity string, not the raw archive
+  bytes, and requires an integrity value to be present. See [Remote
+  bundles](/docs/guide/remote-bundles) for the verification flow and [Remote, integrity & signature
+  config](/docs/config/remote) for the schema.
 </Callout>
 
 ## For web developers
@@ -155,7 +160,10 @@ Two common alternatives solve part of the same problem:
 The honest tradeoff: you adopt a bundle format and a pack step, and you run the remote. In return you get offline-first delivery, OTA without store review, and one workflow that does not change as you add platforms.
 
 <Callout type="info">
-Android and iOS are implemented and shipping but pre-release: install from source for now, since the mobile artifacts are not yet published to Maven Central or tagged for Swift Package Manager. The iOS minimum is iOS 16. Deno Desktop is experimental. See [Platform support](/docs/guide/platform-support) for current status.
+  Android and iOS are implemented and shipping but pre-release: install from source for now, since
+  the mobile artifacts are not yet published to Maven Central or tagged for Swift Package Manager.
+  The iOS minimum is iOS 16. Deno Desktop is experimental. See [Platform
+  support](/docs/guide/platform-support) for current status.
 </Callout>
 
 ## Where to go next

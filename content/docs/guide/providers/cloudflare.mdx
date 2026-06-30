@@ -7,11 +7,11 @@ Run a Webview Bundle remote entirely on Cloudflare's edge: bundles live in **R2*
 
 Three packages cover the workflow:
 
-| Package | Role | Runs |
-|---|---|---|
-| `@wvb/remote-cloudflare` | Uploader + deployer for `wvb.config` | Your machine / CI |
-| `@wvb/remote-cloudflare-provider` | The Worker that serves bundles | Cloudflare Workers |
-| `@wvb/remote-cloudflare-provider-pulumi` | Pulumi component that provisions the infrastructure | `pulumi up` |
+| Package                                  | Role                                                | Runs               |
+| ---------------------------------------- | --------------------------------------------------- | ------------------ |
+| `@wvb/remote-cloudflare`                 | Uploader + deployer for `wvb.config`                | Your machine / CI  |
+| `@wvb/remote-cloudflare-provider`        | The Worker that serves bundles                      | Cloudflare Workers |
+| `@wvb/remote-cloudflare-provider-pulumi` | Pulumi component that provisions the infrastructure | `pulumi up`        |
 
 All three are `0.1.0` and pre-release. Pin the version and expect breaking changes.
 
@@ -20,9 +20,9 @@ npm i -D @wvb/remote-cloudflare
 ```
 
 <Callout type="info">
-New to remotes? Start with [Building a remote](/docs/guide/remote) for the contract and the local
-testing loop, and see [Remote, integrity & signature config](/docs/config/remote) for the full
-`wvb.config` reference.
+  New to remotes? Start with [Building a remote](/docs/guide/remote) for the contract and the local
+  testing loop, and see [Remote, integrity & signature config](/docs/config/remote) for the full
+  `wvb.config` reference.
 </Callout>
 
 ## How the pieces fit
@@ -34,9 +34,9 @@ Each role maps onto a Cloudflare service:
 - A **Cloudflare Worker** running `@wvb/remote-cloudflare-provider` reads KV to resolve the version, then streams the matching object from R2.
 
 <Callout type="warn">
-Cloudflare has no built-in signing — no KMS equivalent, and `@wvb/remote-cloudflare` exposes no
-signer. If you need [signatures](/docs/config/remote), produce them elsewhere and pass the resulting
-`signature` string through your `wvb.config`.
+  Cloudflare has no built-in signing — no KMS equivalent, and `@wvb/remote-cloudflare` exposes no
+  signer. If you need [signatures](/docs/config/remote), produce them elsewhere and pass the
+  resulting `signature` string through your `wvb.config`.
 </Callout>
 
 ## Configure the uploader and deployer
@@ -60,13 +60,13 @@ export default defineConfig({
 });
 ```
 
-| Option | Type | Notes |
-|---|---|---|
-| `bucket` | `string` | R2 bucket that stores bundle objects. |
-| `accountId` | `string` | Cloudflare account ID; sets the R2 endpoint and the KV target. |
-| `kvNamespaceId` | `string` | Workers KV namespace that holds deployment pointers. |
-| `uploader` | object | Optional overrides for the underlying S3 uploader (`key`, `contentType`, `metadata`, and more). |
-| `deployer` | object | Optional overrides for the KV deployer (`key`, `expiration`, `expirationTtl`, `metadata`). |
+| Option          | Type     | Notes                                                                                           |
+| --------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `bucket`        | `string` | R2 bucket that stores bundle objects.                                                           |
+| `accountId`     | `string` | Cloudflare account ID; sets the R2 endpoint and the KV target.                                  |
+| `kvNamespaceId` | `string` | Workers KV namespace that holds deployment pointers.                                            |
+| `uploader`      | object   | Optional overrides for the underlying S3 uploader (`key`, `contentType`, `metadata`, and more). |
+| `deployer`      | object   | Optional overrides for the KV deployer (`key`, `expiration`, `expirationTtl`, `metadata`).      |
 
 Defaults: the uploader sets `region: 'auto'` and endpoint `https://<accountId>.r2.cloudflarestorage.com`, then stores the object at key `bundles/<name>/<name>_<version>.wvb` with `webview-bundle-*` custom metadata. The deployer writes the version into KV under key `<name>` (or `<name>/<channel>` for a channel deploy).
 
@@ -208,8 +208,24 @@ Feed the exported `bucketName` and `kvNamespaceId` into `cloudflareRemote()` abo
 ## Next steps
 
 <Cards>
-  <Card title="Building a remote" href="/docs/guide/remote" description="The remote contract, choosing a provider, and testing the loop locally." />
-  <Card title="Remote & signature config" href="/docs/config/remote" description="The full remote block in wvb.config, including integrity and signatures." />
-  <Card title="AWS provider" href="/docs/guide/providers/aws" description="The S3, CloudFront, and KMS-backed provider, with built-in signing." />
-  <Card title="CLI reference" href="/docs/guide/cli" description="Every flag for wvb pack, upload, and deploy." />
+  <Card
+    title="Building a remote"
+    href="/docs/guide/remote"
+    description="The remote contract, choosing a provider, and testing the loop locally."
+  />
+  <Card
+    title="Remote & signature config"
+    href="/docs/config/remote"
+    description="The full remote block in wvb.config, including integrity and signatures."
+  />
+  <Card
+    title="AWS provider"
+    href="/docs/guide/providers/aws"
+    description="The S3, CloudFront, and KMS-backed provider, with built-in signing."
+  />
+  <Card
+    title="CLI reference"
+    href="/docs/guide/cli"
+    description="Every flag for wvb pack, upload, and deploy."
+  />
 </Cards>

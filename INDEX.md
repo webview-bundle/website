@@ -46,6 +46,6 @@
 - Node API
 - Deno API
 
-## Config
+# Config
 
 - Config file types

@@ -9,14 +9,14 @@ This page is the support matrix: the package or crate per platform, its minimum 
 
 ## Support matrix
 
-| Platform | Webview host | Package / crate | Min version | Status |
-| --- | --- | --- | --- | --- |
-| [Electron](/docs/guide/platforms/electron) | Chromium | `@wvb/electron` 0.1.0 (npm) | `electron >= 15` | Stable (pre-1.0) |
-| [Tauri desktop](/docs/guide/platforms/tauri) | System WebView | `wvb-tauri` 0.1.0 (crate) | Tauri v2 | Stable (pre-1.0) |
-| Tauri mobile | System WebView | `wvb-tauri` 0.1.0 (crate) | See [Android](/docs/guide/platforms/android) / [iOS](/docs/guide/platforms/ios) | Pre-release |
-| [Android](/docs/guide/platforms/android) | System WebView | `webview-bundle-android` (Kotlin) | minSdk 24 / Android 7.0 | Pre-release — not yet on Maven Central |
-| [iOS](/docs/guide/platforms/ios) | WKWebView | `webview-bundle-ios` (Swift) | iOS 16 / macOS 12 | Pre-release — no SPM tag yet |
-| [Deno Desktop](/docs/guide/platforms/deno) | Deno webview | `@wvb/deno-desktop` 0.0.0 (JSR) | — | Experimental |
+| Platform                                     | Webview host   | Package / crate                   | Min version                                                                     | Status                                 |
+| -------------------------------------------- | -------------- | --------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------- |
+| [Electron](/docs/guide/platforms/electron)   | Chromium       | `@wvb/electron` 0.1.0 (npm)       | `electron >= 15`                                                                | Stable (pre-1.0)                       |
+| [Tauri desktop](/docs/guide/platforms/tauri) | System WebView | `wvb-tauri` 0.1.0 (crate)         | Tauri v2                                                                        | Stable (pre-1.0)                       |
+| Tauri mobile                                 | System WebView | `wvb-tauri` 0.1.0 (crate)         | See [Android](/docs/guide/platforms/android) / [iOS](/docs/guide/platforms/ios) | Pre-release                            |
+| [Android](/docs/guide/platforms/android)     | System WebView | `webview-bundle-android` (Kotlin) | minSdk 24 / Android 7.0                                                         | Pre-release — not yet on Maven Central |
+| [iOS](/docs/guide/platforms/ios)             | WKWebView      | `webview-bundle-ios` (Swift)      | iOS 16 / macOS 12                                                               | Pre-release — no SPM tag yet           |
+| [Deno Desktop](/docs/guide/platforms/deno)   | Deno webview   | `@wvb/deno-desktop` 0.0.0 (JSR)   | —                                                                               | Experimental                           |
 
 All integrations are pre-1.0, so APIs may change between minor versions.
 
@@ -39,7 +39,7 @@ import { app, BrowserWindow } from 'electron';
 import { bundleProtocol, wvb } from '@wvb/electron';
 
 const instance = wvb({
-  protocols: [bundleProtocol('app', { onError: (e) => console.error('[wvb]', e) })],
+  protocols: [bundleProtocol('app', { onError: e => console.error('[wvb]', e) })],
 });
 
 app.whenReady().then(async () => {
@@ -134,8 +134,8 @@ See the [iOS guide](/docs/guide/platforms/ios).
 Deno Desktop is the newest integration, on JSR as `@wvb/deno-desktop` (version 0.0.0). It builds a bundle source and exposes a `Deno.serve`-compatible handler, with one protocol per window.
 
 <Callout type="info">
-  Deno Desktop is **experimental** and offered as a preview. Treat it as not yet production-ready, and
-  expect breaking changes. See the [Deno Desktop guide](/docs/guide/platforms/deno) and the
+  Deno Desktop is **experimental** and offered as a preview. Treat it as not yet production-ready,
+  and expect breaking changes. See the [Deno Desktop guide](/docs/guide/platforms/deno) and the
   [Deno API reference](/docs/references/deno).
 </Callout>
 

@@ -38,10 +38,10 @@ The updater ties a [bundle source](/docs/guide/bundle-sources) to a remote endpo
 This split lets you download in the background and install on the next app launch.
 
 <Callout type="info">
-  The `builtin` source — the bundle shipped inside the app — always remains as a fallback. The `remote`
-  source takes priority once a version is installed, so a downloaded update wins over the builtin
-  bundle; if no remote version exists, the app falls back to builtin. See
-  [Bundle sources](/docs/guide/bundle-sources).
+  The `builtin` source — the bundle shipped inside the app — always remains as a fallback. The
+  `remote` source takes priority once a version is installed, so a downloaded update wins over the
+  builtin bundle; if no remote version exists, the app falls back to builtin. See [Bundle
+  sources](/docs/guide/bundle-sources).
 </Callout>
 
 The Rust core flow; platform wrappers mirror it one-to-one:
@@ -104,13 +104,13 @@ A Webview Bundle server implements four endpoints. The provider packages (local,
 
 `GET /bundles`, `HEAD /bundles/{name}`, and `GET /bundles/{name}` accept an optional `?channel=` query. `GET /bundles/{name}/{version}` does not. Metadata travels in response headers:
 
-| Header                       | Required | Meaning                  |
-| ---------------------------- | -------- | ------------------------ |
-| `Webview-Bundle-Name`        | yes      | bundle name              |
-| `Webview-Bundle-Version`     | yes      | version                  |
-| `Webview-Bundle-Integrity`   | no       | integrity string         |
-| `Webview-Bundle-Signature`   | no       | signature                |
-| `ETag`, `Last-Modified`      | no       | standard validators      |
+| Header                     | Required | Meaning             |
+| -------------------------- | -------- | ------------------- |
+| `Webview-Bundle-Name`      | yes      | bundle name         |
+| `Webview-Bundle-Version`   | yes      | version             |
+| `Webview-Bundle-Integrity` | no       | integrity string    |
+| `Webview-Bundle-Signature` | no       | signature           |
+| `ETag`, `Last-Modified`    | no       | standard validators |
 
 A download response looks like:
 
@@ -145,11 +145,11 @@ sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
 
 The publisher attaches this string at upload time ([Remote config](/docs/config/remote)), the server returns it in `Webview-Bundle-Integrity`, and the updater enforces it on download per an **integrity policy**:
 
-| Policy     | Behavior                                                         |
-| ---------- | --------------------------------------------------------------- |
-| `Strict`   | integrity value must be present and must match, or reject       |
-| `Optional` | **default** — verify if present; allow when none is attached    |
-| `None`     | skip integrity checking entirely                                |
+| Policy     | Behavior                                                     |
+| ---------- | ------------------------------------------------------------ |
+| `Strict`   | integrity value must be present and must match, or reject    |
+| `Optional` | **default** — verify if present; allow when none is attached |
+| `None`     | skip integrity checking entirely                             |
 
 ```rust
 use wvb::integrity::IntegrityPolicy;
@@ -161,7 +161,7 @@ let config = UpdaterConfig::new()
 
 ## Signatures
 
-Where integrity proves the bytes are intact, a signature proves *who* published them. The signature covers the **integrity string bytes** (`"<alg>:<base64>"`), not the raw bundle — so signature verification requires an integrity value to be present. Supply a public key, and the updater rejects any download whose signature does not verify.
+Where integrity proves the bytes are intact, a signature proves _who_ published them. The signature covers the **integrity string bytes** (`"<alg>:<base64>"`), not the raw bundle — so signature verification requires an integrity value to be present. Supply a public key, and the updater rejects any download whose signature does not verify.
 
 Verify algorithms:
 
@@ -171,13 +171,13 @@ Verify algorithms:
 
 Public-key formats:
 
-| Format            | Loader                  | Applies to    |
-| ----------------- | ----------------------- | ------------- |
-| SPKI PEM          | `from_public_key_pem`   | all           |
-| SPKI DER          | `from_public_key_der`   | all           |
-| PKCS#1 PEM/DER    | `from_pkcs1_pem` / `_der` | RSA only    |
-| SEC1 point bytes  | `from_sec1_bytes`       | ECDSA only    |
-| Raw 32-byte key   | `from_public_key_bytes` | Ed25519 only  |
+| Format           | Loader                    | Applies to   |
+| ---------------- | ------------------------- | ------------ |
+| SPKI PEM         | `from_public_key_pem`     | all          |
+| SPKI DER         | `from_public_key_der`     | all          |
+| PKCS#1 PEM/DER   | `from_pkcs1_pem` / `_der` | RSA only     |
+| SEC1 point bytes | `from_sec1_bytes`         | ECDSA only   |
+| Raw 32-byte key  | `from_public_key_bytes`   | Ed25519 only |
 
 An updater requiring both a matching integrity hash and a valid Ed25519 signature:
 
@@ -231,10 +231,30 @@ A channel is a free-form string; there is no hardcoded default name — when no 
 ## Where to go next
 
 <Cards>
-  <Card title="Building a remote" href="/docs/guide/remote" description="Stand up a server, choose a provider, and run the whole update loop locally." />
-  <Card title="Remote config" href="/docs/config/remote" description="Publish-side integrity and signature options for wvb.config." />
-  <Card title="CLI reference" href="/docs/guide/cli" description="pack, upload, deploy, and download commands and their flags." />
-  <Card title="Bundle sources" href="/docs/guide/bundle-sources" description="How builtin and remote sources, manifests, and channels fit together." />
+  <Card
+    title="Building a remote"
+    href="/docs/guide/remote"
+    description="Stand up a server, choose a provider, and run the whole update loop locally."
+  />
+  <Card
+    title="Remote config"
+    href="/docs/config/remote"
+    description="Publish-side integrity and signature options for wvb.config."
+  />
+  <Card
+    title="CLI reference"
+    href="/docs/guide/cli"
+    description="pack, upload, deploy, and download commands and their flags."
+  />
+  <Card
+    title="Bundle sources"
+    href="/docs/guide/bundle-sources"
+    description="How builtin and remote sources, manifests, and channels fit together."
+  />
   <Card title="Node API" href="/docs/references/node" description="The @wvb/node updater API." />
-  <Card title="Deno API" href="/docs/references/deno" description="The @wvb/deno updater API (experimental)." />
+  <Card
+    title="Deno API"
+    href="/docs/references/deno"
+    description="The @wvb/deno updater API (experimental)."
+  />
 </Cards>

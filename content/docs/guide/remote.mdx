@@ -11,18 +11,18 @@ Webview Bundle ships remotes for three backends — `local`, `aws`, and `cloudfl
 
 Every backend has up to three packages:
 
-| Role | Package | What it does |
-| --- | --- | --- |
-| Config client | `@wvb/remote-<backend>` | A `wvb.config` plug-in that produces `{ uploader, deployer }`. Runs on the publisher's machine or CI to push and deploy bundles. |
-| HTTP server | `@wvb/remote-<backend>-provider` | The server that implements the HTTP contract and serves bundles to clients. |
-| Pulumi IaC | `@wvb/remote-<backend>-provider-pulumi` | Infrastructure-as-code that provisions the cloud resources and deploys the provider. |
+| Role          | Package                                 | What it does                                                                                                                     |
+| ------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Config client | `@wvb/remote-<backend>`                 | A `wvb.config` plug-in that produces `{ uploader, deployer }`. Runs on the publisher's machine or CI to push and deploy bundles. |
+| HTTP server   | `@wvb/remote-<backend>-provider`        | The server that implements the HTTP contract and serves bundles to clients.                                                      |
+| Pulumi IaC    | `@wvb/remote-<backend>-provider-pulumi` | Infrastructure-as-code that provisions the cloud resources and deploys the provider.                                             |
 
 Concretely, per backend:
 
-| Backend | Config client | HTTP server | Pulumi IaC |
-| --- | --- | --- | --- |
-| `local` | `@wvb/remote-local` | `@wvb/remote-local-provider` | — |
-| `aws` | `@wvb/remote-aws` | `@wvb/remote-aws-provider` | `@wvb/remote-aws-provider-pulumi` |
+| Backend      | Config client            | HTTP server                       | Pulumi IaC                               |
+| ------------ | ------------------------ | --------------------------------- | ---------------------------------------- |
+| `local`      | `@wvb/remote-local`      | `@wvb/remote-local-provider`      | —                                        |
+| `aws`        | `@wvb/remote-aws`        | `@wvb/remote-aws-provider`        | `@wvb/remote-aws-provider-pulumi`        |
 | `cloudflare` | `@wvb/remote-cloudflare` | `@wvb/remote-cloudflare-provider` | `@wvb/remote-cloudflare-provider-pulumi` |
 
 The config client is what you wire into the `remote` block of `wvb.config.ts`. The `uploader` writes a packed `.wvb` to storage; the `deployer` marks a version as the one clients should receive. Spread its result into `remote`:
@@ -43,19 +43,21 @@ export default defineConfig({
 Publish-side integrity and signature options live alongside `uploader`/`deployer` — see [Remote, integrity & signature config](/docs/config/remote).
 
 <Callout type="info">
-  `@wvb/remote-local` and `@wvb/remote-local-provider` are pre-release (`0.0.0`); the AWS and Cloudflare packages are at `0.1.0`. Treat all of them as not-yet-published and install from source for now.
+  `@wvb/remote-local` and `@wvb/remote-local-provider` are pre-release (`0.0.0`); the AWS and
+  Cloudflare packages are at `0.1.0`. Treat all of them as not-yet-published and install from source
+  for now.
 </Callout>
 
 ## The HTTP contract
 
 Every provider implements the same four endpoints, so the client never cares which backend is behind it.
 
-| Method and path | Purpose | Notable |
-| --- | --- | --- |
-| `GET /bundles` | List deployed bundles | `200` JSON `[{ "name", "version" }]`; optional `?channel=` |
-| `HEAD /bundles/{name}` | Current version's metadata (headers only) | `404` if undeployed |
-| `GET /bundles/{name}` | Download the current version | `404` if undeployed |
-| `GET /bundles/{name}/{version}` | Download a specific version | `403` unless other-versions allowed |
+| Method and path                 | Purpose                                   | Notable                                                    |
+| ------------------------------- | ----------------------------------------- | ---------------------------------------------------------- |
+| `GET /bundles`                  | List deployed bundles                     | `200` JSON `[{ "name", "version" }]`; optional `?channel=` |
+| `HEAD /bundles/{name}`          | Current version's metadata (headers only) | `404` if undeployed                                        |
+| `GET /bundles/{name}`           | Download the current version              | `404` if undeployed                                        |
+| `GET /bundles/{name}/{version}` | Download a specific version               | `403` unless other-versions allowed                        |
 
 Required response headers are `Webview-Bundle-Name` and `Webview-Bundle-Version`. Optional: `Webview-Bundle-Integrity`, `Webview-Bundle-Signature`, `ETag`, `Last-Modified`. Downloads use `Content-Type: application/webview-bundle`. The full status-code and channel-query spec is in [Remote bundles](/docs/guide/remote-bundles).
 
@@ -66,11 +68,9 @@ import { Hono } from 'hono';
 
 const app = new Hono();
 
-app.get('/bundles', (c) =>
-  c.json([{ name: 'app', version: '1.1.0' }]),
-);
+app.get('/bundles', c => c.json([{ name: 'app', version: '1.1.0' }]));
 
-app.get('/bundles/:name', (c) => {
+app.get('/bundles/:name', c => {
   const body = readCurrentBundle(c.req.param('name')); // your storage
   return new Response(body, {
     headers: {
@@ -81,8 +81,9 @@ app.get('/bundles/:name', (c) => {
   });
 });
 
-app.get('/bundles/:name/:version', (c) =>
-  c.body(null, 403), // forbid specific versions by default
+app.get(
+  '/bundles/:name/:version',
+  c => c.body(null, 403) // forbid specific versions by default
 );
 
 export default app;
@@ -166,7 +167,8 @@ if info.is_available {
 ```
 
 <Callout type="info">
-  On the Android emulator, the host machine is not `localhost`. Point the updater at `http://10.0.2.2:4313` instead.
+  On the Android emulator, the host machine is not `localhost`. Point the updater at
+  `http://10.0.2.2:4313` instead.
 </Callout>
 
 ### Inspect with the client commands
@@ -221,7 +223,19 @@ export const remote = new WebviewBundleRemoteProvider('app', {
 ```
 
 <Cards>
-  <Card title="Local provider" href="/docs/guide/providers/local" description="Serve bundles from ~/.wvb/local with wvb remote local — the zero-setup option for development and CI." />
-  <Card title="AWS provider" href="/docs/guide/providers/aws" description="S3 storage behind CloudFront, served by Lambda@Edge, with optional KMS signing." />
-  <Card title="Cloudflare provider" href="/docs/guide/providers/cloudflare" description="R2 storage and a KV-backed deployment pointer, served by a Cloudflare Worker." />
+  <Card
+    title="Local provider"
+    href="/docs/guide/providers/local"
+    description="Serve bundles from ~/.wvb/local with wvb remote local — the zero-setup option for development and CI."
+  />
+  <Card
+    title="AWS provider"
+    href="/docs/guide/providers/aws"
+    description="S3 storage behind CloudFront, served by Lambda@Edge, with optional KMS signing."
+  />
+  <Card
+    title="Cloudflare provider"
+    href="/docs/guide/providers/cloudflare"
+    description="R2 storage and a KV-backed deployment pointer, served by a Cloudflare Worker."
+  />
 </Cards>

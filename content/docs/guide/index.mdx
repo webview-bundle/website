@@ -16,21 +16,9 @@ native app-store release. One `.wvb` format runs on every webview platform via a
 Install the CLI, pack your build output, and preview it locally.
 
 <Tabs items={['npm', 'pnpm', 'yarn']}>
-  <Tab value="npm">
-```sh
-npm install --save-dev @wvb/cli
-```
-  </Tab>
-  <Tab value="pnpm">
-```sh
-pnpm add -D @wvb/cli
-```
-  </Tab>
-  <Tab value="yarn">
-```sh
-yarn add -D @wvb/cli
-```
-  </Tab>
+  <Tab value="npm">```sh npm install --save-dev @wvb/cli ```</Tab>
+  <Tab value="pnpm">```sh pnpm add -D @wvb/cli ```</Tab>
+  <Tab value="yarn">```sh yarn add -D @wvb/cli ```</Tab>
 </Tabs>
 
 ```sh
@@ -163,20 +151,20 @@ See [Remote, integrity & signature config](/docs/config/remote) for the full sch
 
 The core is a Rust crate. Each platform consumes it through a thin integration package.
 
-| Package | Version | What it is |
-| --- | --- | --- |
-| [`wvb`](https://docs.rs/wvb) | 0.2.0 | Rust core: bundle format, source, remote, updater, protocol, integrity, signature |
-| `@wvb/cli` | 0.1.0 | Command-line tool (bins `wvb` and `webview-bundle`): pack, serve, upload, deploy, local remote |
-| `@wvb/config` | 0.1.0 | `defineConfig` for `wvb.config.ts` |
-| `@wvb/node` | 0.1.0 | N-API bindings to the core for Node.js |
-| `@wvb/bridge` | 0.1.0 | Bridge for the web app to talk to the native host |
-| `@wvb/electron` | 0.1.0 | Electron integration (protocols, IPC, updater) |
-| `@wvb/electron-builder` | unpublished | electron-builder integration (in-repo, not yet on npm) |
-| `@wvb/electron-forge` | unpublished | Electron Forge plugin (in-repo, not yet on npm) |
-| `wvb-tauri` | 0.1.0 | Tauri integration, published as a Rust crate on crates.io |
-| `@wvb/remote-aws` | 0.1.0 | Remote configuration and provider for AWS |
-| `@wvb/remote-cloudflare` | 0.1.0 | Remote configuration and provider for Cloudflare |
-| `@wvb/remote-local` | 0.0.0 | Remote configuration for local simulation |
+| Package                      | Version     | What it is                                                                                     |
+| ---------------------------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| [`wvb`](https://docs.rs/wvb) | 0.2.0       | Rust core: bundle format, source, remote, updater, protocol, integrity, signature              |
+| `@wvb/cli`                   | 0.1.0       | Command-line tool (bins `wvb` and `webview-bundle`): pack, serve, upload, deploy, local remote |
+| `@wvb/config`                | 0.1.0       | `defineConfig` for `wvb.config.ts`                                                             |
+| `@wvb/node`                  | 0.1.0       | N-API bindings to the core for Node.js                                                         |
+| `@wvb/bridge`                | 0.1.0       | Bridge for the web app to talk to the native host                                              |
+| `@wvb/electron`              | 0.1.0       | Electron integration (protocols, IPC, updater)                                                 |
+| `@wvb/electron-builder`      | unpublished | electron-builder integration (in-repo, not yet on npm)                                         |
+| `@wvb/electron-forge`        | unpublished | Electron Forge plugin (in-repo, not yet on npm)                                                |
+| `wvb-tauri`                  | 0.1.0       | Tauri integration, published as a Rust crate on crates.io                                      |
+| `@wvb/remote-aws`            | 0.1.0       | Remote configuration and provider for AWS                                                      |
+| `@wvb/remote-cloudflare`     | 0.1.0       | Remote configuration and provider for Cloudflare                                               |
+| `@wvb/remote-local`          | 0.0.0       | Remote configuration for local simulation                                                      |
 
 Install a platform integration alongside the CLI:
 
@@ -190,10 +178,10 @@ cargo add wvb-tauri
 
 <Callout type="info">
   The Tauri integration is the **`wvb-tauri` crate** on crates.io — there is no `@wvb/tauri` npm
-  package. The Android (Kotlin) and iOS (Swift) bindings are built from the core via UniFFI and
-  are **pre-release**: they are not yet published to Maven Central or tagged for Swift Package
-  Manager, so install from source for now. See [Platform Support](/docs/guide/platform-support)
-  for the full status.
+  package. The Android (Kotlin) and iOS (Swift) bindings are built from the core via UniFFI and are
+  **pre-release**: they are not yet published to Maven Central or tagged for Swift Package Manager,
+  so install from source for now. See [Platform Support](/docs/guide/platform-support) for the full
+  status.
 </Callout>
 
 ## Next steps

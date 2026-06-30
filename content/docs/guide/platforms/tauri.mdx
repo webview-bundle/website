@@ -6,7 +6,9 @@ description: Add the wvb-tauri plugin to a Tauri v2 app so the webview is served
 `wvb-tauri` is the Webview Bundle integration for Tauri v2. Register it as a plugin and your app serves its webview from a local `.wvb` bundle through a custom URL scheme, proxies a dev server while you build, and downloads newer bundles over the air (OTA). The same plugin runs on desktop and on Tauri mobile (Android and iOS).
 
 <Callout type="info">
-Tauri uses the Rust crate `wvb-tauri` (crates.io). There is no `@wvb/tauri` npm package — the frontend talks to the plugin through Tauri's standard command bridge, which needs no extra package beyond `@tauri-apps/api`.
+  Tauri uses the Rust crate `wvb-tauri` (crates.io). There is no `@wvb/tauri` npm package — the
+  frontend talks to the plugin through Tauri's standard command bridge, which needs no extra package
+  beyond `@tauri-apps/api`.
 </Callout>
 
 ## Install
@@ -187,11 +189,11 @@ Remote::new("https://updates.example.com")
 
 Plugin commands are reachable as `plugin:wvb-tauri|<command_name>`. Arguments use camelCase on the JS side (`bundle_name` becomes `bundleName`). The core OTA flow uses three updater commands:
 
-| Command                       | Arguments                | Returns                                  |
-| ----------------------------- | ------------------------ | ---------------------------------------- |
-| `updater_get_update`          | `bundleName`             | `BundleUpdateInfo` (availability + version) |
-| `updater_download`            | `bundleName`, `version?` | `RemoteBundleInfo` (downloaded metadata) |
-| `updater_install`             | `bundleName`, `version`  | `null` (activates the downloaded version)|
+| Command              | Arguments                | Returns                                     |
+| -------------------- | ------------------------ | ------------------------------------------- |
+| `updater_get_update` | `bundleName`             | `BundleUpdateInfo` (availability + version) |
+| `updater_download`   | `bundleName`, `version?` | `RemoteBundleInfo` (downloaded metadata)    |
+| `updater_install`    | `bundleName`, `version`  | `null` (activates the downloaded version)   |
 
 ```ts title="src/update.ts"
 import { invoke } from '@tauri-apps/api/core';
@@ -211,16 +213,12 @@ interface RemoteBundleInfo {
 }
 
 export async function checkAndUpdate(bundleName: string) {
-  const update = await invoke<BundleUpdateInfo>(
-    'plugin:wvb-tauri|updater_get_update',
-    { bundleName },
-  );
+  const update = await invoke<BundleUpdateInfo>('plugin:wvb-tauri|updater_get_update', {
+    bundleName,
+  });
   if (!update.isAvailable) return;
 
-  const info = await invoke<RemoteBundleInfo>(
-    'plugin:wvb-tauri|updater_download',
-    { bundleName },
-  );
+  const info = await invoke<RemoteBundleInfo>('plugin:wvb-tauri|updater_download', { bundleName });
   await invoke('plugin:wvb-tauri|updater_install', {
     bundleName,
     version: info.version,
@@ -232,14 +230,14 @@ export async function checkAndUpdate(bundleName: string) {
 
 The plugin also exposes `source_*` commands for managing local bundles and `remote_*` commands for listing and staging remote bundles:
 
-| Command                | Arguments                | Returns                                  |
-| ---------------------- | ------------------------ | ---------------------------------------- |
-| `source_list_bundles`  | —                        | local bundle list                        |
-| `source_load_version`  | `bundleName`             | active local version, if any             |
-| `source_update_version`| `bundleName`, `version`  | `null` (activate a staged version)       |
-| `remote_list_bundles`  | `channel?`               | remote bundle list                       |
-| `remote_get_info`      | `bundleName`, `channel?` | current remote metadata                  |
-| `remote_download`      | `bundleName`, `channel?` | `RemoteBundleInfo` (stages without activating) |
+| Command                 | Arguments                | Returns                                        |
+| ----------------------- | ------------------------ | ---------------------------------------------- |
+| `source_list_bundles`   | —                        | local bundle list                              |
+| `source_load_version`   | `bundleName`             | active local version, if any                   |
+| `source_update_version` | `bundleName`, `version`  | `null` (activate a staged version)             |
+| `remote_list_bundles`   | `channel?`               | remote bundle list                             |
+| `remote_get_info`       | `bundleName`, `channel?` | current remote metadata                        |
+| `remote_download`       | `bundleName`, `channel?` | `RemoteBundleInfo` (stages without activating) |
 
 `remote_download` stages a version without activating it; activate later with `source_update_version`:
 
@@ -247,10 +245,9 @@ The plugin also exposes `source_*` commands for managing local bundles and `remo
 import { invoke } from '@tauri-apps/api/core';
 
 // Stage a remote bundle now, activate on next launch.
-const info = await invoke<{ version: string }>(
-  'plugin:wvb-tauri|remote_download',
-  { bundleName: 'app' },
-);
+const info = await invoke<{ version: string }>('plugin:wvb-tauri|remote_download', {
+  bundleName: 'app',
+});
 await invoke('plugin:wvb-tauri|source_update_version', {
   bundleName: 'app',
   version: info.version,
@@ -260,7 +257,9 @@ await invoke('plugin:wvb-tauri|source_update_version', {
 The full command set (twelve `source_*`, four `remote_*`, and four `updater_*` commands) is defined in [`packages/tauri/src/commands.rs`](https://github.com/webview-bundle/webview-bundle/blob/main/packages/tauri/src/commands.rs). See [Remote bundles](/docs/guide/remote-bundles) for how integrity and signature verification fit into the download flow, and [Remote config](/docs/config/remote) for the server side.
 
 <Callout type="info">
-The `remote_*` commands require a `Remote` on the config; the `updater_*` commands additionally require an `Updater`. Calling them without that configuration returns an error whose `code` field is `remote_not_initialized` or `updater_not_initialized`.
+  The `remote_*` commands require a `Remote` on the config; the `updater_*` commands additionally
+  require an `Updater`. Calling them without that configuration returns an error whose `code` field
+  is `remote_not_initialized` or `updater_not_initialized`.
 </Callout>
 
 Branch on the `code` field in the frontend:
@@ -340,8 +339,24 @@ The plugin then extracts each bundle from the APK on first request and caches it
 ## Learn more
 
 <Cards>
-  <Card title="Protocol handling" href="/docs/guide/protocol-handling" description="How the bundle and local schemes resolve webview requests." />
-  <Card title="Remote bundles" href="/docs/guide/remote-bundles" description="OTA updates, integrity, and signature verification." />
-  <Card title="CLI reference" href="/docs/guide/cli" description="Pack, serve, and deploy bundles from the command line." />
-  <Card title="wvb-tauri source" href="https://github.com/webview-bundle/webview-bundle/tree/main/packages/tauri" description="The plugin crate and its e2e fixtures on GitHub." />
+  <Card
+    title="Protocol handling"
+    href="/docs/guide/protocol-handling"
+    description="How the bundle and local schemes resolve webview requests."
+  />
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/remote-bundles"
+    description="OTA updates, integrity, and signature verification."
+  />
+  <Card
+    title="CLI reference"
+    href="/docs/guide/cli"
+    description="Pack, serve, and deploy bundles from the command line."
+  />
+  <Card
+    title="wvb-tauri source"
+    href="https://github.com/webview-bundle/webview-bundle/tree/main/packages/tauri"
+    description="The plugin crate and its e2e fixtures on GitHub."
+  />
 </Cards>

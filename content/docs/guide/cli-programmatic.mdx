@@ -47,14 +47,14 @@ yarn add -D @wvb/cli
 Import the functions from `@wvb/cli/api`. Each function takes a single options object and returns a
 promise. Failures throw an `ApiError`.
 
-| Function | Signature |
-|---|---|
-| `pack` | `pack(params: PackParams): Promise<PackResult>` |
-| `extract` | `extract(params: ExtractParams): Promise<Bundle>` |
-| `serve` | `serve(params: ServeParams): Promise<ServeInstance>` |
-| `remoteUpload` | `remoteUpload(params: RemoteUploadParams): Promise<void>` |
-| `builtin` | `builtin(params: BuiltinParams): Promise<BuiltinResult>` |
-| `localRemote` | `localRemote(params: LocalRemoteParams): Promise<LocalRemoteInstance>` |
+| Function       | Signature                                                              |
+| -------------- | ---------------------------------------------------------------------- |
+| `pack`         | `pack(params: PackParams): Promise<PackResult>`                        |
+| `extract`      | `extract(params: ExtractParams): Promise<Bundle>`                      |
+| `serve`        | `serve(params: ServeParams): Promise<ServeInstance>`                   |
+| `remoteUpload` | `remoteUpload(params: RemoteUploadParams): Promise<void>`              |
+| `builtin`      | `builtin(params: BuiltinParams): Promise<BuiltinResult>`               |
+| `localRemote`  | `localRemote(params: LocalRemoteParams): Promise<LocalRemoteInstance>` |
 
 <Callout type="info">
   The `/api` surface is intentionally CLI-adjacent, not a full client. There are no `deploy` or
@@ -73,12 +73,12 @@ import { pack } from '@wvb/cli/api';
 const result = await pack({
   srcDir: './dist',
   outFile: './.wvb/app', // becomes ./.wvb/app.wvb
-  write: true,           // default true; set false to pack in memory only
-  overwrite: true,       // default true
+  write: true, // default true; set false to pack in memory only
+  overwrite: true, // default true
 });
 
 console.log(result.outFilePath); // absolute path to the written .wvb
-console.log(result.bundle);      // the in-memory Bundle
+console.log(result.bundle); // the in-memory Bundle
 ```
 
 `PackParams` accepts `srcDir`, `outFile`, optional `ignores` and `headers` (the same shapes as the
@@ -96,7 +96,7 @@ import { extract } from '@wvb/cli/api';
 const bundle = await extract({
   file: './.wvb/app.wvb',
   outDir: './extracted', // defaults to .wvb/<basename> when omitted
-  clean: true,           // default false; remove outDir first
+  clean: true, // default false; remove outDir first
 });
 ```
 
@@ -112,8 +112,8 @@ import { serve } from '@wvb/cli/api';
 
 const instance = await serve({
   file: './.wvb/app.wvb',
-  port: 4312,      // default 4312
-  silent: false,   // default false; true disables request logging
+  port: 4312, // default 4312
+  silent: false, // default false; true disables request logging
 });
 
 // ... later
@@ -188,7 +188,7 @@ import { localRemote } from '@wvb/cli/api';
 
 const instance = await localRemote({
   baseDir: '~/.wvb/local',
-  port: 4313,                  // default 4313
+  port: 4313, // default 4313
   allowOtherVersions: false,
 });
 
@@ -265,14 +265,26 @@ without a separate build step. Bare and `npm:` specifiers and Node builtins stay
 
 <Callout type="info">
   Under Deno, config files are always treated as ESM — the loader skips the package-type and
-  extension sniffing it uses on Node. Deno Desktop support is experimental; see the
-  [Deno guide](/docs/guide/platforms/deno).
+  extension sniffing it uses on Node. Deno Desktop support is experimental; see the [Deno
+  guide](/docs/guide/platforms/deno).
 </Callout>
 
 ## Related
 
 <Cards>
-  <Card title="CLI commands" href="/docs/guide/cli" description="The full wvb command-line reference." />
-  <Card title="The wvb.config file" href="/docs/config" description="defineConfig, pack, serve, and builtin options." />
-  <Card title="Node API" href="/docs/references/node" description="The @wvb/node package — Bundle and Remote." />
+  <Card
+    title="CLI commands"
+    href="/docs/guide/cli"
+    description="The full wvb command-line reference."
+  />
+  <Card
+    title="The wvb.config file"
+    href="/docs/config"
+    description="defineConfig, pack, serve, and builtin options."
+  />
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="The @wvb/node package — Bundle and Remote."
+  />
 </Cards>

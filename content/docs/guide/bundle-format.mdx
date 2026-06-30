@@ -10,16 +10,17 @@ integrity-checked archive. It is three sections written back to back:
 [ Header (17 bytes) ][ Index (variable) ][ Data (variable) ]
 ```
 
-| Section          | Holds                                                   |
-| ---------------- | ------------------------------------------------------- |
-| Header           | magic number, format version, index size, checksum      |
-| Index            | path → offset/length/headers entry map                  |
-| Data             | LZ4-compressed file contents, sorted by path            |
+| Section | Holds                                              |
+| ------- | -------------------------------------------------- |
+| Header  | magic number, format version, index size, checksum |
+| Index   | path → offset/length/headers entry map             |
+| Data    | LZ4-compressed file contents, sorted by path       |
 
 Every section carries its own checksum, so a truncated or corrupted archive is caught before any content
 is served. To produce one, see the [CLI](/docs/guide/cli) or the [Node API](/docs/references/node):
 
 ```ts title="build.ts"
+import { readFile } from 'node:fs/promises';
 import { BundleBuilder, writeBundle } from '@wvb/node';
 
 const builder = new BundleBuilder();
@@ -39,12 +40,12 @@ See [Bundle sources](/docs/guide/bundle-sources).
 The header is exactly 17 bytes with a fixed layout, written by hand rather than through a serializer, so
 every field sits at a known offset.
 
-| Field        | Offset | Length | Encoding                                  |
-| ------------ | ------ | ------ | ----------------------------------------- |
-| Magic number | 0      | 8      | raw bytes `0xF09F8C90F09F8E81`            |
-| Version      | 8      | 1      | single byte (format version)              |
-| Index size   | 9      | 4      | `u32`, big-endian                         |
-| Checksum     | 13     | 4      | `u32`, big-endian xxHash-32               |
+| Field        | Offset | Length | Encoding                       |
+| ------------ | ------ | ------ | ------------------------------ |
+| Magic number | 0      | 8      | raw bytes `0xF09F8C90F09F8E81` |
+| Version      | 8      | 1      | single byte (format version)   |
+| Index size   | 9      | 4      | `u32`, big-endian              |
+| Checksum     | 13     | 4      | `u32`, big-endian xxHash-32    |
 
 For a `V1` bundle with an index size of `1234`, the 17 bytes are:
 
@@ -69,8 +70,8 @@ Read header fields back through the descriptor:
 import { readBundle } from '@wvb/node';
 
 const header = (await readBundle('app_1.0.0.wvb')).descriptor().header();
-header.version();        // 'v1'
-header.indexSize();      // byte length of the index
+header.version(); // 'v1'
+header.indexSize(); // byte length of the index
 header.indexEndOffset(); // 17 + indexSize + 4 -> where the data section starts
 ```
 
@@ -79,13 +80,13 @@ header.indexEndOffset(); // 17 + indexSize + 4 -> where the data section starts
 The index sits immediately after the header and maps each file path, e.g. `/index.html`, to an entry
 describing where its bytes are and how to serve them. Each entry holds:
 
-| Field            | Type     | Meaning                                                          |
-| ---------------- | -------- | --------------------------------------------------------------- |
-| `offset`         | `u64`    | byte offset of this file's data within the data section         |
-| `len`            | `u64`    | length of the **compressed** bytes                              |
-| `content_type`   | string   | MIME type, used for the `Content-Type` header when served       |
-| `content_length` | `u64`    | original **uncompressed** size, used for `Content-Length`       |
-| `headers`        | map      | HTTP header name/value pairs to replay when the file is served  |
+| Field            | Type   | Meaning                                                        |
+| ---------------- | ------ | -------------------------------------------------------------- |
+| `offset`         | `u64`  | byte offset of this file's data within the data section        |
+| `len`            | `u64`  | length of the **compressed** bytes                             |
+| `content_type`   | string | MIME type, used for the `Content-Type` header when served      |
+| `content_length` | `u64`  | original **uncompressed** size, used for `Content-Length`      |
+| `headers`        | map    | HTTP header name/value pairs to replay when the file is served |
 
 ```ts
 const index = (await readBundle('app_1.0.0.wvb')).descriptor().index();
@@ -133,8 +134,8 @@ verify a file at rest:
 ```ts
 const bundle = await readBundle('app_1.0.0.wvb');
 
-bundle.getData('/index.html');          // Buffer (decompressed) | null
-bundle.getDataChecksum('/index.html');  // number (xxHash-32) | null
+bundle.getData('/index.html'); // Buffer (decompressed) | null
+bundle.getDataChecksum('/index.html'); // number (xxHash-32) | null
 ```
 
 ## Checksums versus integrity
@@ -161,9 +162,10 @@ import type { IntegrityAlgorithm, IntegrityPolicy } from '@wvb/node';
 ```
 
 <Callout type="warn">
-The format uses **SHA-2** for integrity, not SHA-3. The two jobs are distinct: xxHash-32 protects bytes
-at rest, while SHA-2 integrity verifies what was downloaded. See
-[Remote bundles](/docs/guide/remote-bundles) for how integrity and signatures are checked during an update.
+  The format uses **SHA-2** for integrity, not SHA-3. The two jobs are distinct: xxHash-32 protects
+  bytes at rest, while SHA-2 integrity verifies what was downloaded. See [Remote
+  bundles](/docs/guide/remote-bundles) for how integrity and signatures are checked during an
+  update.
 </Callout>
 
 ## Where to go next

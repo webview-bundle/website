@@ -14,7 +14,7 @@ A **bundle** is one logical web app, identified by a **bundle name** (for exampl
 has many **versions** (`1.0.0`, `1.1.0`, …), and each version is a separate `.wvb` file. At any
 moment one version is the **current** version — the one served to the webview.
 
-The bundle name and version are *source-level* identifiers. They appear in the on-disk filename and
+The bundle name and version are _source-level_ identifiers. They appear in the on-disk filename and
 in the manifest, but they are **not** stored inside the `.wvb` archive itself. The archive only
 carries the binary file-format version (`v1`). See [Bundle format](/docs/guide/bundle-format) for
 the byte layout.
@@ -23,7 +23,7 @@ the byte layout.
 
 Apps run with two sources that serve the same bundle name from different storage:
 
-- **`builtin`** — bundles shipped *inside* the app package. Read-only, and used as the fallback the
+- **`builtin`** — bundles shipped _inside_ the app package. Read-only, and used as the fallback the
   first time the app runs, before anything has been downloaded.
 - **`remote`** — bundles downloaded from your update server. Writable, and updated over the air
   (OTA) without an app-store release.
@@ -32,9 +32,9 @@ When a bundle exists in both sources, **remote wins**. The source resolves a ver
 remote manifest's current version first, then falling back to builtin if the remote has nothing.
 
 <Callout type="info">
-The two sources are independent directories. A source object holds a separate `builtinDir` and
-`remoteDir`, and each directory has its own `manifest.json`. Resolving a version reads the remote
-manifest first and the builtin manifest second.
+  The two sources are independent directories. A source object holds a separate `builtinDir` and
+  `remoteDir`, and each directory has its own `manifest.json`. Resolving a version reads the remote
+  manifest first and the builtin manifest second.
 </Callout>
 
 This split is what makes updates safe. You always have the shipped builtin version to fall back to,
@@ -67,10 +67,10 @@ sources are separate directories, the same `app_1.1.0.wvb` filename can exist in
 two separate manifests.
 
 <Callout type="info">
-Bundle names and versions become path components, so they are restricted to ASCII
-`[A-Za-z0-9._-]`. They cannot be empty, cannot be `.` or `..`, cannot end with `.`, and cannot be a
-Windows reserved name (`CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`). Anything else is
-rejected before it touches the filesystem.
+  Bundle names and versions become path components, so they are restricted to ASCII
+  `[A-Za-z0-9._-]`. They cannot be empty, cannot be `.` or `..`, cannot end with `.`, and cannot be
+  a Windows reserved name (`CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`). Anything else
+  is rejected before it touches the filesystem.
 </Callout>
 
 ## The manifest
@@ -95,23 +95,23 @@ present, their metadata, and which version is current:
 
 The fields are:
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `manifestVersion` | integer | Manifest schema version. Always `1`. |
-| `entries` | object | Map of bundle name → entry. |
-| `entries.{name}.versions` | object | Map of version string → per-version metadata. |
-| `entries.{name}.currentVersion` | string (optional) | The active version served for this bundle. |
+| Field                            | Type              | Description                                    |
+| -------------------------------- | ----------------- | ---------------------------------------------- |
+| `manifestVersion`                | integer           | Manifest schema version. Always `1`.           |
+| `entries`                        | object            | Map of bundle name → entry.                    |
+| `entries.{name}.versions`        | object            | Map of version string → per-version metadata.  |
+| `entries.{name}.currentVersion`  | string (optional) | The active version served for this bundle.     |
 | `entries.{name}.previousVersion` | string (optional) | The version active immediately before current. |
 
 Each version's metadata is an object whose fields are all optional. Empty `{}` is valid, since the
 metadata is only filled in from the remote server's response headers when a bundle is downloaded:
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `etag` | string | The server's `ETag` for the downloaded bundle. |
-| `integrity` | string | Integrity hash, formatted `<alg>:<base64>` (for example `sha256:n4bQ…`). |
-| `signature` | string | Base64 signature over the integrity string. |
-| `lastModified` | string | The server's `Last-Modified` value. |
+| Field          | Type   | Description                                                              |
+| -------------- | ------ | ------------------------------------------------------------------------ |
+| `etag`         | string | The server's `ETag` for the downloaded bundle.                           |
+| `integrity`    | string | Integrity hash, formatted `<alg>:<base64>` (for example `sha256:n4bQ…`). |
+| `signature`    | string | Base64 signature over the integrity string.                              |
+| `lastModified` | string | The server's `Last-Modified` value.                                      |
 
 ### Current and previous versions
 
@@ -129,8 +129,8 @@ becomes current. Only the current and previous versions are retained; older vers
 A **channel** lets you deliver different versions to different audiences from the same server —
 `stable`, `beta`, `canary`, and so on. Channels power staged rollouts and pre-release testing.
 
-A channel is purely a **remote** and **updater** concept. It is *not* part of the `.wvb` format and
-*not* stored in `manifest.json`. The client selects a channel per request by sending it as a
+A channel is purely a **remote** and **updater** concept. It is _not_ part of the `.wvb` format and
+_not_ stored in `manifest.json`. The client selects a channel per request by sending it as a
 `channel` query parameter on the remote's HTTP calls:
 
 ```text

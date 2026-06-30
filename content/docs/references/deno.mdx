@@ -10,8 +10,8 @@ classes, options, and limitations of the Deno binding.
 
 <Callout type="warn">
   **Experimental.** `@wvb/deno` is published on JSR at version `0.0.0`, its source lives on an
-  unmerged branch, and `main` ships only a prebuilt cdylib. The API surface described here may change
-  before a stable release. Do not depend on it for production.
+  unmerged branch, and `main` ships only a prebuilt cdylib. The API surface described here may
+  change before a stable release. Do not depend on it for production.
 </Callout>
 
 ## Loading the native library
@@ -56,13 +56,13 @@ deno run -A jsr:@wvb/deno/install --out vendor/wvb --target aarch64-unknown-linu
 The installer downloads the asset from GitHub Releases and verifies its SHA-256 by default. Supported
 targets:
 
-| Target triple | Platform |
-|---|---|
-| `aarch64-apple-darwin` | macOS (Apple silicon) |
-| `x86_64-apple-darwin` | macOS (Intel) |
-| `aarch64-unknown-linux-gnu` | Linux (arm64, glibc) |
-| `x86_64-unknown-linux-gnu` | Linux (x64, glibc) |
-| `x86_64-pc-windows-msvc` | Windows (x64) |
+| Target triple               | Platform              |
+| --------------------------- | --------------------- |
+| `aarch64-apple-darwin`      | macOS (Apple silicon) |
+| `x86_64-apple-darwin`       | macOS (Intel)         |
+| `aarch64-unknown-linux-gnu` | Linux (arm64, glibc)  |
+| `x86_64-unknown-linux-gnu`  | Linux (x64, glibc)    |
+| `x86_64-pc-windows-msvc`    | Windows (x64)         |
 
 ## API surface
 
@@ -87,7 +87,7 @@ const source = new BundleSource(lib, {
 
 using protocol = new BundleProtocol(lib, source);
 
-Deno.serve(async (req) => {
+Deno.serve(async req => {
   const res = await protocol.handle('get', req.url, Object.fromEntries(req.headers));
   return toResponse(res);
 });

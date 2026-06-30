@@ -14,7 +14,7 @@ export const Route = createFileRoute('/docs/$')({
     const slugs = params._splat?.split('/').filter(Boolean) ?? [];
     // `/docs` has no tab context; send readers to the Guide tab.
     if (slugs.length === 0) {
-      throw redirect({ href: '/docs/guide' });
+      throw redirect({ to: '/docs/$', params: { _splat: 'guide' } });
     }
     const data = await serverLoader({ data: slugs });
     await clientLoader.preload(data.path);

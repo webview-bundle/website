@@ -6,16 +6,18 @@ description: Run a filesystem-backed remote on your own machine to test the full
 A filesystem-backed remote that runs on your own machine. It implements the same HTTP contract as the cloud providers, so you can exercise the full lifecycle — pack, upload, deploy, and over-the-air (OTA) update — with no infrastructure. Develop against it, then switch to a [cloud provider](/docs/guide/remote) for production.
 
 <Callout type="warn">
-Development and testing only. It stores bundles as plain files on one machine and `wvb remote local` binds to `localhost`. For production traffic, use the [AWS](/docs/guide/providers/aws) or [Cloudflare](/docs/guide/providers/cloudflare) providers.
+  Development and testing only. It stores bundles as plain files on one machine and `wvb remote
+  local` binds to `localhost`. For production traffic, use the [AWS](/docs/guide/providers/aws) or
+  [Cloudflare](/docs/guide/providers/cloudflare) providers.
 </Callout>
 
 ## Two packages
 
 Both at `0.0.0` (pre-release, not yet published — install from source for now):
 
-| Package | Role |
-| --- | --- |
-| `@wvb/remote-local` | Publish-side client. `localRemote()` produces the `uploader` and `deployer` you wire into `wvb.config`. |
+| Package                      | Role                                                                                                      |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `@wvb/remote-local`          | Publish-side client. `localRemote()` produces the `uploader` and `deployer` you wire into `wvb.config`.   |
 | `@wvb/remote-local-provider` | The server. A [Hono](https://hono.dev) app that serves stored bundles over HTTP. The CLI runs it for you. |
 
 This split mirrors every backend: the plain package pushes bundles, the `-provider` package serves them. See [Building a remote](/docs/guide/remote) for the shared contract.
@@ -39,8 +41,8 @@ export default defineConfig({
 
 `localRemote()` accepts one optional field:
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
+| Option    | Type     | Default        | Description                                                      |
+| --------- | -------- | -------------- | ---------------------------------------------------------------- |
 | `baseDir` | `string` | `~/.wvb/local` | Directory where bundles and deployment state are stored on disk. |
 
 Set `baseDir` to isolate a project's bundles from the default store:
@@ -110,13 +112,13 @@ wvb remote local
 
 Defaults to serving `~/.wvb/local` on `http://localhost:4313`. Flags:
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--base-dir` | `~/.wvb/local` | Directory to serve. Match the `baseDir` set in `localRemote()`. |
-| `--port`, `-P` | `4313` | Port to listen on (also reads `PORT`). |
-| `--hostname`, `-H` | `localhost` | Host to bind (also reads `HOSTNAME`). |
-| `--allow-other-versions` | `false` | Allow downloading versions other than the deployed one. |
-| `--silent` | — | Suppress server logging. |
+| Flag                     | Default        | Description                                                     |
+| ------------------------ | -------------- | --------------------------------------------------------------- |
+| `--base-dir`             | `~/.wvb/local` | Directory to serve. Match the `baseDir` set in `localRemote()`. |
+| `--port`, `-P`           | `4313`         | Port to listen on (also reads `PORT`).                          |
+| `--hostname`, `-H`       | `localhost`    | Host to bind (also reads `HOSTNAME`).                           |
+| `--allow-other-versions` | `false`        | Allow downloading versions other than the deployed one.         |
+| `--silent`               | `false`        | Suppress server logging.                                        |
 
 Pass the same path you set in your config:
 
@@ -160,7 +162,8 @@ const app = wvbRemote({
 ```
 
 <Callout type="info">
-With `allowOtherVersions` disabled, only the deployed version is reachable via `GET /bundles/{name}`. The version-specific route stays behind `403` until you opt in.
+  With `allowOtherVersions` disabled, only the deployed version is reachable via `GET /bundles/
+  {name}`. The version-specific route stays behind `403` until you opt in.
 </Callout>
 
 ## Walk the full loop
@@ -168,7 +171,8 @@ With `allowOtherVersions` disabled, only the deployed version is reachable via `
 Test an OTA update against a local server end to end.
 
 <Callout type="info">
-`wvb upload` does not deploy by default — `--deploy` is `false` unless passed. Use `wvb upload --deploy` to upload and mark current in one step, or run `wvb deploy` separately.
+  `wvb upload` does not deploy by default — `--deploy` is `false` unless passed. Use `wvb upload
+  --deploy` to upload and mark current in one step, or run `wvb deploy` separately.
 </Callout>
 
 Wire up `localRemote()` as shown above, then pack, upload, and deploy. With `packBeforeUpload` at its default, `wvb upload` packs for you, so the explicit `wvb pack` is optional:

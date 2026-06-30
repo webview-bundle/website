@@ -6,10 +6,10 @@ description: Serve and update Webview Bundle archives in a Deno desktop webview 
 Deno Desktop renders a native webview with `Deno.BrowserWindow` and serves it over `Deno.serve`. Webview Bundle becomes that server's handler, so the window loads your packed `.wvb` assets offline instead of fetching them over the network.
 
 ```ts title="main.ts (preview)"
-import { webviewBundle, bundleProtocol } from "@wvb/deno-desktop";
+import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: "app" })],
+  protocols: [bundleProtocol({ scheme: 'app' })],
 });
 
 const server = Deno.serve(wvb.fetch);
@@ -20,7 +20,10 @@ await win.closed;
 `@wvb/deno-desktop` is the integration layer; `@wvb/deno` is the FFI peer of [`@wvb/node`](/docs/references/node) that drives the shared Rust core.
 
 <Callout type="warn">
-Deno Desktop is **experimental / preview** and not production-ready. The source lives on an un-merged branch; `main` ships only a prebuilt dylib artifact. The JSR packages `@wvb/deno` and `@wvb/deno-desktop` are published at version **`0.0.0`** and their APIs may change. Treat these snippets as preview, not a stable contract.
+  Deno Desktop is **experimental / preview** and not production-ready. The source lives on an
+  un-merged branch; `main` ships only a prebuilt dylib artifact. The JSR packages `@wvb/deno` and
+  `@wvb/deno-desktop` are published at version **`0.0.0`** and their APIs may change. Treat these
+  snippets as preview, not a stable contract.
 </Callout>
 
 ## How it fits together
@@ -32,12 +35,12 @@ The window points at a single local origin served by `Deno.serve`, so the integr
 Call `webviewBundle(config)` — aliased as `wvb`, backed by the `WebviewBundle` class — to build a `BundleSource` (plus an optional `Remote` and `Updater`) and get back a `Deno.serve`-compatible `fetch` handler. Add an `updater` to pull newer bundles from a remote:
 
 ```ts title="main.ts (preview)"
-import { webviewBundle, bundleProtocol } from "@wvb/deno-desktop";
+import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: "app" })],
+  protocols: [bundleProtocol({ scheme: 'app' })],
   updater: {
-    remote: { endpoint: "https://bundles.example.com" },
+    remote: { endpoint: 'https://bundles.example.com' },
   },
 });
 
@@ -51,10 +54,10 @@ await win.closed;
 Call `registerBindings(win, wvb)` to expose native commands to your web app. It registers one `Deno.BrowserWindow` binding named `wvbInvoke`, reachable from the page as `window.bindings.wvbInvoke`, that dispatches every `@wvb/bridge` command in the `source.*`, `remote.*`, and `updater.*` groups.
 
 ```ts title="main.ts (preview)"
-import { webviewBundle, bundleProtocol, registerBindings } from "@wvb/deno-desktop";
+import { webviewBundle, bundleProtocol, registerBindings } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: "app" })],
+  protocols: [bundleProtocol({ scheme: 'app' })],
 });
 
 const server = Deno.serve(wvb.fetch);
@@ -76,12 +79,12 @@ type InvokeResult =
 The `@wvb/bridge` client unwraps this envelope once it detects the `deno` platform, so web code keeps calling `invoke()`, `source.*`, `remote.*`, and `updater.*` exactly as on other platforms:
 
 ```ts title="app.ts (in the webview, preview)"
-import { updater } from "@wvb/bridge";
+import { updater } from '@wvb/bridge';
 
-const update = await updater.getUpdate("my-app");
+const update = await updater.getUpdate('my-app');
 if (update.isAvailable) {
-  await updater.download("my-app");
-  await updater.install("my-app", update.version);
+  await updater.download('my-app');
+  await updater.install('my-app', update.version);
 }
 ```
 
@@ -92,15 +95,18 @@ if (update.isAvailable) {
 Each class is `Disposable` — free it explicitly with `free()`, or let a `using` declaration call `[Symbol.dispose]` at scope exit:
 
 ```ts title="dispose.ts (preview)"
+import { BundleProtocol } from '@wvb/deno';
+
+// `lib` and `source` come from the load + BundleSource steps below.
 // Explicit cleanup.
-const protocol = bundleProtocol({ scheme: "app" });
-const res = await protocol.handle("get", "app://my-app/index.html");
+const protocol = new BundleProtocol(lib, source);
+const res = await protocol.handle('get', 'app://my-app/index.html');
 protocol.free();
 
 // Or scope-bound cleanup with `using`.
 {
-  using scoped = bundleProtocol({ scheme: "app" });
-  await scoped.handle("get", "app://my-app/index.html");
+  using scoped = new BundleProtocol(lib, source);
+  await scoped.handle('get', 'app://my-app/index.html');
 } // [Symbol.dispose]() runs here
 ```
 
@@ -109,10 +115,10 @@ protocol.free();
 Load the `cdylib` from an explicit path, or download a SHA-256-verified prebuilt via [`@denosaurs/plug`](https://jsr.io/@denosaurs/plug):
 
 ```ts title="load.ts (preview)"
-import { loadLib, loadLibViaPlug } from "@wvb/deno";
+import { loadLib, loadLibViaPlug } from '@wvb/deno';
 
 // 1. Load a library already on disk.
-const lib = loadLib("./vendor/wvb/libwvb_deno.dylib");
+const lib = loadLib('./vendor/wvb/libwvb_deno.dylib');
 
 // 2. Download a sha256-verified prebuilt at runtime.
 const libViaPlug = await loadLibViaPlug();
@@ -132,13 +138,13 @@ deno run -A jsr:@wvb/deno/install --out vendor/wvb
 
 `@wvb/deno/install` downloads the cdylib from GitHub Releases and verifies its SHA-256 checksum by default. Supported targets:
 
-| Target triple |
-|---|
-| `aarch64-apple-darwin` |
-| `x86_64-apple-darwin` |
+| Target triple               |
+| --------------------------- |
+| `aarch64-apple-darwin`      |
+| `x86_64-apple-darwin`       |
 | `aarch64-unknown-linux-gnu` |
-| `x86_64-unknown-linux-gnu` |
-| `x86_64-pc-windows-msvc` |
+| `x86_64-unknown-linux-gnu`  |
+| `x86_64-pc-windows-msvc`    |
 
 Vendor a specific target with `--target`:
 
@@ -156,13 +162,13 @@ Beyond the experimental status, two gaps apply to the Deno bindings today.
 
 ```ts title="updater.ts (preview)"
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: "app" })],
+  protocols: [bundleProtocol({ scheme: 'app' })],
   updater: {
-    remote: { endpoint: "https://bundles.example.com" },
-    integrityPolicy: "strict",
+    remote: { endpoint: 'https://bundles.example.com' },
+    integrityPolicy: 'strict',
     signatureVerifier: {
-      algorithm: "ed25519",
-      key: { format: "raw", data: publicKeyBytes },
+      algorithm: 'ed25519',
+      key: { format: 'raw', data: publicKeyBytes },
     },
   },
 });
@@ -174,11 +180,11 @@ The custom `integrityChecker` / `signatureVerifier` function callbacks available
 
 ```ts title="http.ts (preview)"
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: "app" })],
+  protocols: [bundleProtocol({ scheme: 'app' })],
   updater: {
     remote: {
-      endpoint: "https://bundles.example.com",
-      http: { userAgent: "my-app/1.0", timeout: 120_000 },
+      endpoint: 'https://bundles.example.com',
+      http: { userAgent: 'my-app/1.0', timeout: 120_000 },
     },
   },
 });
@@ -189,7 +195,19 @@ For how integrity and signatures work across platforms, see [Remote bundles](/do
 ## Next steps
 
 <Cards>
-  <Card title="Deno API reference" href="/docs/references/deno" description="The full @wvb/deno class and method surface (experimental)." />
-  <Card title="Platform support" href="/docs/guide/platform-support" description="Where each platform stands, including experimental ones." />
-  <Card title="Remote bundles" href="/docs/guide/remote-bundles" description="How updating, integrity, and signatures work across platforms." />
+  <Card
+    title="Deno API reference"
+    href="/docs/references/deno"
+    description="The full @wvb/deno class and method surface (experimental)."
+  />
+  <Card
+    title="Platform support"
+    href="/docs/guide/platform-support"
+    description="Where each platform stands, including experimental ones."
+  />
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/remote-bundles"
+    description="How updating, integrity, and signatures work across platforms."
+  />
 </Cards>

@@ -6,18 +6,23 @@ description: Serve and update Webview Bundles inside an Android WebView with the
 The `webview-bundle-android` library wires the Webview Bundle Rust core into an Android `WebView`. Give it a `WebView`; it intercepts requests over ordinary `https://<bundle>.wvb/` URLs, serves files from a bundle you ship in the APK, and pulls newer bundles over the air (OTA) from a remote without an app-store release.
 
 <Callout type="warn">
-**Pre-release.** Not yet published to Maven Central. There is no release tag, so the coordinates below describe the intended artifact, not something you can resolve today. For now, build from the [`webview-bundle-android`](https://github.com/webview-bundle/webview-bundle-android) repository. The native FFI is pinned in `.ffi-version` and installed by `scripts/install.mjs`, which downloads the `android.zip` asset from a [core repo](https://github.com/webview-bundle/webview-bundle) release and unpacks the Kotlin bindings and `jniLibs` into the library module.
+  **Pre-release.** Not yet published to Maven Central. There is no release tag, so the coordinates
+  below describe the intended artifact, not something you can resolve today. For now, build from the
+  [`webview-bundle-android`](https://github.com/webview-bundle/webview-bundle-android) repository.
+  The native FFI is pinned in `.ffi-version` and installed by `scripts/install.mjs`, which downloads
+  the `android.zip` asset from a [core repo](https://github.com/webview-bundle/webview-bundle)
+  release and unpacks the Kotlin bindings and `jniLibs` into the library module.
 </Callout>
 
 ## Requirements
 
-| Item | Value |
-| --- | --- |
-| `minSdk` | 24 (Android 7.0) |
-| JVM target | 17 (Java and Kotlin source/target 17) |
-| AndroidX | Required (`android.useAndroidX=true`, needed by `androidx.webkit`) |
-| System WebView | Must support `WEB_MESSAGE_LISTENER` (modern WebView / Chrome 88+) |
-| Library namespace | `dev.wvb` |
+| Item              | Value                                                              |
+| ----------------- | ------------------------------------------------------------------ |
+| `minSdk`          | 24 (Android 7.0)                                                   |
+| JVM target        | 17 (Java and Kotlin source/target 17)                              |
+| AndroidX          | Required (`android.useAndroidX=true`, needed by `androidx.webkit`) |
+| System WebView    | Must support `WEB_MESSAGE_LISTENER` (modern WebView / Chrome 88+)  |
+| Library namespace | `dev.wvb`                                                          |
 
 The bridge attaches through `WebViewCompat.addWebMessageListener`. On a device whose System WebView is too old for `WEB_MESSAGE_LISTENER`, the bridge is not attached and the library logs a warning — serving still works, only the JavaScript bridge is unavailable.
 
@@ -50,7 +55,8 @@ node scripts/install.mjs --prerelease a3f693a  # prerelease/<sha>
 ```
 
 <Callout type="info">
-`install.mjs` requires `unzip` on `PATH` and honors `GITHUB_TOKEN` / `GH_TOKEN`. See [Platform support](/docs/guide/platform-support) for the status of every platform.
+  `install.mjs` requires `unzip` on `PATH` and honors `GITHUB_TOKEN` / `GH_TOKEN`. See [Platform
+  support](/docs/guide/platform-support) for the status of every platform.
 </Callout>
 
 ## Quick start
@@ -123,7 +129,9 @@ The manifest needs the internet permission. For local development against a clea
 ```
 
 <Callout type="warn">
-`usesCleartextTraffic="true"` is for local development only. Production bundles are served over `https://` from inside the app and remote endpoints should use TLS, so leave cleartext disabled in release builds.
+  `usesCleartextTraffic="true"` is for local development only. Production bundles are served over
+  `https://` from inside the app and remote endpoints should use TLS, so leave cleartext disabled in
+  release builds.
 </Callout>
 
 ## How serving works
@@ -279,16 +287,18 @@ val wvb = WebViewBundle.getInstance(
 
 `IntegrityPolicy.STRICT` rejects a bundle whose digest does not match; `OPTIONAL` verifies when present and skips when absent; `NONE` skips the check. The integrity string uses SHA-2 (`sha256`, `sha384`, or `sha512`). The signature verifier proves who published the bundle. Not every algorithm and key-format pair is valid:
 
-| `SignatureAlgorithm` | Valid `VerifyingKeyFormat` |
-| --- | --- |
-| `ECDSA_SECP256R1`, `ECDSA_SECP384R1` | `SEC1`, `SPKI_DER`, `SPKI_PEM` |
-| `ED25519` | `SPKI_DER`, `SPKI_PEM`, `RAW` (32-byte key via `der`) |
-| `RSA_PKCS1_V15`, `RSA_PSS` | `PKCS1_DER`, `PKCS1_PEM`, `SPKI_DER`, `SPKI_PEM` |
+| `SignatureAlgorithm`                 | Valid `VerifyingKeyFormat`                            |
+| ------------------------------------ | ----------------------------------------------------- |
+| `ECDSA_SECP256R1`, `ECDSA_SECP384R1` | `SEC1`, `SPKI_DER`, `SPKI_PEM`                        |
+| `ED25519`                            | `SPKI_DER`, `SPKI_PEM`, `RAW` (32-byte key via `der`) |
+| `RSA_PKCS1_V15`, `RSA_PSS`           | `PKCS1_DER`, `PKCS1_PEM`, `SPKI_DER`, `SPKI_PEM`      |
 
 An unsupported pair throws `Exception.Signature` when the updater is built. `pem` is read for `*_PEM` formats; `der` for DER, `SEC1`, and `RAW`.
 
 <Callout type="info">
-On the Android emulator, a remote running on the host machine is reachable at `http://10.0.2.2:4313` (the local remote's default port). The `channel` value is sent to the remote as a query parameter so it can serve a specific release channel.
+  On the Android emulator, a remote running on the host machine is reachable at
+  `http://10.0.2.2:4313` (the local remote's default port). The `channel` value is sent to the
+  remote as a query parameter so it can serve a specific release channel.
 </Callout>
 
 ### Driving updates from Kotlin
@@ -300,7 +310,7 @@ import kotlinx.coroutines.launch
 
 lifecycleScope.launch {
     val update = wvb.updater?.getUpdate("app")          // check the remote, no download
-    if (update?.isAvailable == true) {
+    if (update != null && update.isAvailable) {
         wvb.updater?.downloadUpdate("app")              // download latest, persist to remote dir
         wvb.updater?.install("app", update.version)     // verify, activate, prune old versions
     }
@@ -315,21 +325,21 @@ The same cycle is available to your web app through the `window.wvbAndroid` brid
 
 ```ts
 declare const wvbAndroid: {
-  postMessage(message: string): void
-}
+  postMessage(message: string): void;
+};
 
 // The bridge posts { name, params, success, error } and replies via callbacks.
 // A small wrapper that resolves a Promise per command:
 function invoke(name: string, params?: unknown): Promise<unknown> {
   return new Promise((resolve, reject) => {
     // ... wire success/error callbacks, then:
-    wvbAndroid.postMessage(JSON.stringify({ name, params }))
-  })
+    wvbAndroid.postMessage(JSON.stringify({ name, params }));
+  });
 }
 
-const update = await invoke("updaterGetUpdate", { name: "app" })
-await invoke("updaterDownload", { name: "app" })
-await invoke("updaterInstall", { name: "app", version: "0.2.0" })
+const update = await invoke('updaterGetUpdate', { name: 'app' });
+await invoke('updaterDownload', { name: 'app' });
+await invoke('updaterInstall', { name: 'app', version: '0.2.0' });
 ```
 
 For the remote HTTP contract, integrity, and signatures across platforms, see [Remote bundles](/docs/guide/remote-bundles) and the guide to [building a remote](/docs/guide/remote).
@@ -337,7 +347,19 @@ For the remote HTTP contract, integrity, and signatures across platforms, see [R
 ## Next steps
 
 <Cards>
-  <Card title="Remote bundles" href="/docs/guide/remote-bundles" description="How OTA updates, integrity, and signatures work across platforms." />
-  <Card title="Building a remote" href="/docs/guide/remote" description="The server contract and how to test a remote locally." />
-  <Card title="References" href="/docs/references" description="API references for the Webview Bundle packages." />
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/remote-bundles"
+    description="How OTA updates, integrity, and signatures work across platforms."
+  />
+  <Card
+    title="Building a remote"
+    href="/docs/guide/remote"
+    description="The server contract and how to test a remote locally."
+  />
+  <Card
+    title="References"
+    href="/docs/references"
+    description="API references for the Webview Bundle packages."
+  />
 </Cards>

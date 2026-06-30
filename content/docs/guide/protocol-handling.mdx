@@ -44,7 +44,8 @@ GET app://app.wvb/assets/app.js
 ```
 
 <Callout type="info">
-Headers are stored per file when the bundle is built, so caching directives and other response headers you set at build time survive into the served response.
+  Headers are stored per file when the bundle is built, so caching directives and other response
+  headers you set at build time survive into the served response.
 </Callout>
 
 ### Range requests
@@ -107,7 +108,8 @@ Config::new().protocol(
 A request whose host has no mapping fails with a resolve error. The proxy caches responses and honors upstream `304 Not Modified` by replaying the cached response.
 
 <Callout type="info">
-Use the local protocol during development and the bundle protocol for shipped builds. Because both share the same scheme, your web app's URLs do not change between the two.
+  Use the local protocol during development and the bundle protocol for shipped builds. Because both
+  share the same scheme, your web app's URLs do not change between the two.
 </Callout>
 
 ## Per-platform schemes
@@ -126,7 +128,7 @@ const { bundleProtocol, wvb } = require('@wvb/electron');
 
 const instance = wvb({
   source: { builtinDir: path.join(__dirname, 'bundles') },
-  protocols: [bundleProtocol('app', { onError: (e) => console.error('[wvb]', e) })],
+  protocols: [bundleProtocol('app', { onError: e => console.error('[wvb]', e) })],
 });
 
 app.whenReady().then(async () => {
@@ -198,7 +200,8 @@ class BundleWebViewClient : WebViewClient() {
 See the [Android guide](/docs/guide/platforms/android) for the working setup.
 
 <Callout type="warn">
-Android and iOS are pre-release and not yet published to Maven Central or tagged for SPM. Install from source for now.
+  Android and iOS are pre-release and not yet published to Maven Central or tagged for SPM. Install
+  from source for now.
 </Callout>
 
 </Tab>
@@ -222,8 +225,24 @@ See the [iOS guide](/docs/guide/platforms/ios) for the working setup.
 ## Related
 
 <Cards>
-  <Card title="Bundle sources" href="/docs/guide/bundle-sources" description="How builtin and remote bundles resolve to the file a protocol serves." />
-  <Card title="Platform integration" href="/docs/guide/platform-integration" description="How the core reaches each platform, plus the bridge." />
-  <Card title="Electron" href="/docs/guide/platforms/electron" description="Register the bundle protocol in an Electron app." />
-  <Card title="Tauri" href="/docs/guide/platforms/tauri" description="Register the bundle protocol with the wvb-tauri plugin." />
+  <Card
+    title="Bundle sources"
+    href="/docs/guide/bundle-sources"
+    description="How builtin and remote bundles resolve to the file a protocol serves."
+  />
+  <Card
+    title="Platform integration"
+    href="/docs/guide/platform-integration"
+    description="How the core reaches each platform, plus the bridge."
+  />
+  <Card
+    title="Electron"
+    href="/docs/guide/platforms/electron"
+    description="Register the bundle protocol in an Electron app."
+  />
+  <Card
+    title="Tauri"
+    href="/docs/guide/platforms/tauri"
+    description="Register the bundle protocol with the wvb-tauri plugin."
+  />
 </Cards>
