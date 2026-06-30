@@ -1,0 +1,93 @@
+---
+title: Errors
+description: How the Webview Bundle remote signals failures over HTTP and how the client maps each status to an error.
+---
+
+A remote signals failure through standard HTTP status codes. The Webview Bundle client treats any `2xx` response as success and maps the documented non-`2xx` codes to specific errors. Implement these responses exactly so the client and updater react the way they should. For the full request contract these errors sit alongside, see the [Remote HTTP Spec](/docs/guide/spec) and [Building a remote](/docs/guide/remote).
+
+## Status codes
+
+| Status          | Meaning                            | When                                                                                                                                          |
+| --------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `403 Forbidden` | Version-specific download disabled | A client requests `GET /bundles/{name}/{version}` but the server disables other-version downloads. The client maps this to `RemoteForbidden`. |
+| `404 Not Found` | Bundle or version not deployed     | The named bundle or the requested version is not deployed. The client maps this to `RemoteBundleNotFound`.                                    |
+| Other non-`2xx` | Remote HTTP error                  | Any other failure. The body is parsed as JSON `{ "message": string }` and surfaced as a remote HTTP error carrying the status and message.    |
+
+The client treats every `2xx` status as success, so a remote should reserve non-`2xx` codes for genuine failures.
+
+## Forbidden (403)
+
+`403` is the deliberate signal that a version-specific download is disabled. Providers expose this as an `allowOtherVersions` option, which defaults to `false`. While disabled, `GET /bundles/{name}/{version}` returns `403` even when that version exists on the server. The current-version routes (`GET /bundles/{name}` and `HEAD /bundles/{name}`) are unaffected.
+
+```http
+HTTP/1.1 403 Forbidden
+```
+
+The client raises `RemoteForbidden` for this status.
+
+## Not Found (404)
+
+`404` means the named bundle or the requested version is not deployed. List responses exclude undeployed bundles, so a follow-up request for one of them returns `404`.
+
+```http
+HTTP/1.1 404 Not Found
+```
+
+The client raises `RemoteBundleNotFound` for this status.
+
+## Other errors
+
+For any other non-`2xx` status, return a JSON body of the shape `{ "message": string }`. The client parses this body and raises a remote HTTP error that carries both the status and the message.
+
+```http
+HTTP/1.1 500 Internal Server Error
+Content-Type: application/json
+```
+
+```json
+{ "message": "failed to read bundle from storage" }
+```
+
+<Callout type="info">
+  Send a `{ "message": string }` body on these responses. The `message` is what the client surfaces,
+  so make it descriptive enough to diagnose the failure.
+</Callout>
+
+## Missing required headers
+
+A successful download or metadata response must still carry the required headers. The client rejects a `2xx` response that omits `Webview-Bundle-Name` or `Webview-Bundle-Version`, treating it as an invalid bundle on the client side rather than a transport error. This is a client-side failure, not a status the server returns, so a remote must always set both headers on download and metadata responses. See [GET /bundles/{name}](/docs/guide/spec/get-current) and [HEAD /bundles/{name}](/docs/guide/spec/head-current) for the full header set.
+
+## Where to go next
+
+<Cards>
+  <Card
+    title="Remote HTTP Spec"
+    href="/docs/guide/spec"
+    description="The full contract these errors belong to."
+  />
+  <Card
+    title="GET /bundles"
+    href="/docs/guide/spec/list-bundles"
+    description="List deployed bundles."
+  />
+  <Card
+    title="HEAD /bundles/{name}"
+    href="/docs/guide/spec/head-current"
+    description="Read the current version's metadata."
+  />
+  <Card
+    title="GET /bundles/{name}"
+    href="/docs/guide/spec/get-current"
+    description="Download the current version."
+  />
+  <Card
+    title="GET /bundles/{name}/{version}"
+    href="/docs/guide/spec/get-version"
+    description="Download a specific version, gated by 403."
+  />
+  <Card
+    title="Building a remote"
+    href="/docs/guide/remote"
+    description="Stand up a server and run the update loop locally."
+  />
+</Cards>

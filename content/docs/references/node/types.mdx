@@ -1,0 +1,169 @@
+---
+title: Types
+description: Enums, unions, option interfaces, and result types shared across the @wvb/node API.
+---
+
+These are the supporting types that the [Node API](/docs/references/node) classes and functions return and accept. The reader, [BundleSource](/docs/references/node/source), [protocol handlers](/docs/references/node/protocol), [Remote](/docs/references/node/remote), and [Updater](/docs/references/node/updater) pages reference the shapes defined here.
+
+## Enums and unions
+
+String-literal unions that name a fixed set of values.
+
+```ts
+type Version = 'v1';
+
+type HttpMethod =
+  | 'get'
+  | 'head'
+  | 'options'
+  | 'post'
+  | 'put'
+  | 'patch'
+  | 'delete'
+  | 'trace'
+  | 'connect';
+
+type BundleSourceKind = 'builtin' | 'remote';
+```
+
+`Version` is the bundle format version; only `v1` exists today.
+
+### Integrity
+
+```ts
+// SHA-2 family; sha384 is recommended.
+type IntegrityAlgorithm = 'sha256' | 'sha384' | 'sha512';
+
+// optional is the default.
+type IntegrityPolicy = 'strict' | 'optional' | 'none';
+```
+
+Integrity uses SHA-2, serialized as `"<alg>:<base64>"` (for example `sha256:n4bQ…`). `strict` requires a value to be present and to match, `optional` verifies a value only when present, and `none` skips the check. See [Remote, integrity & signature config](/docs/config/remote).
+
+### Signature
+
+```ts
+type SignatureAlgorithm =
+  | 'ecdsaSecp256R1'
+  | 'ecdsaSecp384R1'
+  | 'ed25519'
+  | 'rsaPkcs1V15'
+  | 'rsaPss';
+
+type VerifyingKeyFormat = 'spkiDer' | 'spkiPem' | 'pkcs1Der' | 'pkcs1Pem' | 'sec1' | 'raw';
+```
+
+A signature proves who published a bundle by signing the integrity string's bytes, so signature verification requires an integrity value to be present.
+
+<Callout type="info">
+  Key-format constraints: `pkcs1Der` and `pkcs1Pem` apply to RSA only, `sec1` to ECDSA only, and
+  `raw` to Ed25519 only (a 32-byte key).
+</Callout>
+
+## Option interfaces
+
+Shapes passed into constructors and methods.
+
+```ts
+type BundleSourceConfig = {
+  builtinDir: string;
+  remoteDir: string;
+  builtinManifestFilepath?: string;
+  remoteManifestFilepath?: string;
+};
+
+type UpdaterOptions = {
+  channel?: string;
+  integrityPolicy?: IntegrityPolicy;
+  integrityChecker?: (data: Uint8Array, integrity: string) => Promise<boolean>;
+  signatureVerifier?:
+    | SignatureVerifierOptions
+    | ((data: Uint8Array, signature: string) => Promise<boolean>);
+};
+
+type SignatureVerifierOptions = {
+  algorithm: SignatureAlgorithm;
+  key: { format: VerifyingKeyFormat; data: string | Uint8Array };
+};
+```
+
+`UpdaterOptions` accepts both a declarative `signatureVerifier` (algorithm plus key) and a custom callback. The same applies to `integrityChecker`, which can replace the built-in SHA-2 check with your own function.
+
+## Result types
+
+Shapes returned by the reader, [BundleSource](/docs/references/node/source), and [Updater](/docs/references/node/updater).
+
+```ts
+type BundleManifestMetadata = {
+  etag?: string;
+  integrity?: string; // "<alg>:<base64>", e.g. "sha256:n4bQ…"
+  signature?: string; // base64
+  lastModified?: string;
+};
+
+// BundleSource.loadVersion()
+type BundleSourceVersion = {
+  type: BundleSourceKind; // 'builtin' | 'remote'
+  version: string;
+};
+
+// BundleSource.listBundles()
+type ListBundleItem = {
+  type: BundleSourceKind;
+  name: string;
+  version: string;
+  current: boolean;
+  metadata: BundleManifestMetadata;
+};
+
+// Updater.getUpdate()
+type BundleUpdateInfo = {
+  name: string;
+  version: string; // the deployed version
+  localVersion?: string; // the installed version, if any
+  isAvailable: boolean; // true when version !== localVersion
+  etag?: string;
+  integrity?: string;
+  signature?: string;
+  lastModified?: string;
+};
+
+// BundleBuilder.build() — seeds are for tests
+type BuildOptions = {
+  header?: { checksumSeed?: number };
+  index?: { checksumSeed?: number };
+  dataChecksumSeed?: number;
+};
+
+// Returned by protocol handlers' handle()
+type HttpResponse = {
+  status: number;
+  headers: Record<string, string>;
+  body: Buffer;
+};
+```
+
+## Related
+
+<Cards>
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="Overview of @wvb/node and the classes that use these types."
+  />
+  <Card
+    title="BundleSource"
+    href="/docs/references/node/source"
+    description="Returns BundleSourceVersion, ListBundleItem, and BundleManifestMetadata."
+  />
+  <Card
+    title="Updater"
+    href="/docs/references/node/updater"
+    description="Accepts UpdaterOptions and returns BundleUpdateInfo."
+  />
+  <Card
+    title="Remote & signature config"
+    href="/docs/config/remote"
+    description="Configure integrity policy and signing in wvb.config."
+  />
+</Cards>
