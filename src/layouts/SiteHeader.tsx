@@ -1,35 +1,20 @@
 import { usePathname } from 'fumadocs-core/framework';
 import { FullSearchTrigger, SearchTrigger } from 'fumadocs-ui/layouts/shared/slots/search-trigger';
-import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
 import { LanguageDropdown } from './docs/LanguageDropdown';
+import { CONTROL_BUTTON, SECTIONS } from './header-shared';
 import { GitHubIcon } from './home/components/icons';
 import { Logo } from './home/components/Logo';
 import { ThemeToggle } from './home/components/ThemeToggle';
 import { GITHUB_URL } from './home/data';
+import { MobileNav } from './MobileNav';
 
-export interface HeaderLink {
-  label: string;
-  href: string;
-}
-
-// Shared site header for both the landing page and the docs, so the two share
-// one design (logo, wordmark, nav links, search, language, GitHub, theme). The
+// Shared site header for both the landing page and the docs. Desktop (`md`+):
+// logo, section links, search, language, GitHub, theme. Mobile (`< md`):
+// logo, search icon, and a hamburger that opens the full-screen {@link MobileNav}.
 // `className` positions it per context (landing: `sticky top-0`; docs: the
-// notebook grid header area). All right-side controls are 32px tall so the
-// search box lines up with the buttons next to it.
-const CONTROL_BUTTON =
-  'flex size-8 items-center justify-center rounded-md border border-zinc-300 text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100';
-
-export function SiteHeader({
-  links,
-  className,
-  mobileMenu,
-}: {
-  links: HeaderLink[];
-  className?: string;
-  mobileMenu?: ReactNode;
-}) {
+// notebook layout's header grid area).
+export function SiteHeader({ className }: { className?: string }) {
   const pathname = usePathname();
 
   return (
@@ -46,14 +31,14 @@ export function SiteHeader({
         </a>
 
         <nav className="hidden items-center gap-5 font-mono text-[13.5px] text-zinc-600 md:flex dark:text-zinc-400">
-          {links.map(link => (
+          {SECTIONS.map(section => (
             <a
-              key={link.href}
-              href={link.href}
-              data-active={link.href.startsWith('/docs') && pathname.startsWith(link.href)}
+              key={section.href}
+              href={section.href}
+              data-active={pathname.startsWith(section.href)}
               className="transition-colors hover:text-zinc-900 data-[active=true]:text-brand dark:hover:text-zinc-100 dark:data-[active=true]:text-brand"
             >
-              {link.label}
+              {section.label}
             </a>
           ))}
         </nav>
@@ -61,18 +46,23 @@ export function SiteHeader({
         <div className="ml-auto flex items-center gap-2">
           <FullSearchTrigger className="hidden h-8 w-56 rounded-md lg:inline-flex" hideIfDisabled />
           <SearchTrigger className={cn(CONTROL_BUTTON, 'lg:hidden')} hideIfDisabled />
-          <LanguageDropdown />
-          <a
-            href={GITHUB_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="GitHub repository"
-            className={CONTROL_BUTTON}
-          >
-            <GitHubIcon className="size-[15px]" />
-          </a>
-          <ThemeToggle />
-          {mobileMenu}
+
+          {/* Desktop controls; on mobile these live inside the full-screen menu. */}
+          <div className="hidden items-center gap-2 md:flex">
+            <LanguageDropdown />
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="GitHub repository"
+              className={CONTROL_BUTTON}
+            >
+              <GitHubIcon className="size-[15px]" />
+            </a>
+            <ThemeToggle />
+          </div>
+
+          <MobileNav className="md:hidden" />
         </div>
       </div>
     </header>

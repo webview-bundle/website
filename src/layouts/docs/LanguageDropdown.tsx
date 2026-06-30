@@ -45,11 +45,11 @@ function ChevronDownIcon(props: ComponentProps<'svg'>) {
   );
 }
 
-export function LanguageDropdown() {
+export function LanguageDropdown({ menuPlacement = 'down' }: { menuPlacement?: 'down' | 'up' }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative max-md:hidden">
+    <div className="relative">
       <button
         type="button"
         onClick={() => setOpen(value => !value)}
@@ -64,7 +64,12 @@ export function LanguageDropdown() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" aria-hidden="true" onClick={() => setOpen(false)} />
-          <ul className="absolute end-0 z-50 mt-2 min-w-36 overflow-hidden rounded-md border border-fd-border bg-fd-popover py-1 text-sm shadow-lg">
+          <ul
+            className={cn(
+              'absolute z-50 min-w-36 overflow-hidden rounded-md border border-fd-border bg-fd-popover py-1 text-sm shadow-lg',
+              menuPlacement === 'up' ? 'start-0 bottom-full mb-2' : 'end-0 mt-2'
+            )}
+          >
             {LANGUAGES.map(language => (
               <li key={language.code}>
                 <button
