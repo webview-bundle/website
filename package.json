@@ -19,6 +19,7 @@
     "@date-fns/tz": "1.5.0",
     "@fontsource-variable/inter": "5.2.8",
     "@fontsource-variable/jetbrains-mono": "5.2.8",
+    "@orama/orama": "3.1.18",
     "@sentry/cloudflare": "10.53.1",
     "@sentry/tanstackstart-react": "10.53.1",
     "@tanstack/react-router": "1.170.8",
@@ -29,6 +30,8 @@
     "fumadocs-core": "16.7.16",
     "fumadocs-mdx": "14.3.0",
     "fumadocs-ui": "16.7.16",
+    "garu-ko": "0.9.7",
+    "garu-orama-tokenizer": "0.4.1",
     "jose": "6.2.3",
     "react": "19.2.6",
     "react-dom": "19.2.6",
@@ -49,6 +52,9 @@
     "typescript": "6.0.3",
     "vite": "8.0.14",
     "wrangler": "4.94.0"
+  },
+  "resolutions": {
+    "garu-ko": "0.9.7"
   },
   "packageManager": "yarn@4.15.0"
 }
