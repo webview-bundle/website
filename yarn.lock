@@ -1605,7 +1605,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@orama/orama@npm:^3.1.18":
+"@orama/orama@npm:3.1.18, @orama/orama@npm:^3.1.18":
   version: 3.1.18
   resolution: "@orama/orama@npm:3.1.18"
   checksum: 10c0/868be5143eb4a27e700d9cc866763d1cc04405ef0af6a6b6b6987dcf33ee5d4ba90d3a32cd134006d46d34d64e32500e13cd31436c718eadc396a940e793e7cd
@@ -4944,6 +4944,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"garu-ko@npm:0.9.7":
+  version: 0.9.7
+  resolution: "garu-ko@npm:0.9.7"
+  checksum: 10c0/660f5e5d8bca42a2d4326c8add45dc25cbf1c066b9c0685fa285728665b80a31201768a37bb86dd744fad88540c49343cb5ff4474ee7677afc000e18417d365d
+  languageName: node
+  linkType: hard
+
+"garu-orama-tokenizer@npm:0.4.1":
+  version: 0.4.1
+  resolution: "garu-orama-tokenizer@npm:0.4.1"
+  dependencies:
+    garu-ko: "npm:^0.9.0"
+  peerDependencies:
+    "@orama/orama": ">=2.0.0"
+  checksum: 10c0/19d1e885dfb32430a7869e2549de6d5ff8a4fb8363cafc8d6ecbe4b413983c8c4ef3c0e185b5f228688ddc9925533f58f390b8330e829614be0eb0ca9c045e60
+  languageName: node
+  linkType: hard
+
 "gensync@npm:^1.0.0-beta.2":
   version: 1.0.0-beta.2
   resolution: "gensync@npm:1.0.0-beta.2"
@@ -7956,6 +7974,7 @@ __metadata:
     "@date-fns/tz": "npm:1.5.0"
     "@fontsource-variable/inter": "npm:5.2.8"
     "@fontsource-variable/jetbrains-mono": "npm:5.2.8"
+    "@orama/orama": "npm:3.1.18"
     "@sentry/cloudflare": "npm:10.53.1"
     "@sentry/tanstackstart-react": "npm:10.53.1"
     "@sentry/vite-plugin": "npm:5.3.0"
@@ -7972,6 +7991,8 @@ __metadata:
     fumadocs-core: "npm:16.7.16"
     fumadocs-mdx: "npm:14.3.0"
     fumadocs-ui: "npm:16.7.16"
+    garu-ko: "npm:0.9.7"
+    garu-orama-tokenizer: "npm:0.4.1"
     jose: "npm:6.2.3"
     oxfmt: "npm:0.51.0"
     oxlint: "npm:1.66.0"
