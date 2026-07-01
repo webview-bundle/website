@@ -10,7 +10,8 @@ export const i18n = defineI18n({
 
 export type Locale = (typeof i18n)['languages'][number];
 
-export const DEFAULT_LOCALE: Locale = 'en';
+// Single source of truth — follows the `defineI18n` config above.
+export const DEFAULT_LOCALE: Locale = i18n.defaultLanguage;
 
 export function isLocale(value: string): value is Locale {
   return (i18n.languages as readonly string[]).includes(value);

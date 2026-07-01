@@ -1,4 +1,3 @@
-import { usePathname } from 'fumadocs-core/framework';
 import { createContext, type ReactNode, use } from 'react';
 import { DEFAULT_LOCALE, isLocale, type Locale, localePrefix } from './i18n';
 
@@ -16,10 +15,6 @@ export function useLocale(): Locale {
 export function localeFromPathname(pathname: string): Locale {
   const first = pathname.split('/').filter(Boolean)[0];
   return first != null && isLocale(first) ? first : DEFAULT_LOCALE;
-}
-
-export function useLocaleFromPath(): Locale {
-  return localeFromPathname(usePathname());
 }
 
 // Korean overrides for the built-in fumadocs-ui strings (search box, table of

@@ -142,7 +142,7 @@ WebViewBundleConfig(protocols: [
 `window.webkit.messageHandlers.wvbIos`로 메시지를 보내며, 브리지는 **메인 프레임 메시지만** 받습니다
 (서브프레임과 iframe 메시지는 버려집니다). 브리지는 소스, 원격, 업데이터 명령어를 노출합니다.
 
-```ts title="web app"
+```ts title="웹 앱"
 window.webkit.messageHandlers.wvbIos.postMessage({
   name: 'updaterGetUpdate',
   params: { bundleName: 'app' },

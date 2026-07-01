@@ -17,6 +17,13 @@ function LocalizedLink({ href, ...props }: ComponentProps<'a'>) {
   return <Anchor href={href == null ? href : localizeHref(href, locale)} {...props} />;
 }
 
+// `<Card>` renders its own anchor (it doesn't go through the `a` override above),
+// so localize its href the same way.
+function LocalizedCard({ href, ...props }: ComponentProps<typeof Card>) {
+  const locale = useLocale();
+  return <Card href={href == null ? href : localizeHref(href, locale)} {...props} />;
+}
+
 const BADGE_TONES = {
   amber:
     'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400',
@@ -50,7 +57,7 @@ export function getMDXComponents(components?: MDXComponents) {
     a: LocalizedLink,
     img: props => <ImageZoom {...props} />,
     Callout,
-    Card,
+    Card: LocalizedCard,
     Cards,
     Badge,
     ...TabsComponents,
