@@ -12,7 +12,9 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => {
   return {
-    requestMiddleware: [csrfMiddleware, sentryGlobalRequestMiddleware],
+    // Sentry first (outermost) so it observes the whole request, including any
+    // CSRF rejection raised by the middleware after it.
+    requestMiddleware: [sentryGlobalRequestMiddleware, csrfMiddleware],
     functionMiddleware: [sentryGlobalFunctionMiddleware],
   };
 });
