@@ -1,0 +1,90 @@
+---
+title: Source
+description: BundleSource는 builtin 디렉터리와 remote 디렉터리에 걸쳐 번들을 해석하며, remote 사본이 우선합니다.
+---
+
+`BundleSource`는 주어진 번들 이름에 대해 어떤 `.wvb` 파일을 제공할지 결정하는 `@wvb/node`의 클래스입니다. 이 클래스는 두 디렉터리에 걸쳐 번들을 관리합니다. 하나는 앱과 함께 배포된 번들을 담는 builtin 디렉터리이고, 다른 하나는 무선(OTA)으로 다운로드한 번들을 담는 remote 디렉터리입니다. 두 디렉터리가 같은 이름의 번들을 모두 가지고 있으면 remote 사본이 우선합니다. 따라서 OTA 업데이트가 앱과 함께 배포된 버전을 자연스럽게 대체합니다.
+
+`BundleSource`는 [`BundleProtocol`](/docs/references/node/protocol)이 번들을 제공하는 기반이자 [`Updater`](/docs/references/node/updater)가 다운로드를 준비해 두는 기반입니다. 매니페스트, 채널, 디렉터리 구조가 어떻게 맞물리는지는 [Bundle sources](/docs/guide/bundle-sources)를 참고하세요. 패키지 전체 구성은 [Node API 개요](/docs/references/node)를 참고하세요.
+
+## Constructor
+
+```ts
+new BundleSource(config: BundleSourceConfig)
+```
+
+`config`는 [`BundleSourceConfig`](/docs/references/node/types)입니다. 이 설정은 소스가 두 디렉터리를 가리키게 하며, 선택적으로 명시적인 매니페스트 파일 경로도 지정합니다:
+
+```ts
+import { BundleSource } from '@wvb/node';
+
+const source = new BundleSource({
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+```
+
+<Callout type="info">
+  번들 이름이 두 디렉터리에서 모두 해석되면 `BundleSource`는 remote 버전을 반환합니다. 이 덕분에
+  다운로드한 업데이트가 네이티브 앱스토어 릴리스 없이도 builtin 번들을 대체합니다.
+</Callout>
+
+## Methods
+
+| Method                     | Signature                                                        |
+| -------------------------- | ---------------------------------------------------------------- |
+| `listBundles`              | `(): Promise<ListBundleItem[]>`                                  |
+| `loadVersion`              | `(bundleName): Promise<BundleSourceVersion \| null>`             |
+| `updateRemoteVersion`      | `(bundleName, version): Promise<void>`                           |
+| `resolveFilepath`          | `(bundleName): Promise<string>`                                  |
+| `getBuiltinBundleFilepath` | `(bundleName, version): string`                                  |
+| `getRemoteBundleFilepath`  | `(bundleName, version): string`                                  |
+| `fetchBundle`              | `(bundleName): Promise<Bundle>`                                  |
+| `fetchBuiltinBundle`       | `(name, version): Promise<Bundle>`                               |
+| `fetchRemoteBundle`        | `(name, version): Promise<Bundle>`                               |
+| `fetchDescriptor`          | `(bundleName): Promise<BundleDescriptor>`                        |
+| `loadBuiltinMetadata`      | `(name, version): Promise<BundleManifestMetadata \| null>`       |
+| `loadRemoteMetadata`       | `(name, version): Promise<BundleManifestMetadata \| null>`       |
+| `writeRemoteBundle`        | `(name, version, bundle, metadata): Promise<void>`               |
+| `loadDescriptor`           | `(bundleName): Promise<LoadedDescriptor>` (single-flight cached) |
+| `unloadDescriptor`         | `(bundleName): boolean`                                          |
+| `removeRemoteBundle`       | `(name, version): Promise<boolean>`                              |
+| `remoteRetainedVersions`   | `(name): Promise<string[]>` (current + previous)                 |
+| `pruneRemoteBundles`       | `(name): Promise<string[]>`                                      |
+
+`listBundles`는 두 디렉터리에 걸친 모든 번들을 [`ListBundleItem`](/docs/references/node/types)으로 보고합니다. 각 항목은 `type`(`builtin` 또는 `remote`), 이름, 버전, 현재 버전 여부, 매니페스트 메타데이터를 담습니다. `loadVersion`은 이름에 대한 유효 버전을 해석하고, 그 버전이 어느 디렉터리에서 왔는지 알려줍니다. `resolveFilepath`는 remote 우선 규칙에 따라 선택되는 경로를 반환합니다. 반면 `getBuiltinBundleFilepath`와 `getRemoteBundleFilepath`는 특정 버전에 대해 디렉터리별 경로를 계산합니다.
+
+`fetch*` 메서드는 파싱된 [`Bundle`](/docs/references/node/bundle)을 읽습니다. `fetchBundle`은 우선 규칙을 따르고, `fetchBuiltinBundle`과 `fetchRemoteBundle`은 특정 디렉터리 하나만 대상으로 합니다. `fetchDescriptor`는 모든 파일을 메모리에 로드하지 않고 [`BundleDescriptor`](/docs/references/node/bundle)를 반환합니다.
+
+`loadDescriptor`는 single-flight 방식으로 `LoadedDescriptor`를 캐시합니다. 따라서 동시에 호출한 여러 호출자가 하나의 로드를 공유합니다. `unloadDescriptor`는 캐시된 핸들을 해제합니다. remote 디렉터리에 기록하는 경로는 `writeRemoteBundle`입니다. 이 메서드는 다운로드한 번들과 그 [`BundleManifestMetadata`](/docs/references/node/types)를 저장합니다. `remoteRetainedVersions`는 소스가 이름에 대해 보관하는 버전(현재 버전과 이전 버전)을 나열합니다. `removeRemoteBundle`은 특정 버전을 삭제하고, `pruneRemoteBundles`는 더 이상 보관되지 않는 버전을 제거합니다.
+
+<Callout type="info">
+  상위 수준의 OTA 흐름은 대개 [`Updater`](/docs/references/node/updater)를 통해 이 메서드들을
+  호출합니다. `Updater`는 remote 버전을 준비하고 활성화해 줍니다. 해석, 메타데이터, 정리를 세밀하게
+  제어해야 할 때는 `BundleSource`를 직접 사용하세요.
+</Callout>
+
+## Related
+
+<Cards>
+  <Card
+    title="Bundle sources"
+    href="/docs/guide/bundle-sources"
+    description="매니페스트, 채널, 그리고 builtin과 remote 디렉터리의 구성 방식."
+  />
+  <Card
+    title="Node API 개요"
+    href="/docs/references/node"
+    description="@wvb/node 전체 구성: reader, builder, protocol, remote, updater."
+  />
+  <Card
+    title="Types"
+    href="/docs/references/node/types"
+    description="BundleSourceConfig, ListBundleItem, 그리고 여기서 사용하는 그 밖의 결과 타입."
+  />
+  <Card
+    title="Updater"
+    href="/docs/references/node/updater"
+    description="BundleSource 위에서 remote 버전을 준비하고 활성화합니다."
+  />
+</Cards>

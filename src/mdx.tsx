@@ -4,8 +4,18 @@ import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import * as TabsComponents from 'fumadocs-ui/components/tabs';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import type { MDXComponents } from 'mdx/types';
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { cn } from './lib/cn';
+import { useLocale } from './lib/locale';
+import { localizeHref } from './lib/locale';
+
+// Prefix internal `/docs/...` links with the active locale so translated pages
+// link to their own language (`/ko/docs/...`) without the MDX carrying prefixes.
+function LocalizedLink({ href, ...props }: ComponentProps<'a'>) {
+  const locale = useLocale();
+  const Anchor = defaultMdxComponents.a ?? 'a';
+  return <Anchor href={href == null ? href : localizeHref(href, locale)} {...props} />;
+}
 
 const BADGE_TONES = {
   amber:
@@ -37,6 +47,7 @@ function Badge({
 export function getMDXComponents(components?: MDXComponents) {
   return {
     ...defaultMdxComponents,
+    a: LocalizedLink,
     img: props => <ImageZoom {...props} />,
     Callout,
     Card,

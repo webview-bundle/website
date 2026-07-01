@@ -1,8 +1,9 @@
 import { Dialog } from '@base-ui/react/dialog';
 import { usePathname } from 'fumadocs-core/framework';
 import { cn } from '../lib/cn';
+import { useUiStrings } from '../lib/ui-strings';
 import { LanguageDropdown } from './docs/LanguageDropdown';
-import { CONTROL_BUTTON, SECTIONS } from './header-shared';
+import { CONTROL_BUTTON } from './header-shared';
 import { CloseIcon, GitHubIcon, MenuIcon } from './home/components/icons';
 import { Logo } from './home/components/Logo';
 import { ThemeToggle } from './home/components/ThemeToggle';
@@ -13,10 +14,11 @@ import { GITHUB_URL } from './home/data';
 // shared header on small screens (the inline nav + controls take over from `md`).
 export function MobileNav({ className }: { className?: string }) {
   const pathname = usePathname();
+  const t = useUiStrings();
 
   return (
     <Dialog.Root>
-      <Dialog.Trigger aria-label="Open menu" className={cn(CONTROL_BUTTON, className)}>
+      <Dialog.Trigger aria-label={t.menu.open} className={cn(CONTROL_BUTTON, className)}>
         <MenuIcon className="size-[18px]" />
       </Dialog.Trigger>
 
@@ -30,13 +32,13 @@ export function MobileNav({ className }: { className?: string }) {
                 webview-bundle
               </span>
             </Dialog.Title>
-            <Dialog.Close aria-label="Close menu" className={CONTROL_BUTTON}>
+            <Dialog.Close aria-label={t.menu.close} className={CONTROL_BUTTON}>
               <CloseIcon className="size-[18px]" />
             </Dialog.Close>
           </div>
 
           <nav className="mt-6 flex flex-col gap-1 font-sans text-[15px]">
-            {SECTIONS.map(section => (
+            {t.sections.map(section => (
               <Dialog.Close
                 key={section.href}
                 render={<a href={section.href}>{section.label}</a>}
@@ -56,7 +58,7 @@ export function MobileNav({ className }: { className?: string }) {
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noreferrer"
-                aria-label="GitHub repository"
+                aria-label={t.menu.github}
                 className={CONTROL_BUTTON}
               >
                 <GitHubIcon className="size-[15px]" />

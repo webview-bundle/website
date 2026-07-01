@@ -1,0 +1,30 @@
+{
+  "root": true,
+  "title": "가이드",
+  "pages": [
+    "---소개---",
+    "index",
+    "platform-support",
+    "why-webview-bundle",
+    "---기능---",
+    "bundle-format",
+    "bundle-sources",
+    "protocol-handling",
+    "remote-bundles",
+    "platform-integration",
+    "---플랫폼---",
+    "platforms/electron",
+    "platforms/tauri",
+    "platforms/android",
+    "platforms/ios",
+    "platforms/deno",
+    "---CLI---",
+    "cli",
+    "commands",
+    "cli-programmatic",
+    "---원격---",
+    "remote",
+    "providers",
+    "spec"
+  ]
+}

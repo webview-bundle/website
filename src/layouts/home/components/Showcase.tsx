@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '../../../lib/cn';
+import { useUiStrings } from '../../../lib/ui-strings';
 
 type View = 'mobile' | 'desktop';
-const VIEWS: { id: View; label: string }[] = [
-  { id: 'mobile', label: 'Mobile' },
-  { id: 'desktop', label: 'Desktop' },
-];
+const VIEWS: { id: View }[] = [{ id: 'mobile' }, { id: 'desktop' }];
 
 // A dark "spotlight" band: the demo footage is dark-themed, so we frame it on a dark
 // surface (in light mode too) to make it an intentional focal moment rather than a clash.
@@ -13,6 +11,7 @@ const VIEWS: { id: View; label: string }[] = [
 // single-device portrait cut, but a simple Mobile/Desktop tab lets viewers preview either.
 // WebM (VP9) is primary with an H.264 mp4 fallback for browsers without VP9 (e.g. older iOS Safari).
 export function Showcase() {
+  const t = useUiStrings();
   const framesRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState<View>('mobile'); // only affects the < lg layout
 
@@ -55,17 +54,18 @@ export function Showcase() {
       <div className="relative mx-auto max-w-6xl px-4 pt-16 sm:px-6 sm:pt-24">
         <div className="mb-6 flex items-baseline justify-between gap-4">
           <div className="font-mono text-[11px] tracking-widest text-blue-300/80 uppercase">
-            Live demo
+            {t.showcase.eyebrow}
           </div>
           <div className="font-mono text-[11.5px] text-zinc-400">one .wvb → every webview</div>
         </div>
 
         <h2 className="max-w-2xl text-3xl leading-[1.08] font-semibold tracking-[-0.02em] text-balance text-white sm:text-[40px]">
-          One bundle. Every webview.
+          {t.showcase.title}
         </h2>
         <p className="mt-4 max-w-xl font-mono text-[14px] leading-relaxed text-zinc-400">
-          The same signed <code className="text-zinc-200">.wvb</code> — a Hacker News reader —
-          running unmodified on Electron, Tauri, iOS, and Android.
+          {t.showcase.subtitleBefore}
+          <code className="text-zinc-200">.wvb</code>
+          {t.showcase.subtitleAfter}
         </p>
       </div>
 
@@ -75,7 +75,7 @@ export function Showcase() {
         <div className="mb-5 flex justify-center lg:hidden">
           <div
             role="tablist"
-            aria-label="Choose showcase view"
+            aria-label={t.showcase.chooseView}
             className="inline-flex gap-0.5 rounded-full border border-white/10 bg-white/[0.03] p-0.5 font-mono text-[12px]"
           >
             {VIEWS.map(v => (
@@ -90,7 +90,7 @@ export function Showcase() {
                   view === v.id ? 'bg-white/10 text-white' : 'text-zinc-400 hover:text-zinc-200'
                 )}
               >
-                {v.label}
+                {v.id === 'mobile' ? t.showcase.mobile : t.showcase.desktop}
               </button>
             ))}
           </div>

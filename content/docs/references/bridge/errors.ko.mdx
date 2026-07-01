@@ -1,0 +1,61 @@
+---
+title: 오류
+description: '@wvb/bridge가 BridgeError와 BridgeErrorCode 값을 통해 실패를 표현하는 방식.'
+---
+
+`@wvb/bridge`에서 발생하는 모든 실패는 `BridgeError`로 표현됩니다. 이 클래스는 `Error`의 서브클래스이며, `name`은 `'BridgeError'`로 설정되고 `BridgeErrorCode`에서 가져온 선택적 `code`를 가집니다. `invoke()`를 직접 호출하든 타입이 지정된 명령어 그룹을 호출하든, 모든 거부(rejection)는 이 단일 오류 타입으로 감싸집니다. 따라서 잡아서 검사할 형태가 하나로 통일됩니다.
+
+## BridgeError
+
+`BridgeError`는 내장 `Error`를 확장합니다. 사람이 읽을 수 있는 설명은 `message`에서 확인하고, 특정 실패에 따라 분기하려면 `code`를 확인하세요. 이 패키지는 타입 가드 `isBridgeError`와 `isBridgeErrorData`, 그리고 정적 헬퍼 `BridgeError.of(code, message?)`와 `BridgeError.from(value)`도 내보냅니다.
+
+## BridgeErrorCode
+
+`code` 속성은 존재할 경우 다음 값 중 하나입니다. 이 값은 전송 시 실려 가는 문자열입니다.
+
+| Code                    | Value                     | 발생 상황                                        |
+| ----------------------- | ------------------------- | ------------------------------------------------ |
+| `InvalidParams`         | `invalid_params`          | 명령어 파라미터가 거부되었습니다.                |
+| `RemoteNotInitialized`  | `remote_not_initialized`  | 호스트에 원격이 설정되지 않았습니다.             |
+| `UpdaterNotInitialized` | `updater_not_initialized` | 호스트에 업데이터가 설정되지 않았습니다.         |
+| `HandlerNotFound`       | `handler_not_found`       | 호스트에 해당 명령어를 처리할 핸들러가 없습니다. |
+| `UnencodableResult`     | `unencodable_result`      | 결과를 반환용으로 인코딩할 수 없습니다.          |
+
+## 오류 처리
+
+오류를 잡은 뒤 `isBridgeError`로 타입을 좁히고, `code`를 `BridgeErrorCode`와 비교하세요.
+
+```ts
+import { BridgeError, BridgeErrorCode, isBridgeError, updater } from '@wvb/bridge';
+
+try {
+  const update = await updater.getUpdate('app');
+  // update 사용...
+} catch (err) {
+  if (isBridgeError(err) && err.code === BridgeErrorCode.UpdaterNotInitialized) {
+    // 네이티브 호스트에 업데이터가 설정되지 않았습니다.
+    return;
+  }
+  throw err;
+}
+```
+
+<Callout type="info">
+  `err.code`는 선택적입니다. `BridgeError`는 `code` 없이 던져질 수 있습니다(예를 들어 웹뷰가
+  전송(transport)이 없는 환경에서 실행되는 경우). 따라서 분기하기 전에 `undefined`인지 확인하세요.
+</Callout>
+
+## 함께 보기
+
+<Cards>
+  <Card
+    title="Bridge"
+    href="/docs/references/bridge"
+    description="웹 측 @wvb/bridge 라이브러리와 타입이 지정된 명령어 그룹."
+  />
+  <Card
+    title="Testing"
+    href="/docs/references/bridge/testing"
+    description="네이티브 호스트 없이 테스트에서 브리지를 구동합니다."
+  />
+</Cards>

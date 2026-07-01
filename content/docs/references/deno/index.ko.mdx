@@ -1,0 +1,139 @@
+---
+title: Deno API
+description: '@wvb/node의 Deno FFI 대응 패키지인 @wvb/deno 패키지 레퍼런스입니다.'
+---
+
+<Badge>실험적</Badge>
+
+Deno 연동은 실험적입니다.
+
+`@wvb/deno`는 Webview Bundle의 Deno 바인딩입니다. [`@wvb/node`](/docs/references/node)의 FFI 대응 패키지로,
+동일한 프로토콜, 소스, 원격, 업데이터 기능을 제공합니다. Deno FFI로 로드한 네이티브 cdylib를 통해
+Deno 데스크톱 웹뷰에 이를 제공합니다. 이 페이지에서는 네이티브 라이브러리를 로드하는 방법을 다룹니다.
+클래스, 옵션, 타입은 아래 카테고리 페이지에서 설명합니다.
+
+## API 표면
+
+Deno 바인딩은 `@wvb/node`를 그대로 반영합니다. 각 클래스는 로드된 `lib`를 받고,
+[Node API 레퍼런스](/docs/references/node)에서 설명한 것과 동일한 역할을 수행합니다.
+
+<Cards>
+  <Card
+    title="BundleSource"
+    href="/docs/references/deno/source"
+    description="빌트인과 원격 디렉터리에서 번들을 해석합니다."
+  />
+  <Card
+    title="Protocols"
+    href="/docs/references/deno/protocol"
+    description="번들을 제공하거나 로컬 URL을 웹뷰로 프록시합니다."
+  />
+  <Card
+    title="Remote"
+    href="/docs/references/deno/remote"
+    description="HTTP로 원격 번들 서버와 통신합니다."
+  />
+  <Card
+    title="Updater"
+    href="/docs/references/deno/updater"
+    description="원격에서 새 버전을 확인하고 설치합니다."
+  />
+</Cards>
+
+## 네이티브 라이브러리 로드
+
+Deno 바인딩은 Deno FFI로 Rust cdylib와 통신합니다. 클래스를 생성하기 전에 먼저 라이브러리를 로드하세요.
+두 가지 방법이 있습니다.
+
+cdylib가 이미 디스크에 있고 이를 직접 가리키려면 `loadLib(libPath)`를 사용하세요.
+
+```ts title="main.ts"
+import { loadLib } from 'jsr:@wvb/deno';
+
+const lib = loadLib('./vendor/wvb/libwvb_deno.dylib');
+```
+
+미리 빌드된 cdylib를 필요할 때 다운로드하려면 `loadLibViaPlug(options)`를 사용하세요.
+[`@denosaurs/plug`](https://jsr.io/@denosaurs/plug)를 통해 일치하는 아티팩트를 가져오고,
+게시된 SHA-256으로 검증한 뒤 로컬에 캐시합니다.
+
+```ts title="main.ts"
+import { loadLibViaPlug } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+```
+
+로드 과정에서 해석되는 라이브러리 경로를 재정의하려면 `WVB_DENO_LIB` 환경 변수를 설정하세요.
+
+### cdylib 설치
+
+런타임에 다운로드하는 대신 cdylib를 미리 벤더링할 수 있습니다. 설치 프로그램을 실행하세요.
+
+```sh
+deno run -A jsr:@wvb/deno/install --out vendor/wvb
+```
+
+호스트가 아닌 특정 플랫폼 빌드를 가져오려면 `--target <triple>`을 전달하세요.
+
+```sh
+deno run -A jsr:@wvb/deno/install --out vendor/wvb --target aarch64-unknown-linux-gnu
+```
+
+설치 프로그램은 GitHub Releases에서 자산을 다운로드하고 기본적으로 SHA-256을 검증합니다. 지원하는
+타깃은 다음과 같습니다.
+
+| Target triple               | Platform              |
+| --------------------------- | --------------------- |
+| `aarch64-apple-darwin`      | macOS (Apple Silicon) |
+| `x86_64-apple-darwin`       | macOS (Intel)         |
+| `aarch64-unknown-linux-gnu` | Linux (arm64, glibc)  |
+| `x86_64-unknown-linux-gnu`  | Linux (x64, glibc)    |
+| `x86_64-pc-windows-msvc`    | Windows (x64)         |
+
+## 인스턴스 해제
+
+FFI 클래스는 네이티브 핸들을 소유합니다. 이들은 `Disposable`이므로, 사용을 마치면 `free()`를 호출하거나
+`using`으로 바인딩하여 스코프를 벗어날 때 `[Symbol.dispose]`를 통해 해제되도록 하세요.
+
+```ts
+using protocol = new BundleProtocol(lib, source);
+// 스코프가 끝나면 자동으로 해제됩니다
+
+const remote = new Remote(lib, 'https://bundles.example.com');
+try {
+  // ...
+} finally {
+  remote.free();
+}
+```
+
+## 제한 사항
+
+Deno 바인딩은 FFI 경계를 넘나들기 때문에, 일부 `@wvb/node` 기능은 현재 지원 범위 밖입니다.
+
+- **선언적 검증만 지원합니다.** `Updater`는 선언적 `signatureVerifier`
+  (`SignatureVerifierOptions`)를 지원합니다. `@wvb/node`의 커스텀 함수형 `integrityChecker`와
+  `signatureVerifier` 콜백은 FFI로 지원되지 않습니다.
+- **`HttpOptions.defaultHeaders`는 지원되지 않습니다.** Deno `Remote`에서는 사용할 수 없습니다.
+
+## Deno Desktop 연동
+
+`@wvb/deno-desktop`은 `@wvb/deno`를 Deno의 데스크톱 런타임에 연결합니다. `webviewBundle` 팩토리는
+`BundleSource`(및 선택적 `Remote`/`Updater`)를 빌드하고 `Deno.serve` 호환 핸들러를 노출합니다.
+한편 `registerBindings`는 [`@wvb/bridge`](/docs/guide/platform-integration)의
+`source.*`/`remote.*`/`updater.*` 명령어를 `Deno.BrowserWindow`에 연결합니다.
+
+전체 과정을 처음부터 끝까지 살펴보려면 [Deno Desktop 가이드](/docs/guide/platforms/deno)를 참고하세요.
+
+<Cards>
+  <Card
+    title="Deno Desktop 가이드"
+    href="/docs/guide/platforms/deno"
+    description="Webview Bundle로 Deno 데스크톱 앱을 설정합니다."
+  />
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="이 패키지가 반영하는 안정 버전 @wvb/node 바인딩입니다."
+  />
+</Cards>

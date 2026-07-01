@@ -1,17 +1,13 @@
+import { usePathname } from 'fumadocs-core/framework';
 import { type ComponentProps, useState } from 'react';
 import { cn } from '../../lib/cn';
+import type { Locale } from '../../lib/i18n';
+import { switchLocalePath, useLocale } from '../../lib/locale';
+import { useUiStrings } from '../../lib/ui-strings';
 
-interface Language {
-  code: string;
-  label: string;
-  available: boolean;
-}
-
-// English ships today; Korean docs are planned (the project already maintains a
-// Korean README). This is a placeholder switcher until translated docs land.
-const LANGUAGES: Language[] = [
-  { code: 'en', label: 'English', available: true },
-  { code: 'ko', label: '한국어', available: false },
+const LANGUAGES: { code: Locale; label: string }[] = [
+  { code: 'en', label: 'English' },
+  { code: 'ko', label: '한국어' },
 ];
 
 function GlobeIcon(props: ComponentProps<'svg'>) {
@@ -47,13 +43,16 @@ function ChevronDownIcon(props: ComponentProps<'svg'>) {
 
 export function LanguageDropdown({ menuPlacement = 'down' }: { menuPlacement?: 'down' | 'up' }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const locale = useLocale();
+  const t = useUiStrings();
 
   return (
     <div className="relative">
       <button
         type="button"
         onClick={() => setOpen(value => !value)}
-        aria-label="Select language"
+        aria-label={t.language.select}
         aria-expanded={open}
         className="flex h-8 items-center gap-1 rounded-md border border-zinc-300 px-2 text-zinc-600 transition-colors hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
       >
@@ -70,28 +69,24 @@ export function LanguageDropdown({ menuPlacement = 'down' }: { menuPlacement?: '
               menuPlacement === 'up' ? 'start-0 bottom-full mb-2' : 'end-0 mt-2'
             )}
           >
-            {LANGUAGES.map(language => (
-              <li key={language.code}>
-                <button
-                  type="button"
-                  disabled={!language.available}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    'flex w-full items-center justify-between gap-3 px-3 py-1.5 text-start',
-                    language.available
-                      ? 'text-fd-foreground hover:bg-fd-accent'
-                      : 'cursor-not-allowed text-fd-muted-foreground'
-                  )}
-                >
-                  <span>{language.label}</span>
-                  {language.available ? (
-                    <span className="text-brand">Active</span>
-                  ) : (
-                    <span className="text-[10px] tracking-wide uppercase">Soon</span>
-                  )}
-                </button>
-              </li>
-            ))}
+            {LANGUAGES.map(language => {
+              const active = language.code === locale;
+              return (
+                <li key={language.code}>
+                  <a
+                    href={switchLocalePath(pathname, language.code)}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      'flex w-full items-center justify-between gap-3 px-3 py-1.5 text-start',
+                      active ? 'text-fd-foreground' : 'text-fd-foreground hover:bg-fd-accent'
+                    )}
+                  >
+                    <span>{language.label}</span>
+                    {active && <span className="text-brand">✓</span>}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </>
       )}

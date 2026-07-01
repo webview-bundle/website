@@ -1,11 +1,15 @@
 import { cn } from '../../../lib/cn';
+import { useUiStrings } from '../../../lib/ui-strings';
 import { FEATURES } from '../data';
 
 export function Features() {
+  const t = useUiStrings();
+  // Merge the localized copy over the shared data (number + code snippet).
+  const features = FEATURES.map((feature, index) => ({ ...feature, ...t.features[index] }));
   return (
     <section id="how-it-works" className="border-b border-zinc-200 dark:border-zinc-900">
       <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20">
-        {FEATURES.map((feature, index) => (
+        {features.map((feature, index) => (
           <div
             key={feature.number}
             className={cn(

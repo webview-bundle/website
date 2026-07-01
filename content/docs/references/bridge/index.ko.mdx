@@ -1,0 +1,160 @@
+---
+title: Bridge
+description: 웹뷰 안의 JavaScript가 네이티브 호스트를 호출하게 해주는 웹 측 @wvb/bridge 라이브러리입니다.
+---
+
+`@wvb/bridge`는 Webview Bundle의 웹 측 라이브러리입니다. **웹뷰 안에서** 실행되는 JavaScript가 번들 소스, 원격, 업데이터를 관리하는 네이티브 호스트를 호출하게 해줍니다. 하나의 통일된 `invoke()`가 Electron, Tauri, Android, iOS에서 모두 동작합니다. 플랫폼별 전송 방식은 추상화되어 있으므로 웹 코드는 어떤 플랫폼에서도 동일하게 유지됩니다.
+
+이 패키지는 순수 TypeScript이며, 타입이 지정된 명령어 그룹(`source`, `remote`, `updater`)을 제공합니다. 따라서 `invoke()`를 직접 호출하는 경우는 드뭅니다. 네이티브 호스트가 이 명령어들을 노출하는 방법은 [플랫폼 연동](/docs/guide/platform-integration)을 참고하세요. 대응하는 네이티브 API는 [Node API 레퍼런스](/docs/references/node)를 참고하세요.
+
+## Install
+
+`@wvb/bridge`의 버전은 `0.1.0`입니다.
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+<Tab value="npm">
+
+```sh
+npm install @wvb/bridge
+```
+
+</Tab>
+<Tab value="pnpm">
+
+```sh
+pnpm add @wvb/bridge
+```
+
+</Tab>
+<Tab value="yarn">
+
+```sh
+yarn add @wvb/bridge
+```
+
+</Tab>
+</Tabs>
+
+## invoke
+
+`invoke()`는 저수준 진입점입니다. 타입이 지정된 모든 명령어 헬퍼가 이 위에 만들어져 있으므로, 보통은 `source`, `remote`, `updater`를 사용합니다. 타입이 지정된 그룹이 다루지 않는 명령어에만 `invoke()`를 직접 사용하세요.
+
+```ts
+import { invoke } from '@wvb/bridge';
+
+const result = await invoke<string>('sourceResolveFilepath', { bundleName: 'app' });
+```
+
+시그니처는 `invoke<T = unknown>(name: string, params?: InvokeParams): Promise<T>`입니다. 모든 실패는 `BridgeError`로 감싸집니다. `InvokeParams`는 열린 레코드입니다.
+
+```ts
+type InvokeParams = { [key: string | number]: any };
+```
+
+## platform
+
+`platform` 객체는 웹뷰가 어떤 네이티브 호스트에서 실행 중인지 알려줍니다. 모든 속성은 접근할 때마다 실시간으로 계산되므로, 감지 조건이 바뀌어도 정확한 값을 유지합니다.
+
+```ts
+import { platform } from '@wvb/bridge';
+
+if (platform.isElectron) {
+  // Electron 전용 동작
+}
+
+console.log(platform.type); // 'electron' | 'tauri' | 'android' | 'ios'
+```
+
+| Member       | Type                                          | Description                        |
+| ------------ | --------------------------------------------- | ---------------------------------- |
+| `type`       | `'electron' \| 'tauri' \| 'android' \| 'ios'` | 감지된 호스트 플랫폼입니다.        |
+| `isElectron` | `boolean`                                     | Electron에서 실행 중이면 참입니다. |
+| `isTauri`    | `boolean`                                     | Tauri에서 실행 중이면 참입니다.    |
+| `isAndroid`  | `boolean`                                     | Android에서 실행 중이면 참입니다.  |
+| `isIos`      | `boolean`                                     | iOS에서 실행 중이면 참입니다.      |
+
+<Callout type="info">
+  `@wvb/bridge`는 이 네 가지 플랫폼을 감지합니다. Deno Desktop은 실험적이며, `@wvb/bridge`가 아니라
+  `@wvb/deno-desktop`을 통해 브리지 지원을 제공합니다.
+</Callout>
+
+## Transports
+
+각 플랫폼은 저마다의 전송 방식을 가지며, 모두 `invoke()` 뒤에 숨겨져 있습니다.
+
+- **Electron**은 `window.wvbElectron.invoke(name, params)`를 호출합니다.
+- **Tauri**는 `wvb-tauri` 플러그인 명령어를 호출하며, 명령어 이름을 snake case로 변환합니다.
+- **Android**는 `window.wvbAndroid`로 JSON 메시지를 전송하고, 임시 전역 콜백을 통해 결과를 반환합니다.
+- **iOS**는 `wvbIos` WebKit 메시지 핸들러로 메시지를 전송하고, 임시 전역 콜백을 통해 결과를 반환합니다.
+
+이 중 어느 것도 존재하지 않는 곳에서 웹뷰가 실행되면, `invoke()`는 네이티브 웹뷰가 Webview Bundle을 지원해야 한다는 오류를 던집니다.
+
+## Command groups
+
+브리지는 타입이 지정된 세 가지 명령어 그룹을 노출합니다. 각 메서드는 타입이 지정된 `invoke()` 호출입니다. 따라서 호출은 타입 검사를 거쳐 대응하는 네이티브 핸들러로 전달됩니다.
+
+<Cards>
+  <Card
+    title="source"
+    href="/docs/references/bridge/source"
+    description="네이티브 번들 소스 — 내장 번들과 원격 번들을 나열하고, 불러오고, 관리합니다."
+  />
+  <Card
+    title="remote"
+    href="/docs/references/bridge/remote"
+    description="네이티브 호스트를 통해 설정된 원격 서버와 통신합니다."
+  />
+  <Card
+    title="updater"
+    href="/docs/references/bridge/updater"
+    description="무선(OTA) 업데이트 흐름을 실행합니다: 확인, 다운로드, 설치."
+  />
+  <Card
+    title="Errors"
+    href="/docs/references/bridge/errors"
+    description="BridgeError와 그 코드, 그리고 내보내진 가드와 헬퍼입니다."
+  />
+  <Card
+    title="Testing"
+    href="/docs/references/bridge/testing"
+    description="네이티브 호스트 없이 테스트에서 브리지를 모킹합니다."
+  />
+</Cards>
+
+## Updater flow
+
+일반적인 무선(OTA) 확인은 더 새로운 번들을 다운로드하고 설치한 뒤, 웹뷰를 다시 로드하여 이를 반영합니다.
+
+```ts
+import { updater } from '@wvb/bridge';
+
+async function checkForUpdate(bundleName: string) {
+  const update = await updater.getUpdate(bundleName);
+  if (!update.isAvailable) {
+    return;
+  }
+
+  await updater.download(bundleName);
+  await updater.install(bundleName, update.version);
+
+  // 웹뷰가 새로 설치된 번들을 제공하도록 다시 로드합니다.
+  window.location.reload();
+}
+```
+
+업데이터의 전체 기능은 [업데이터 레퍼런스](/docs/references/bridge/updater)를 참고하세요.
+
+## See also
+
+<Cards>
+  <Card
+    title="Platform integration"
+    href="/docs/guide/platform-integration"
+    description="코어가 각 플랫폼에 도달하여 브리지 명령어를 노출하는 방법입니다."
+  />
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="브리지가 호출하는 네이티브 소스, 원격, 업데이터입니다."
+  />
+</Cards>

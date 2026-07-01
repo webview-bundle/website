@@ -1,0 +1,76 @@
+---
+title: 원격 HTTP 명세
+description: Webview Bundle 클라이언트와 업데이터가 번들을 나열하고 조회하고 다운로드할 수 있도록 서버가 구현하는 HTTP 계약입니다.
+---
+
+여기서 설명하는 엔드포인트를 구현하는 HTTP 서버는 모두 유효한 Webview Bundle 원격입니다. 클라이언트와 업데이터는 이 계약을 통해 배포된 번들을 나열하고, 번들의 현재 메타데이터를 읽고, 번들 바이트를 다운로드합니다. 직접 구현하거나, 이미 이 계약을 구현한 프로바이더를 사용하세요. [Local](/docs/guide/providers/local), [AWS](/docs/guide/providers/aws), [Cloudflare](/docs/guide/providers/cloudflare) 프로바이더는 모두 정확히 이 계약을 제공합니다. 서버를 구축하고 프로바이더를 선택하려면 [원격 구축](/docs/guide/remote)을 참고하세요. 이 호출들을 이끄는 업데이트 흐름의 개념은 [원격 번들 및 업데이트](/docs/guide/remote-bundles)를 참고하세요.
+
+## Base URL
+
+원격은 단일 `endpoint` base URL로 설정합니다. 모든 라우트는 이 base 아래의 경로이므로, `endpoint`가 `https://cdn.example.com`이면 `GET https://cdn.example.com/bundles`, `HEAD https://cdn.example.com/bundles/{name}` 등을 제공합니다. 클라이언트는 설정된 `endpoint`에 라우트 경로와 쿼리 문자열을 결합해 각 요청 URL을 만듭니다.
+
+## 규약
+
+이 규약은 모든 엔드포인트에 공통으로 적용됩니다. 각 엔드포인트 페이지는 해당 라우트에만 특정한 내용만 반복합니다.
+
+### 응답 헤더
+
+메타데이터는 다운로드 및 메타데이터 응답의 `Webview-Bundle-*` 응답 헤더에 담겨 전달됩니다. 클라이언트는 대소문자를 구분하지 않고 읽으며, 여기 표시한 것이 표준 표기입니다.
+
+| 헤더                       | 필수   | 의미                             |
+| -------------------------- | ------ | -------------------------------- |
+| `Webview-Bundle-Name`      | 예     | 번들 이름                        |
+| `Webview-Bundle-Version`   | 예     | 번들 버전                        |
+| `Webview-Bundle-Integrity` | 아니오 | 무결성 문자열 `"<alg>:<base64>"` |
+| `Webview-Bundle-Signature` | 아니오 | Base64 서명                      |
+| `ETag`                     | 아니오 | 표준 검증자                      |
+| `Last-Modified`            | 아니오 | 표준 검증자                      |
+
+클라이언트는 `Webview-Bundle-Name` 또는 `Webview-Bundle-Version`이 없는 응답을 모두 거부합니다.
+
+### Content type
+
+다운로드 응답은 `Content-Type: application/webview-bundle`을 설정합니다. 목록 응답은 `Content-Type: application/json`을 설정합니다.
+
+### 채널
+
+목록, 메타데이터, 현재 버전 다운로드 라우트는 선택적 `?channel=` 쿼리를 받아 해당 채널의 배포를 선택합니다. 버전별 다운로드는 채널을 받지 않습니다. 기본 배포를 대상으로 하려면 쿼리를 생략하세요.
+
+### 요청 타임아웃
+
+클라이언트는 모든 호출에 기본 전체 요청 타임아웃 120초를 적용하므로, 서버는 그 안에 여유 있게 응답해야 합니다.
+
+<Callout type="info">
+  120초 타임아웃은 클라이언트의 HTTP 설정에서 재정의할 수 있지만, 변경하지 않으면 기본값이 모든
+  요청에 적용됩니다.
+</Callout>
+
+## 엔드포인트
+
+<Cards>
+  <Card
+    title="GET /bundles"
+    href="/docs/guide/spec/list-bundles"
+    description="현재 배포된 번들을 나열합니다."
+  />
+  <Card
+    title="HEAD /bundles/{name}"
+    href="/docs/guide/spec/head-current"
+    description="본문 없이 현재 버전의 메타데이터 헤더를 읽습니다."
+  />
+  <Card
+    title="GET /bundles/{name}"
+    href="/docs/guide/spec/get-current"
+    description="번들의 현재 버전을 다운로드합니다."
+  />
+  <Card
+    title="GET /bundles/{name}/{version}"
+    href="/docs/guide/spec/get-version"
+    description="번들의 특정 버전을 다운로드합니다."
+  />
+  <Card
+    title="Errors"
+    href="/docs/guide/spec/errors"
+    description="상태 코드와 클라이언트가 기대하는 JSON 오류 본문입니다."
+  />
+</Cards>

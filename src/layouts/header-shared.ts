@@ -1,19 +1,7 @@
 // Shared header constants used by both the desktop header (SiteHeader) and the
 // mobile full-screen menu (MobileNav). Kept in a dependency-free module so the
-// two components can import them without a circular reference.
-
-export interface HeaderLink {
-  label: string;
-  href: string;
-}
-
-// The site navigation, identical on the landing page and the docs.
-export const SECTIONS: HeaderLink[] = [
-  { label: 'Guide', href: '/docs/guide' },
-  { label: 'References', href: '/docs/references' },
-  { label: 'Config', href: '/docs/config' },
-  { label: 'Changelog', href: '/docs/changelog' },
-];
+// two components can import them without a circular reference. The localized
+// section links live in `lib/ui-strings` (`useUiStrings().sections`).
 
 // A 32px square icon button, so every header control lines up.
 export const CONTROL_BUTTON =

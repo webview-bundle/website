@@ -1,0 +1,4 @@
+{
+  "title": "명령어",
+  "pages": ["pack", "extract", "serve", "upload", "deploy", "download", "builtin", "remote"]
+}

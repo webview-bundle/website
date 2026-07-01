@@ -1,0 +1,90 @@
+---
+title: 현재 메타데이터 조회
+description: HEAD /bundles/{name}은 현재 배포된 버전의 메타데이터를 응답 헤더로 반환하며, 본문은 없습니다.
+---
+
+`HEAD /bundles/{name}`은 번들의 현재 배포된 버전의 메타데이터를 응답 헤더로 반환하며, 본문은 없습니다. 업데이터는 무언가를 다운로드하기 전에 더 새로운 버전이 있는지 확인하기 위해 이 요청을 호출합니다.
+
+```http
+HEAD /bundles/{name}
+```
+
+## 매개변수
+
+| Name      | In    | Type   | Required | 설명                                                     |
+| --------- | ----- | ------ | -------- | -------------------------------------------------------- |
+| `name`    | path  | string | yes      | 조회할 번들 이름입니다.                                  |
+| `channel` | query | string | no       | 채널의 배포를 선택합니다. 생략하면 기본 배포를 읽습니다. |
+
+## 응답
+
+| Status | 설명                                                      |
+| ------ | --------------------------------------------------------- |
+| `204`  | 번들이 배포되어 있습니다. 메타데이터가 헤더로 반환됩니다. |
+| `404`  | 지정한 번들이 배포되어 있지 않습니다.                     |
+
+성공은 `204 No Content`입니다. 응답은 메타데이터 헤더만 담으며 본문은 절대 포함하지 않습니다. `404`는 지정한 번들에 현재 배포된 버전이 없다는 뜻입니다. 오류 본문 형태와 다른 상태 코드는 [오류](/docs/guide/spec/errors)를 참고하세요.
+
+### 응답 헤더
+
+| Header                     | Required | 설명                                           |
+| -------------------------- | -------- | ---------------------------------------------- |
+| `Webview-Bundle-Name`      | yes      | 번들 이름입니다.                               |
+| `Webview-Bundle-Version`   | yes      | 현재 배포된 버전입니다.                        |
+| `Webview-Bundle-Integrity` | no       | `"<alg>:<base64>"` 형식의 무결성 문자열입니다. |
+| `Webview-Bundle-Signature` | no       | 무결성 문자열에 대한 Base64 인코딩 서명입니다. |
+| `ETag`                     | no       | 표준 검증자입니다.                             |
+| `Last-Modified`            | no       | 표준 검증자입니다.                             |
+
+클라이언트는 이 헤더들을 대소문자 구분 없이 읽으며, `Webview-Bundle-Name` 또는 `Webview-Bundle-Version`이 빠진 응답은 거부합니다.
+
+<Callout type="info">
+  이 경로는 메타데이터만 반환합니다. 번들 바이트를 가져오려면 [GET /bundles/{name}
+  ](/docs/guide/spec/get-current)을 사용하세요.
+</Callout>
+
+## 예시
+
+```sh
+$ curl -sI 'http://localhost:4313/bundles/app'
+```
+
+```http
+HTTP/1.1 204 No Content
+Webview-Bundle-Name: app
+Webview-Bundle-Version: 1.2.0
+Webview-Bundle-Integrity: sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+ETag: "abc123"
+Last-Modified: Tue, 01 Jul 2026 00:00:00 GMT
+```
+
+특정 채널의 현재 버전은 `?channel=`로 읽습니다.
+
+```sh
+$ curl -sI 'http://localhost:4313/bundles/app?channel=beta'
+```
+
+## 관련 문서
+
+<Cards>
+  <Card
+    title="GET /bundles/{name}"
+    href="/docs/guide/spec/get-current"
+    description="현재 배포된 버전의 바이트를 다운로드합니다."
+  />
+  <Card
+    title="GET /bundles"
+    href="/docs/guide/spec/list-bundles"
+    description="배포된 모든 번들과 각각의 현재 버전을 나열합니다."
+  />
+  <Card
+    title="오류"
+    href="/docs/guide/spec/errors"
+    description="상태 코드와 JSON 오류 본문 형태입니다."
+  />
+  <Card
+    title="원격 HTTP 명세"
+    href="/docs/guide/spec"
+    description="원격 서버가 구현하는 전체 계약입니다."
+  />
+</Cards>

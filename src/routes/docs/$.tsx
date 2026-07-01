@@ -1,16 +1,5 @@
-import { createFileRoute, notFound, redirect } from '@tanstack/react-router';
-import { createServerFn } from '@tanstack/react-start';
-import { useFumadocsLoader } from 'fumadocs-core/source/client';
-import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/notebook/page';
-import { Suspense, useMemo } from 'react';
-import browserCollections from '~source/browser';
-import { docSource } from '../../doc';
-import { DocsNavbar } from '../../layouts/docs/DocsNavbar';
-import { MobileTocBar } from '../../layouts/docs/MobileTocBar';
-import { withExperimentalBadges } from '../../layouts/docs/sidebar-badges';
-import { GITHUB_URL } from '../../layouts/home/data';
-import { useMDXComponents } from '../../mdx';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import { DocsShell, docsClientLoader, docsServerLoader } from '../../layouts/docs/DocsRoute';
 
 export const Route = createFileRoute('/docs/$')({
   component: Page,
@@ -20,57 +9,12 @@ export const Route = createFileRoute('/docs/$')({
     if (slugs.length === 0) {
       throw redirect({ to: '/docs/$', params: { _splat: 'guide' } });
     }
-    const data = await serverLoader({ data: slugs });
-    await clientLoader.preload(data.path);
+    const data = await docsServerLoader({ data: { slugs, locale: 'en' } });
+    await docsClientLoader.preload(data.path);
     return data;
   },
 });
 
-const serverLoader = createServerFn({
-  method: 'GET',
-})
-  .inputValidator((slugs: string[]) => slugs)
-  .handler(async ({ data: slugs }) => {
-    const page = docSource.getPage(slugs);
-    if (page == null) {
-      throw notFound();
-    }
-    return {
-      path: page.path,
-      pageTree: await docSource.serializePageTree(docSource.getPageTree()),
-    };
-  });
-
-const clientLoader = browserCollections.docs.createClientLoader({
-  component(
-    { toc, frontmatter, default: MDX },
-    // you can define props for the component
-    _props: undefined
-  ) {
-    return (
-      <DocsPage toc={toc} tableOfContentPopover={{ component: <MobileTocBar /> }}>
-        <DocsTitle>{frontmatter.title}</DocsTitle>
-        <DocsDescription>{frontmatter.description}</DocsDescription>
-        <DocsBody>
-          <MDX components={useMDXComponents()} />
-        </DocsBody>
-      </DocsPage>
-    );
-  },
-});
-
 function Page() {
-  const data = useFumadocsLoader(Route.useLoaderData());
-  const tree = useMemo(() => withExperimentalBadges(data.pageTree), [data.pageTree]);
-
-  return (
-    <DocsLayout
-      tree={tree}
-      tabMode="navbar"
-      nav={{ mode: 'top', component: <DocsNavbar /> }}
-      githubUrl={GITHUB_URL}
-    >
-      <Suspense>{clientLoader.useContent(data.path)}</Suspense>
-    </DocsLayout>
-  );
+  return <DocsShell data={Route.useLoaderData()} />;
 }
