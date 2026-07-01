@@ -21,10 +21,6 @@ await win.closed;
 
 `@wvb/deno-desktop` is the integration layer; `@wvb/deno` is the FFI peer of [`@wvb/node`](/docs/references/node) that drives the shared Rust core.
 
-<Callout type="warn">
-  Deno Desktop is experimental and its API may change before a stable release.
-</Callout>
-
 ## How it fits together
 
 The window points at a single local origin served by `Deno.serve`, so the integration is **single-origin**: it allows exactly one protocol. See [Platform integration](/docs/guide/platform-integration) for how the core reaches each platform and [Protocol handling](/docs/guide/protocol-handling) for the protocol model.
@@ -155,7 +151,7 @@ For the full class and method reference, see the [Deno API reference](/docs/refe
 
 ## Limitations
 
-Beyond the experimental status, two gaps apply to the Deno bindings today.
+Two gaps apply to the Deno bindings today.
 
 **Custom verifier callbacks are not supported.** The `Updater` accepts only the **declarative** `signatureVerifier` — a `SignatureVerifierOptions` with an `algorithm` and a `key`:
 
@@ -173,9 +169,9 @@ const wvb = await webviewBundle({
 });
 ```
 
-The custom `integrityChecker` / `signatureVerifier` function callbacks available in `@wvb/node` cannot cross the FFI boundary yet.
+The custom `integrityChecker` / `signatureVerifier` function callbacks available in `@wvb/node` cannot cross the FFI boundary.
 
-**`HttpOptions.defaultHeaders` is not yet supported** on the Deno `Remote`. Other `HttpOptions` fields still apply:
+**`HttpOptions.defaultHeaders` is not supported** on the Deno `Remote`. Other `HttpOptions` fields still apply:
 
 ```ts title="http.ts"
 const wvb = await webviewBundle({
