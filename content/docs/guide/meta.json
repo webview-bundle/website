@@ -1,0 +1,30 @@
+{
+  "root": true,
+  "title": "Guide",
+  "pages": [
+    "---Introduction---",
+    "index",
+    "platform-support",
+    "why-webview-bundle",
+    "---Features---",
+    "bundle-format",
+    "bundle-sources",
+    "protocol-handling",
+    "remote-bundles",
+    "platform-integration",
+    "---Platforms---",
+    "platforms/electron",
+    "platforms/tauri",
+    "platforms/android",
+    "platforms/ios",
+    "platforms/deno",
+    "---CLI---",
+    "cli",
+    "commands",
+    "cli-programmatic",
+    "---Remote---",
+    "remote",
+    "providers",
+    "spec"
+  ]
+}

@@ -1,0 +1,362 @@
+---
+title: Tauri
+description: Add the wvb-tauri plugin to a Tauri v2 app so the webview is served from a .wvb bundle, with dev proxying and over-the-air updates.
+---
+
+`wvb-tauri` is the Webview Bundle integration for Tauri v2. Register it as a plugin and your app serves its webview from a local `.wvb` bundle through a custom URL scheme, proxies a dev server while you build, and downloads newer bundles over the air (OTA). The same plugin runs on desktop and on Tauri mobile (Android and iOS).
+
+<Callout type="info">
+  Tauri uses the Rust crate `wvb-tauri` (crates.io). There is no `@wvb/tauri` npm package — the
+  frontend talks to the plugin through Tauri's standard command bridge, which needs no extra package
+  beyond `@tauri-apps/api`.
+</Callout>
+
+## Install
+
+```toml title="src-tauri/Cargo.toml"
+[dependencies]
+wvb-tauri = "0.1"
+tauri = { version = "2", features = [] }
+```
+
+To drive updates from the frontend, install Tauri's JS API in your web app:
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install @tauri-apps/api
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @tauri-apps/api
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @tauri-apps/api
+```
+
+  </Tab>
+</Tabs>
+
+## Register the plugin
+
+Build a `Config` with `Config::new()`, then chain a bundle **source**, one or more **protocols**, and optionally a **remote** for updates:
+
+```rust title="src-tauri/src/lib.rs"
+use tauri::Manager;
+use wvb_tauri::{Config, Protocol, Source};
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+  tauri::Builder::default()
+    .plugin(wvb_tauri::init(
+      Config::new()
+        .source(Source::new().builtin_dir_fn(|app| {
+          Ok(app.path().resource_dir()?.join("bundles"))
+        }))
+        // Serve `bundle://<name>.wvb/...` straight from packed bundles.
+        .protocol(Protocol::bundle("bundle"))
+        // In development, proxy `local://example.com/...` to the dev server.
+        .protocol(Protocol::local("local").host("example.com", "http://localhost:1420")),
+    ))
+    .run(tauri::generate_context!())
+    .expect("error while running tauri application");
+}
+```
+
+`Protocol::bundle(scheme)` serves files from a packed bundle, deriving the bundle name from the request host — `bundle://app.wvb/index.html` resolves to bundle `app`, file `/index.html`.
+
+`Protocol::local(scheme)` proxies a host to a localhost dev server so the same scheme works with hot reload. Map several hosts at once with `.hosts(...)`:
+
+```rust
+use std::collections::HashMap;
+
+Protocol::local("local").hosts(HashMap::from([
+  ("example.com".to_string(), "http://localhost:1420".to_string()),
+  ("api.example.com".to_string(), "http://localhost:8080".to_string()),
+]));
+```
+
+`Source` resolves where bundles live. Use static path strings or `AppHandle` closures:
+
+```rust
+use wvb_tauri::Source;
+
+// Static path strings (resolved through Tauri's path API):
+Source::new().builtin_dir("$RESOURCE/bundles").remote_dir("$APPLOCALDATA/bundles");
+
+// Or compute the path at runtime from the AppHandle:
+Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles")));
+```
+
+When unset, the builtin dir defaults to `bundles` in the app's resource directory and the remote dir to `bundles` in app local data. Each `.protocol(...)` call registers its own asynchronous URI scheme. See [Protocol handling](/docs/guide/protocol-handling) for how the schemes resolve requests.
+
+## Point a window at the custom scheme
+
+Boot the main window straight into the bundle scheme:
+
+```json title="src-tauri/tauri.conf.json"
+{
+  "app": {
+    "windows": [
+      {
+        "url": "bundle://app.wvb"
+      }
+    ]
+  }
+}
+```
+
+If you call plugin commands from the frontend, grant permissions in a capability file. The namespace is `wvb-tauri`, and `wvb-tauri:default` allows all source, remote, and updater commands:
+
+```json title="src-tauri/capabilities/default.json"
+{
+  "identifier": "default",
+  "windows": ["main"],
+  "permissions": ["core:default", "wvb-tauri:default"]
+}
+```
+
+To restrict access, replace `wvb-tauri:default` with the individual `wvb-tauri:allow-*` permissions you need:
+
+```json title="src-tauri/capabilities/default.json"
+{
+  "identifier": "default",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "wvb-tauri:allow-updater-get-update",
+    "wvb-tauri:allow-updater-download",
+    "wvb-tauri:allow-updater-install"
+  ]
+}
+```
+
+## Pack and ship bundles
+
+Build your frontend, pack it into a `.wvb`, and place the result in your source directory:
+
+```sh
+# build your frontend first (e.g. `vite build`), then:
+npx wvb pack ./dist --outfile src-tauri/bundles/app/app_1.0.0.wvb
+```
+
+Ship the directory with the build by listing it in resources:
+
+```json title="src-tauri/tauri.conf.json"
+{
+  "bundle": {
+    "resources": ["bundles/**/*"]
+  }
+}
+```
+
+For the full packing workflow and flags, see the [CLI reference](/docs/guide/cli) and [Bundle sources](/docs/guide/bundle-sources).
+
+## Drive updates from the frontend
+
+Add a `Remote` to enable OTA downloads:
+
+```rust title="src-tauri/src/lib.rs"
+use wvb_tauri::{Config, Protocol, Remote, Source};
+
+Config::new()
+  .source(Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles"))))
+  .protocol(Protocol::bundle("bundle"))
+  .remote(Remote::new("https://updates.example.com"));
+```
+
+Tune the HTTP client with `Http` (defaults: request timeout `120_000` ms), and watch progress with `.on_download`:
+
+```rust
+use wvb_tauri::{Http, Remote};
+
+Remote::new("https://updates.example.com")
+  .http(Http::new().timeout(30_000).user_agent("my-app/1.0".into()))
+  .on_download(|downloaded, total, _name| {
+    if let Some(total) = total {
+      println!("{downloaded}/{total} bytes");
+    }
+  });
+```
+
+Plugin commands are reachable as `plugin:wvb-tauri|<command_name>`. Arguments use camelCase on the JS side (`bundle_name` becomes `bundleName`). The core OTA flow uses three updater commands:
+
+| Command              | Arguments                | Returns                                     |
+| -------------------- | ------------------------ | ------------------------------------------- |
+| `updater_get_update` | `bundleName`             | `BundleUpdateInfo` (availability + version) |
+| `updater_download`   | `bundleName`, `version?` | `RemoteBundleInfo` (downloaded metadata)    |
+| `updater_install`    | `bundleName`, `version`  | `null` (activates the downloaded version)   |
+
+```ts title="src/update.ts"
+import { invoke } from '@tauri-apps/api/core';
+
+interface BundleUpdateInfo {
+  name: string;
+  version: string;
+  localVersion?: string;
+  isAvailable: boolean;
+}
+
+interface RemoteBundleInfo {
+  name: string;
+  version: string;
+  integrity?: string;
+  signature?: string;
+}
+
+export async function checkAndUpdate(bundleName: string) {
+  const update = await invoke<BundleUpdateInfo>('plugin:wvb-tauri|updater_get_update', {
+    bundleName,
+  });
+  if (!update.isAvailable) return;
+
+  const info = await invoke<RemoteBundleInfo>('plugin:wvb-tauri|updater_download', { bundleName });
+  await invoke('plugin:wvb-tauri|updater_install', {
+    bundleName,
+    version: info.version,
+  });
+  // reload the webview to pick up the new bundle
+  window.location.reload();
+}
+```
+
+The plugin also exposes `source_*` commands for managing local bundles and `remote_*` commands for listing and staging remote bundles:
+
+| Command                 | Arguments                | Returns                                        |
+| ----------------------- | ------------------------ | ---------------------------------------------- |
+| `source_list_bundles`   | —                        | local bundle list                              |
+| `source_load_version`   | `bundleName`             | active local version, if any                   |
+| `source_update_version` | `bundleName`, `version`  | `null` (activate a staged version)             |
+| `remote_list_bundles`   | `channel?`               | remote bundle list                             |
+| `remote_get_info`       | `bundleName`, `channel?` | current remote metadata                        |
+| `remote_download`       | `bundleName`, `channel?` | `RemoteBundleInfo` (stages without activating) |
+
+`remote_download` stages a version without activating it; activate later with `source_update_version`:
+
+```ts
+import { invoke } from '@tauri-apps/api/core';
+
+// Stage a remote bundle now, activate on next launch.
+const info = await invoke<{ version: string }>('plugin:wvb-tauri|remote_download', {
+  bundleName: 'app',
+});
+await invoke('plugin:wvb-tauri|source_update_version', {
+  bundleName: 'app',
+  version: info.version,
+});
+```
+
+The full command set (twelve `source_*`, four `remote_*`, and four `updater_*` commands) is defined in [`packages/tauri/src/commands.rs`](https://github.com/webview-bundle/webview-bundle/blob/main/packages/tauri/src/commands.rs). See [Remote bundles](/docs/guide/remote-bundles) for how integrity and signature verification fit into the download flow, and [Remote config](/docs/config/remote) for the server side.
+
+<Callout type="info">
+  The `remote_*` commands require a `Remote` on the config; the `updater_*` commands additionally
+  require an `Updater`. Calling them without that configuration returns an error whose `code` field
+  is `remote_not_initialized` or `updater_not_initialized`.
+</Callout>
+
+Branch on the `code` field in the frontend:
+
+```ts
+import { invoke } from '@tauri-apps/api/core';
+
+try {
+  await invoke('plugin:wvb-tauri|updater_get_update', { bundleName: 'app' });
+} catch (err) {
+  const { code } = err as { message: string; code?: string };
+  if (code === 'updater_not_initialized') {
+    // no Updater configured — skip the OTA check
+  }
+}
+```
+
+## Verify signatures and pin integrity
+
+Add an `Updater` with a `SignatureVerifier` to require a publisher signature on downloaded bundles. The verifier is built lazily from a closure:
+
+```rust title="src-tauri/src/lib.rs"
+use wvb_tauri::{Config, Ed25519Verifier, IntegrityPolicy, Protocol, Remote, Source, Updater};
+
+const PUBLIC_KEY_PEM: &str = include_str!("../keys/public.pem");
+
+Config::new()
+  .source(Source::new())
+  .protocol(Protocol::bundle("bundle"))
+  .remote(Remote::new("https://updates.example.com"))
+  .updater(
+    Updater::new()
+      .channel("stable")
+      .integrity_policy(IntegrityPolicy::Strict)
+      .signature_verifier(|| Ok(Ed25519Verifier::from_pem(PUBLIC_KEY_PEM)?.into())),
+  );
+```
+
+`IntegrityPolicy` is `Strict` (must be present and match), `Optional` (default — verify if present), or `None` (skip). Verifier types: `EcdsaSecp256r1Verifier`, `EcdsaSecp384r1Verifier`, `Ed25519Verifier`, `RsaPkcs1V15Verifier`, `RsaPssVerifier`. An `Updater` requires a `Remote`; without one, no updater is built.
+
+## Reach the plugin from Rust
+
+From any `App`, `AppHandle`, or `Window`, the `WebviewBundleExtra` trait adds `webview_bundle()` (aliased `wvb()`), returning the managed state. `.source()` is always available; `.remote()` and `.updater()` return `Option`:
+
+```rust
+use wvb_tauri::WebviewBundleExtra;
+
+let wvb = app.wvb();
+let _source = wvb.source();
+
+if let Some(_updater) = wvb.updater() {
+  // updater is present only when both `.remote(...)` and `.updater(...)` are configured
+}
+```
+
+This is the same state the frontend commands operate on, so you can mix Rust-side and frontend-driven update logic.
+
+## Tauri mobile
+
+On **iOS**, builtin bundles live in a real filesystem resource directory — no extra setup beyond the desktop configuration. On **Android**, builtin bundles ship inside the APK as `asset://` resources the filesystem cannot read directly, so an app that ships builtin bundles must also register the Tauri filesystem plugin:
+
+```rust title="src-tauri/src/lib.rs"
+tauri::Builder::default()
+  .plugin(tauri_plugin_fs::init())
+  .plugin(wvb_tauri::init(/* ... */));
+```
+
+The plugin then extracts each bundle from the APK on first request and caches it in app local data. Remote-only apps (no builtin bundles) need no extra Android setup. See the [Android](/docs/guide/platforms/android) and [iOS](/docs/guide/platforms/ios) guides for platform specifics, and [Platform support](/docs/guide/platform-support) for current status.
+
+## Troubleshooting
+
+- **Request returns HTTP 500 from the scheme** — the protocol handler failed. Confirm the bundle exists in the source directory and the host maps to a real bundle name (`bundle://app.wvb/...` → bundle `app`).
+- **`remote_not_initialized` / `updater_not_initialized`** — you called a `remote_*` or `updater_*` command without `.remote(...)` (and `.updater(...)`) on the `Config`. Branch on `error.code`.
+- **Command rejected by the ACL** — add `wvb-tauri:default` (or the specific `wvb-tauri:allow-*` permission) to a capability targeting the calling window.
+- **Bundle not found at runtime** — confirm the `bundles` directory is in `tauri.conf.json` resources and `Source` resolves to it. On Android, confirm `tauri_plugin_fs::init()` is registered when shipping builtin bundles.
+
+## Learn more
+
+<Cards>
+  <Card
+    title="Protocol handling"
+    href="/docs/guide/protocol-handling"
+    description="How the bundle and local schemes resolve webview requests."
+  />
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/remote-bundles"
+    description="OTA updates, integrity, and signature verification."
+  />
+  <Card
+    title="CLI reference"
+    href="/docs/guide/cli"
+    description="Pack, serve, and deploy bundles from the command line."
+  />
+  <Card
+    title="wvb-tauri source"
+    href="https://github.com/webview-bundle/webview-bundle/tree/main/packages/tauri"
+    description="The plugin crate on GitHub."
+  />
+</Cards>

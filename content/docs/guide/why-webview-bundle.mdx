@@ -1,0 +1,190 @@
+---
+title: Why Webview Bundle?
+description: The case for shipping your web app as an offline-first .wvb bundle with over-the-air updates.
+---
+
+Webview Bundle packs your built web app into one compressed, integrity-checked archive (`.wvb`) and serves it to the webview over a custom URL scheme. The webview reads HTML, JS, CSS, and media from local storage instead of the network. Configure a remote and the app downloads newer bundles over the air, shipping updated code without a native app-store release.
+
+Three reasons teams reach for it: offline-first delivery, over-the-air updates, and one workflow across every webview platform.
+
+## Offline-first by default
+
+A remote URL makes first paint wait on the network. A cold cache, a captive portal, or a dropped connection becomes a blank screen.
+
+Webview Bundle serves your assets straight from the local `.wvb` that ships with the app. The protocol maps each request to a file inside the bundle and returns it:
+
+```text
+bundle://app/index.html  ->  index.html inside the app bundle
+bundle://app/assets/x.js ->  assets/x.js inside the app bundle
+```
+
+```ts title="Serving a bundle locally"
+import { BundleSource, BundleProtocol } from '@wvb/node';
+
+const source = new BundleSource({
+  builtinDir: '/path/to/builtin',
+  remoteDir: '/path/to/remote',
+});
+
+const protocol = new BundleProtocol(source);
+
+// Your platform integration routes scheme requests here.
+const res = await protocol.handle('get', 'bundle://app/index.html');
+// res: { status, headers, body }
+```
+
+First paint never waits on the network. The app paints from the local bundle on the subway, on a plane, or mid-session when the connection drops; the network becomes an optimization.
+
+<Callout type="info">
+  The bundle protocol supports `GET` and `HEAD`, replays the headers stored for each file, and
+  answers `Range` requests for media with `206`. See [Protocol
+  handling](/docs/guide/protocol-handling) for the full request mapping.
+</Callout>
+
+## Over-the-air updates
+
+An app-store release is slow and gated: a copy typo or a broken button can sit behind a multi-day review. Because your app code lives in a `.wvb`, you fix it by deploying a new bundle version and letting installed apps download it over the air (OTA). The native binary never changes.
+
+Two sources back the update model. The `builtin` source is the read-only bundle you shipped; the `remote` source holds downloaded bundles and takes priority. A failed download or activation falls back to `builtin`, so OTA can never leave a device without a working app.
+
+```ts title="Two sources: remote wins, builtin is the floor"
+new BundleSource({
+  builtinDir: '/path/to/builtin', // shipped in the app, read-only
+  remoteDir: '/path/to/remote', // OTA downloads, takes priority
+});
+```
+
+Updates run in two explicit steps so a half-downloaded bundle is never served: `download` stages into the remote source and verifies; `install` activates the staged version.
+
+```ts title="Check, download, install"
+import { Updater } from '@wvb/node';
+
+const updater = new Updater(source, remote);
+
+const info = await updater.getUpdate('app');
+if (info.isAvailable) {
+  await updater.download('app'); // stage + verify
+  await updater.install('app', info.version); // activate
+}
+```
+
+### Staged rollouts with channels
+
+A channel is an optional string sent as `?channel=` on list and download requests. Pass it through `UpdaterOptions` to point a device cohort at `beta`, then promote. Omit it and the parameter is dropped — there is no hardcoded channel name.
+
+```ts title="Pin this device to the beta channel"
+const updater = new Updater(source, remote, { channel: 'beta' });
+```
+
+```http
+GET /bundles/app?channel=beta
+```
+
+### Authenticity with integrity and signatures
+
+Every download is verified before activation. Integrity uses SHA-2 (`sha256` default, plus `sha384` and `sha512`), serialized as `"<alg>:<base64>"`:
+
+```text
+sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+```
+
+The default policy is `optional` (verify if present). Set `strict` to require integrity, and add a declarative `signatureVerifier` to prove who published — the signature covers the integrity string bytes:
+
+```ts title="Require integrity, verify an Ed25519 signature"
+const updater = new Updater(source, remote, {
+  integrityPolicy: 'strict',
+  signatureVerifier: {
+    algorithm: 'ed25519',
+    key: { format: 'raw', data: publicKeyBytes }, // 32-byte Ed25519 key
+  },
+});
+```
+
+Verification supports ECDSA (`ecdsaSecp256R1`, `ecdsaSecp384R1`), `ed25519`, and RSA (`rsaPkcs1V15`, `rsaPss`).
+
+<Callout type="info">
+  Integrity is SHA-2, not SHA-3. The signature covers the integrity string, not the raw archive
+  bytes, and requires an integrity value to be present. See [Remote
+  bundles](/docs/guide/remote-bundles) for the verification flow and [Remote, integrity & signature
+  config](/docs/config/remote) for the schema.
+</Callout>
+
+## For web developers
+
+Keep writing the app you already know. Webview Bundle operates on your bundler's output, not your source, so React, Vue, Svelte, or plain HTML all work — no custom framework, no special build step. Point `wvb pack` at your build directory:
+
+```sh title="Pack your build output into one .wvb"
+npm install --save-dev @wvb/cli
+npx wvb pack ./dist
+```
+
+The packed file defaults to `.wvb/<pkgName>`; the `.wvb` extension is appended for you. Override it with the `outFile` field (a single path):
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  pack: {
+    outFile: '.wvb/app',
+  },
+});
+```
+
+Inside the webview, your code talks to the native host through `@wvb/bridge`. One `invoke()` API exposes the source, remote, and updater commands and picks the transport for Electron, Tauri, Android, or iOS underneath. The same update code runs everywhere:
+
+```ts title="Driving updates from web code"
+import { updater } from '@wvb/bridge';
+
+const update = await updater.getUpdate('app');
+if (update.isAvailable) {
+  await updater.download('app');
+  await updater.install('app', update.version);
+}
+```
+
+The bridge resolves the platform at call time, so you never branch on it yourself:
+
+```ts title="Platform is detected for you"
+import { platform } from '@wvb/bridge';
+
+platform.type; // 'electron' | 'tauri' | 'android' | 'ios'
+```
+
+### How this compares
+
+Two common alternatives solve part of the same problem:
+
+- **Per-platform native asset bundling.** Embed your web build in each shell and write serving and update logic once per platform. It works, but the toolchain, asset format, and update code differ on each platform and you maintain all of them. Webview Bundle gives you one `.wvb` and one mental model across Electron, Tauri, Android, and iOS, backed by a shared Rust core.
+- **CodePush-style OTA.** Hosted OTA services ship JS updates without store review — the same payoff as the remote source. The tradeoff differs: Webview Bundle is a verifiable bundle format you host yourself, with a builtin fallback, channel rollouts, and integrity plus optional signatures, rather than a managed third-party service. You own the server and the artifact.
+
+The honest tradeoff: you adopt a bundle format and a pack step, and you run the remote. In return you get offline-first delivery, OTA without store review, and one workflow that does not change as you add platforms.
+
+<Callout type="info">
+  Android and iOS are implemented and shipping. The iOS minimum is iOS 16. Deno Desktop is
+  experimental. See [Platform support](/docs/guide/platform-support) for current status.
+</Callout>
+
+## Where to go next
+
+<Cards>
+  <Card
+    title="The .wvb bundle format"
+    href="/docs/guide/bundle-format"
+    description="How a bundle is laid out on disk: header, index, and compressed data."
+  />
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/remote-bundles"
+    description="Updating over the air, with integrity and signature verification."
+  />
+  <Card
+    title="Platform integration"
+    href="/docs/guide/platform-integration"
+    description="How the core reaches each platform, and how the bridge connects your web code."
+  />
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="The @wvb/node surface: sources, protocols, remote, and updater."
+  />
+</Cards>

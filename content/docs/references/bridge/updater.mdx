@@ -1,0 +1,87 @@
+---
+title: Updater
+description: The bridge updater.* command group that drives the over-the-air update flow from inside the webview.
+---
+
+The `updater` command group drives the over-the-air (OTA) update flow from web code running inside the webview. Use it to check whether a newer bundle is available, stage it, and activate it on the native host. Each method is a typed `invoke()` call that routes to the matching native updater handler, so you rarely touch `invoke()` directly.
+
+For the OTA concepts behind these commands, see [Remote bundles](/docs/guide/remote-bundles). For the native updater the bridge calls into, see the [Node updater API](/docs/references/node/updater). For the bridge as a whole, see the [Bridge overview](/docs/references/bridge).
+
+```ts
+import { updater } from '@wvb/bridge';
+```
+
+## Methods
+
+| Method                         | Purpose                               |
+| ------------------------------ | ------------------------------------- |
+| `listRemotes()`                | List remotes and their bundle info.   |
+| `getUpdate(bundleName)`        | Check whether an update is available. |
+| `download(bundleName)`         | Stage an update for installation.     |
+| `install(bundleName, version)` | Activate a staged version.            |
+
+## BundleUpdateInfo
+
+`getUpdate()` resolves to a `BundleUpdateInfo` describing the remote bundle and how it compares to the locally installed version:
+
+```ts
+type BundleUpdateInfo = {
+  name: string;
+  version: string;
+  localVersion?: string;
+  isAvailable: boolean;
+  etag?: string;
+  integrity?: string;
+  signature?: string;
+  lastModified?: string;
+};
+```
+
+Check `isAvailable` before staging an update. The `version` field is the version the remote offers, while `localVersion` is the version currently installed on the host, if any.
+
+## Update flow
+
+A typical OTA check stages and installs a newer bundle, then reloads the webview to serve it:
+
+```ts
+import { updater } from '@wvb/bridge';
+
+async function checkForUpdate(bundleName: string) {
+  const update = await updater.getUpdate(bundleName);
+  if (!update.isAvailable) {
+    return;
+  }
+
+  await updater.download(bundleName);
+  await updater.install(bundleName, update.version);
+
+  // Reload so the webview serves the newly installed bundle.
+  window.location.reload();
+}
+```
+
+<Callout type="info">
+  If the native host has no updater configured, calls reject with a `BridgeError` whose `code` is
+  `BridgeErrorCode.UpdaterNotInitialized`. See the [Bridge overview](/docs/references/bridge) for
+  error handling.
+</Callout>
+
+## See also
+
+<Cards>
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/remote-bundles"
+    description="How OTA updates, integrity, and signatures work."
+  />
+  <Card
+    title="Node updater API"
+    href="/docs/references/node/updater"
+    description="The native updater the bridge calls into."
+  />
+  <Card
+    title="Bridge overview"
+    href="/docs/references/bridge"
+    description="invoke(), platform detection, and the other command groups."
+  />
+</Cards>

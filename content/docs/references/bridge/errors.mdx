@@ -1,0 +1,61 @@
+---
+title: Errors
+description: How @wvb/bridge surfaces failures through BridgeError and its BridgeErrorCode values.
+---
+
+Every failure from `@wvb/bridge` surfaces as a `BridgeError`. It is an `Error` subclass with `name` set to `'BridgeError'` and an optional `code` drawn from `BridgeErrorCode`. Whether you call `invoke()` directly or a typed command group, any rejection is wrapped in this single error type, so you have one shape to catch and inspect.
+
+## BridgeError
+
+`BridgeError` extends the built-in `Error`. Read its `message` for a human-readable description and its `code` to branch on a specific failure. The package also exports the type guards `isBridgeError` and `isBridgeErrorData`, plus the static helpers `BridgeError.of(code, message?)` and `BridgeError.from(value)`.
+
+## BridgeErrorCode
+
+The `code` property, when present, is one of the following values. The value is the string carried on the wire.
+
+| Code                    | Value                     | When it occurs                              |
+| ----------------------- | ------------------------- | ------------------------------------------- |
+| `InvalidParams`         | `invalid_params`          | The command parameters were rejected.       |
+| `RemoteNotInitialized`  | `remote_not_initialized`  | No remote is configured on the host.        |
+| `UpdaterNotInitialized` | `updater_not_initialized` | No updater is configured on the host.       |
+| `HandlerNotFound`       | `handler_not_found`       | The host has no handler for the command.    |
+| `UnencodableResult`     | `unencodable_result`      | The result could not be encoded for return. |
+
+## Handling errors
+
+Catch the error, narrow it with `isBridgeError`, then compare `code` against `BridgeErrorCode`:
+
+```ts
+import { BridgeError, BridgeErrorCode, isBridgeError, updater } from '@wvb/bridge';
+
+try {
+  const update = await updater.getUpdate('app');
+  // Use update...
+} catch (err) {
+  if (isBridgeError(err) && err.code === BridgeErrorCode.UpdaterNotInitialized) {
+    // The native host has no updater configured.
+    return;
+  }
+  throw err;
+}
+```
+
+<Callout type="info">
+  `err.code` is optional. A `BridgeError` may be thrown without a `code` (for example, when the
+  webview runs somewhere no transport is present), so guard for `undefined` before branching on it.
+</Callout>
+
+## See also
+
+<Cards>
+  <Card
+    title="Bridge"
+    href="/docs/references/bridge"
+    description="The web-side @wvb/bridge library and its typed command groups."
+  />
+  <Card
+    title="Testing"
+    href="/docs/references/bridge/testing"
+    description="Drive the bridge in tests without a native host."
+  />
+</Cards>

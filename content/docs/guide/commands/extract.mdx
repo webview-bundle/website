@@ -1,0 +1,59 @@
+---
+title: wvb extract
+description: Unpack a .wvb archive's files back onto disk to inspect what a bundle contains.
+---
+
+`wvb extract` reads a `.wvb` archive and writes its files back onto disk. Use it to inspect what a bundle ships, diff two bundles, or recover the assets that went into one.
+
+## Usage
+
+Pass the bundle file to extract. The command writes the unpacked files under an output directory, defaulting to `.wvb/<basename without .wvb>`.
+
+```sh
+wvb extract ./build/app.wvb
+wvb extract ./build/app.wvb --outdir ./unpacked
+wvb extract ./build/app.wvb --outdir ./unpacked --clean
+```
+
+Pass `--no-write` to run the extraction without touching disk, which is useful for verifying that a bundle reads cleanly:
+
+```sh
+wvb extract ./build/app.wvb --no-write
+```
+
+## Options
+
+| Option     | Aliases | Default                        | Description                                                      |
+| ---------- | ------- | ------------------------------ | ---------------------------------------------------------------- |
+| `FILE`     | —       | required                       | Bundle file to extract.                                          |
+| `--outdir` | `-O`    | `.wvb/<basename without .wvb>` | Destination directory for the unpacked files.                    |
+| `--clean`  | —       | `false`                        | Remove the output directory first if it exists.                  |
+| `--write`  | —       | `true`                         | Pass `--no-write` to simulate the extract without writing files. |
+| `--cwd`    | —       | `process.cwd()`                | Working directory used to resolve paths.                         |
+
+<Callout type="info">
+  `wvb extract` has no `--config` flag. It reads only the bundle file you pass and the flags above;
+  it does not load a `wvb.config` file. It does accept `--cwd` to resolve relative paths.
+</Callout>
+
+The global `--color`, `--log-level`, and `--log-verbose` flags apply here as they do on every command. Boolean flags accept `--flag`, `--flag=true|false`, and a `--no-flag` negation, so `--no-write` turns off the default `--write` behavior.
+
+## See also
+
+<Cards>
+  <Card
+    title="CLI overview"
+    href="/docs/guide/cli"
+    description="Install the CLI, global flags, and config discovery."
+  />
+  <Card
+    title="wvb pack"
+    href="/docs/guide/commands/pack"
+    description="Pack a directory of built web assets into a .wvb archive."
+  />
+  <Card
+    title="wvb serve"
+    href="/docs/guide/commands/serve"
+    description="Serve a packed bundle's files over HTTP to preview them."
+  />
+</Cards>

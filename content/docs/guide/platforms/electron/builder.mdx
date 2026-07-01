@@ -1,0 +1,109 @@
+---
+title: Electron Builder
+description: Install builtin .wvb bundles at package time and keep the native @wvb/node addon in your electron-builder app.
+---
+
+`@wvb/electron-builder` integrates Webview Bundle with [electron-builder](https://www.electron.build/) packaging. It hooks electron-builder's `afterPack` step to install your builtin `.wvb` bundles into the packaged app's resources, so the bundles `@wvb/electron` serves at runtime ship with the app. You still configure electron-builder to keep the native `@wvb/node` addon out of the ASAR archive. Read the [Electron guide](/docs/guide/platforms/electron) first for the runtime setup, and see [Electron Forge](/docs/guide/platforms/electron/forge) for the Forge equivalent.
+
+## What it does
+
+At package time the plugin resolves your Webview Bundle config, installs the builtin bundles (downloaded from a `remote` target or packed from local workspaces via `@wvb/cli`), stages them under `<root>/.wvb/builtin/bundles/<platform>-<arch>`, then copies them into the packaged app's `Resources/<bundlesDir>` directory. That is exactly where `@wvb/electron` reads builtin bundles from when packaged (`process.resourcesPath/bundles`), so the runtime picks them up with no extra wiring.
+
+The plugin requires `electron-builder` 24+ (declared as an optional peer dependency) and pulls in `@wvb/cli` and `@wvb/config` to resolve and pack bundles.
+
+## Configure the plugin
+
+Wrap your electron-builder config with `withWebviewBundle(...)` (alias `withWvb`). It composes the `afterPack` hook for you while preserving any existing function-valued `afterPack`.
+
+```ts title="electron-builder.config.ts"
+import { withWebviewBundle } from '@wvb/electron-builder';
+
+export default withWebviewBundle({
+  appId: 'com.example.app',
+  asar: true,
+  mac: { target: 'dmg' },
+});
+```
+
+Pass plugin options as a second argument:
+
+```ts title="electron-builder.config.ts"
+import { withWebviewBundle } from '@wvb/electron-builder';
+
+export default withWebviewBundle(
+  {
+    appId: 'com.example.app',
+    asar: true,
+  },
+  {
+    bundlesDir: 'bundles',
+    channel: 'beta',
+  }
+);
+```
+
+If you prefer to wire the hook yourself, use the raw factory `webviewBundleAfterPack(options?)` (alias `wvbAfterPack`), which returns an electron-builder `afterPack` function. The package also exports `resolveResourcesPath(ctx)`, which returns the packaged app's resources directory for a given build context.
+
+### Options
+
+Both `@wvb/electron-builder` and `@wvb/electron-forge` share these options:
+
+| Option                    | Type                | Default     | Meaning                                                                           |
+| ------------------------- | ------------------- | ----------- | --------------------------------------------------------------------------------- |
+| `root`                    | `string`            | (resolved)  | project root used to discover config and bundles                                  |
+| `builtin`                 | `BuiltinConfig`     | from config | inline builtin config, overriding the config file                                 |
+| `bundlesDir`              | `string`            | `'bundles'` | destination directory name under the packaged `Resources`                         |
+| `configFile`              | `string \| boolean` | `true`      | `true` auto-discovers and merges; a path loads explicitly; `false` is inline only |
+| `channel`                 | `string`            | —           | release channel to install bundles from (e.g. `"beta"`)                           |
+| `throwWhenBuiltinIsEmpty` | `boolean`           | `true`      | throw if zero bundles end up installed                                            |
+
+When `builtin.target` is not set, the plugin defaults to a `remote` target using the resolved remote endpoint. `bundlesDir` must be a relative path with no `..` segments. See [configuration](/docs/config) for the underlying `builtin` and `remote` config, and [Building a remote](/docs/guide/remote) for the install source.
+
+## Keep the native addon out of the ASAR
+
+`@wvb/electron` depends on `@wvb/node`, a native N-API addon (a `.node` binary). When `asar: true`, electron-builder packs `node_modules` into the ASAR archive, and native binaries cannot be loaded from inside ASAR. Use `asarUnpack` to unpack the addon so it loads at runtime:
+
+```json title="electron-builder config"
+{
+  "asar": true,
+  "asarUnpack": ["**/node_modules/@wvb/node/**"]
+}
+```
+
+The plugin handles installing the builtin bundles, so you do not need `extraResources` for them. If you stage `.wvb` files yourself instead of using the plugin, ship the directory as an extra resource so it lands in `Resources/bundles`:
+
+```json title="electron-builder config"
+{
+  "extraResources": [{ "from": "bundles", "to": "bundles" }]
+}
+```
+
+<Callout type="info">
+  If the app works in development but throws a missing-module error for `@wvb/node` once packaged,
+  the native addon was packed into the ASAR. Add the `asarUnpack` glob above and repackage.
+</Callout>
+
+## Next steps
+
+<Cards>
+  <Card
+    title="Electron guide"
+    href="/docs/guide/platforms/electron"
+    description="Serve a .wvb bundle through a custom protocol and update over the air."
+  />
+  <Card
+    title="Electron Forge"
+    href="/docs/guide/platforms/electron/forge"
+    description="The same builtin-install logic as an Electron Forge plugin."
+  />
+  <Card
+    title="Configuration"
+    href="/docs/config"
+    description="The builtin and remote config the plugin resolves."
+  />
+  <Card
+    title="Building a remote"
+    href="/docs/guide/remote"
+    description="Stand up an update server the plugin can install bundles from."
+  />
+</Cards>
