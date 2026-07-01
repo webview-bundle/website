@@ -78,7 +78,7 @@ app.whenReady().then(async () => {
 });
 ```
 
-The electron-builder and Electron Forge packaging helpers, `@wvb/electron-builder` and `@wvb/electron-forge`, exist in the repository but are not published to npm yet. See the [Electron guide](/docs/guide/platforms/electron) and the [Node API reference](/docs/references/node).
+The electron-builder and Electron Forge packaging helpers, `@wvb/electron-builder` and `@wvb/electron-forge`, wire bundle packaging into your build. See the [Electron guide](/docs/guide/platforms/electron) and the [Node API reference](/docs/references/node).
 
 ### Tauri
 
@@ -175,7 +175,7 @@ let bundle = try await source.fetchBundle(bundleName: "app")
 deno run -A jsr:@wvb/deno/install --out vendor/wvb
 ```
 
-It is experimental: the binding source lives on an unmerged branch, and `main` ships only a prebuilt dylib. Treat it as a preview, not a production target. See the [Deno guide](/docs/guide/platforms/deno) and the [Deno API reference](/docs/references/deno).
+It is experimental. See the [Deno guide](/docs/guide/platforms/deno) and the [Deno API reference](/docs/references/deno).
 
 ## The bridge
 
@@ -219,7 +219,7 @@ The bridge detects the host at runtime and routes each call over the right trans
 | Android  | `window.wvbAndroid.postMessage(...)`                    |
 | iOS      | `window.webkit.messageHandlers.wvbIos.postMessage(...)` |
 
-Your code uses the same `source`, `remote`, and `updater` methods everywhere. The shipping `@wvb/bridge` 0.1.0 supports electron, tauri, android, and ios. The Deno platform exists only on the experimental Deno branch and is not part of the published bridge.
+Your code uses the same `source`, `remote`, and `updater` methods everywhere. The `@wvb/bridge` client supports electron, tauri, android, and ios; Deno Desktop provides its own bindings through `@wvb/deno-desktop`.
 
 Test webview code without a native host by importing `@wvb/bridge/testing`:
 

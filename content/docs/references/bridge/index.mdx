@@ -74,8 +74,8 @@ console.log(platform.type); // 'electron' | 'tauri' | 'android' | 'ios'
 | `isIos`      | `boolean`                                     | True when running under iOS.      |
 
 <Callout type="info">
-  The shipping bridge detects only these four platforms. Deno Desktop is experimental and its bridge
-  support lives on an unmerged branch, so `'deno'` is not part of `@wvb/bridge` 0.1.0.
+  `@wvb/bridge` detects these four platforms. Deno Desktop is experimental and provides its bridge
+  support through `@wvb/deno-desktop` rather than `@wvb/bridge`.
 </Callout>
 
 ## Transports
