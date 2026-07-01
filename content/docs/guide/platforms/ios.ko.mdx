@@ -1,0 +1,247 @@
+---
+title: iOS
+description: webview-bundle-ios Swift 패키지로 WKWebView에서 Webview Bundle 아카이브를 제공하고 업데이트합니다.
+---
+
+`webview-bundle-ios` Swift 패키지는 커스텀 URL 스킴을 통해 `.wvb` 번들을 `WKWebView`에 제공하고,
+무선(OTA) 업데이트로 항상 최신 상태를 유지합니다. 스킴을 등록하고 `WKWebView`를 `app://app.wvb`로
+가리키면, 이 패키지가 디스크에 있는 번들에서 모든 요청에 응답합니다. 오프라인 우선으로 동작하며,
+업데이터가 백그라운드에서 더 새로운 번들을 받아오므로 앱스토어 출시가 필요 없습니다.
+
+## Requirements
+
+| Requirement      | Value                                                      |
+| ---------------- | ---------------------------------------------------------- |
+| 최소 OS          | iOS 16, macOS 12 (`platforms: [.macOS(.v12), .iOS(.v16)]`) |
+| Swift 도구       | 6.1, 언어 모드 6                                           |
+| SwiftPM 프로덕트 | `WebViewBundle`                                            |
+
+이 패키지는 `WebViewBundleLibrary`라는 UniFFI 생성 모듈을 통해 Rust 코어에 바인딩되며, 둘 다
+`WebViewBundle` 모듈로 노출됩니다. 공유 코어가 각 플랫폼에 어떻게 도달하는지는
+[플랫폼 통합](/docs/guide/platform-integration)을 참고하세요.
+
+패키지를 의존성으로 추가하세요(네이티브 FFI는 아래 설치 스크립트가 연결합니다).
+
+```swift title="Package.swift"
+dependencies: [
+  .package(path: "../webview-bundle-ios"),
+],
+targets: [
+  .target(name: "App", dependencies: [
+    .product(name: "WebViewBundle", package: "webview-bundle-ios"),
+  ]),
+]
+```
+
+## Install the native FFI
+
+빌드하기 전에 릴리스에서 네이티브 바이너리를 해석하세요.
+
+```sh
+node scripts/install.mjs latest                 # 가장 높은 ffi/* 릴리스
+node scripts/install.mjs 0.1.0                   # -> ffi/0.1.0 태그
+node scripts/install.mjs ffi/0.1.0               # 명시적 릴리스 태그
+```
+
+이 스크립트는 해석된 태그의 GitHub 릴리스를 읽어 다음을 수행합니다.
+
+- `apple.zip` 자산에서 생성된 Swift 바인딩을 추출해 `Sources/WebViewBundle/`에 넣습니다.
+- `WebViewBundleFFI.xcframework.zip` 자산의 SHA-256 체크섬을 해석하고(GitHub가 보고하는 다이제스트를
+  우선 사용하며, 없으면 직접 다운로드해 해시함), 그 체크섬과 태그를 `Package.swift`에 기록합니다.
+
+`PATH`에 `unzip`이 필요합니다. 소스 저장소를 재정의하고, 비공개 저장소는 인증하세요.
+
+```sh
+export GITHUB_TOKEN=ghp_xxx                      # 비공개 소스 저장소의 경우, 또는 GH_TOKEN
+node scripts/install.mjs latest --repo webview-bundle/webview-bundle
+```
+
+## Quick start
+
+한 번 설정하고, `WKWebViewConfiguration`에 스킴을 등록한 뒤, 엔트리 URL을 로드하세요. **커스텀 스킴**을
+사용하세요. `http`와 `https`는 예약되어 있어 초기화 시 거부됩니다.
+
+```swift title="ContentView.swift"
+import SwiftUI
+import WebKit
+import WebViewBundle
+
+let instance = try WebViewBundle.configure(
+  WebViewBundleConfig(
+    protocols: [.bundle(scheme: "app")],
+    updater: WebViewBundleUpdaterConfig(
+      remote: WebViewBundleRemoteConfig(endpoint: "https://bundles.example.com"),
+      integrityPolicy: .strict,
+      signatureVerifier: SignatureVerifierOptions(
+        algorithm: .ed25519,
+        key: SignatureVerifyingKey(format: .spkiDer, pem: nil, der: publicKeyDer)
+      )
+    )
+  )
+)
+
+let config = WKWebViewConfiguration()
+instance.install(on: config)            // app:// 스킴 핸들러 + JS 브리지 등록
+
+let webView = WKWebView(frame: .zero, configuration: config)
+webView.load(URLRequest(url: URL(string: "app://app.wvb")!))
+```
+
+`configure(_:)`는 인스턴스를 한 번 만들어 프로세스 전역에 캐시합니다. 엔트리 URL `app://app.wvb`는
+`app`이라는 이름의 번들을 선택합니다. 수동 설정을 건너뛰려면 바로 사용할 수 있는 `WKWebView`를
+받으세요.
+
+```swift
+let webView = instance.makeWebView()    // 또는: instance.makeConfiguration()
+webView.load(URLRequest(url: URL(string: "app://app.wvb")!))
+```
+
+설정된 싱글턴은 어디서든 읽을 수 있습니다. `shared`는 `configure(_:)` 이전에 읽으면 트랩을 발생시키고,
+`safeShared`는 그렇지 않습니다.
+
+```swift
+let wvb = WebViewBundle.shared           // 아직 설정되지 않았으면 precondition 실패
+let maybe = WebViewBundle.safeShared     // 아직 설정되지 않았으면 nil
+```
+
+## How serving works
+
+각 스킴에는 `setURLSchemeHandler(_:forURLScheme:)`으로 등록된 `WKURLSchemeHandler`가 부여됩니다. 이
+핸들러는 각 요청을 Rust 코어에 매핑하고, Rust 코어는 디스크에 있는 번들에서 응답합니다.
+
+- **번들 이름 = 요청 호스트의 첫 번째 레이블.** `app://app.wvb/index.html`은 번들 `app`, 경로
+  `/index.html`로 해석됩니다.
+- **예약된 스킴은 초기화 시 거부됩니다**(예약 스킴에 핸들러를 등록하면 잡을 수 없는 예외가 발생합니다):
+  `http`, `https`, `file`, `ftp`, `ftps`, `ws`, `wss`, `about`, `blob`, `data`, `javascript`.
+- **스킴은 `^[a-z][a-z0-9+.-]*$`와 일치해야 하며** 고유해야 합니다. 비어 있거나, 형식이 잘못되었거나,
+  중복되거나, 예약된 스킴은 `WebViewBundleError`를 던집니다.
+
+```swift
+do {
+  _ = try WebViewBundle.configure(
+    WebViewBundleConfig(protocols: [.bundle(scheme: "https")]))
+} catch WebViewBundleError.reservedScheme(let scheme) {
+  print("\(scheme) is reserved")        // .emptyScheme / .invalidScheme / .duplicateScheme 도 존재
+}
+```
+
+프로토콜 종류는 두 가지입니다. `.bundle`은 번들 엔트리를 제공하고, `.local`은 로컬 HTTP 서버로
+프록시합니다(전체 요청 호스트를 `hosts` 맵과 대조). 모델은
+[프로토콜 처리](/docs/guide/protocol-handling)를 참고하세요.
+
+```swift
+WebViewBundleConfig(protocols: [
+  .bundle(scheme: "app"),
+  .local(scheme: "dev", hosts: ["myapp": "http://localhost:8080"]),
+])
+```
+
+## The bridge
+
+`install(on:)`은 JavaScript-네이티브 브리지도 함께 연결합니다. 웹 앱은
+`window.webkit.messageHandlers.wvbIos`로 메시지를 보내며, 브리지는 **메인 프레임 메시지만** 받습니다
+(서브프레임과 iframe 메시지는 버려집니다). 브리지는 소스, 원격, 업데이터 명령어를 노출합니다.
+
+```ts title="웹 앱"
+window.webkit.messageHandlers.wvbIos.postMessage({
+  name: 'updaterGetUpdate',
+  params: { bundleName: 'app' },
+});
+```
+
+## Sources
+
+각 앱은 두 개의 소스에서 읽습니다. 전체 모델은 [번들 소스](/docs/guide/bundle-sources)를 참고하세요.
+
+- **Builtin** — 앱 안에 함께 배포되는 읽기 전용 번들입니다. 기본 디렉터리는 앱 번들의 `/bundles`
+  폴더입니다. 파일이 그 위치에 놓이도록 폴더 레퍼런스로 배포하세요.
+- **Remote** — 다운로드된 업데이트를 위한 쓰기 가능 디렉터리입니다. 기본 위치는 Application Support
+  아래이며, 앱의 번들 식별자로 네임스페이스가 지정됩니다.
+
+`WebViewBundleConfig.source`의 `SourceOptions`를 통해 두 경로를 재정의할 수 있습니다.
+
+```swift
+WebViewBundleConfig(
+  source: SourceOptions(
+    builtinDir: Foundation.Bundle.main.resourcePath.map { "\($0)/bundles" },
+    remoteDir: nil,                       // nil => 기본 Application Support 디렉터리
+    builtinManifestFilepath: nil,
+    remoteManifestFilepath: nil
+  ),
+  protocols: [.bundle(scheme: "app")]
+)
+```
+
+<Callout type="warn">
+  `WebViewBundle` 모듈 안에서는 정규화되지 않은 `Bundle`이 `Foundation.Bundle`이 아니라 FFI 번들
+  클래스로 해석됩니다. 앱 번들을 의미할 때는 `Foundation.Bundle`을 명시적으로 쓰세요.
+</Callout>
+
+## OTA updates
+
+`WebViewBundleConfig.updater`를 설정하면 패키지가 `Remote`와 `Updater`를 만들어 주며, 각각
+`instance.remote`와 `instance.updater`로 접근할 수 있습니다.
+
+```swift
+let updaterConfig = WebViewBundleUpdaterConfig(
+  remote: WebViewBundleRemoteConfig(endpoint: "https://bundles.example.com"),
+  channel: "stable",
+  integrityPolicy: .strict,
+  signatureVerifier: SignatureVerifierOptions(
+    algorithm: .ed25519,
+    key: SignatureVerifyingKey(format: .spkiDer, pem: nil, der: publicKeyDer)
+  )
+)
+```
+
+`integrityPolicy`는 `.strict`, `.optional`, `.none` 중 하나입니다. 무결성 값은 `sha256:<base64>` 형태로
+직렬화된 SHA-2 다이제스트입니다. `signatureVerifier`는 누가 번들을 게시했는지를 증명합니다.
+
+| Field                 | Values                                                                      |
+| --------------------- | --------------------------------------------------------------------------- |
+| `algorithm`           | `.ecdsaSecp256r1`, `.ecdsaSecp384r1`, `.ed25519`, `.rsaPkcs1V15`, `.rsaPss` |
+| `key.format`          | `.spkiDer`, `.spkiPem`, `.pkcs1Der`, `.pkcs1Pem`, `.sec1`, `.raw`           |
+| `key.pem` / `key.der` | 텍스트 키는 `pem`, 바이너리 키는 `der`                                      |
+
+업데이트 주기는 업데이터를 통해 구동하세요.
+
+```swift
+guard let updater = instance.updater else { return }
+
+let info = try await updater.getUpdate(bundleName: "app")   // 확인만; 다운로드 없음
+if info.isAvailable {
+  _ = try await updater.downloadUpdate(bundleName: "app", version: info.version)
+  try await updater.install(bundleName: "app", version: info.version)
+}
+```
+
+`getUpdate`는 원격에서 더 새로운 버전이 있는지 다운로드 없이 확인합니다. `downloadUpdate`는 버전을
+다운로드해 저장합니다(`version`이 `nil`이면 최신 버전). `install`은 스테이징된 버전을 활성화하고,
+설정되어 있으면 무결성과 서명을 검증한 뒤, 오래된 버전을 정리합니다. 새 번들을 렌더링하려면 다시
+로드하세요.
+
+```swift
+try await updater.install(bundleName: "app", version: info.version)
+await webView.evaluateJavaScript("location.reload()")
+```
+
+서명 실패는 FFI 오류 `Error.Signature(message:)`로 나타납니다.
+
+원격 HTTP 규약, 무결성, 서명 세부 사항은 [원격 번들](/docs/guide/remote-bundles)과
+[원격 구축하기](/docs/guide/remote)를 참고하세요.
+
+## Next steps
+
+<Cards>
+  <Card
+    title="원격 번들"
+    href="/docs/guide/remote-bundles"
+    description="플랫폼 전반에서 업데이트, 무결성, 서명이 동작하는 방식."
+  />
+  <Card
+    title="원격 구축하기"
+    href="/docs/guide/remote"
+    description="원격 HTTP 규약, 로컬 테스트, 그리고 제공자 선택."
+  />
+  <Card title="레퍼런스" href="/docs/references" description="코어와 언어 바인딩의 API 레퍼런스." />
+</Cards>

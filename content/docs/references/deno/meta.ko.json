@@ -1,0 +1,4 @@
+{
+  "title": "Deno API",
+  "pages": ["index", "source", "protocol", "remote", "updater"]
+}

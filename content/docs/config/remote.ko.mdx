@@ -1,0 +1,208 @@
+---
+title: 원격, 무결성 및 서명 설정
+description: wvb.config의 remote 블록과 배포 측 무결성 및 서명 옵션을 설정합니다.
+---
+
+`wvb.config.ts`의 `remote` 블록은 `wvb` CLI가 번들을 배포하는 방법을 정의합니다. 원격 서버의 위치,
+각 번들의 이름과 버전을 정하는 방법, 그리고 어떤 프로바이더가 번들을 업로드하고 배포하는지를 지정합니다.
+이와 인접한 두 옵션이 결과물을 견고하게 만듭니다. `integrity`는 콘텐츠 해시를 계산하고, `signature`는
+그 해시를 개인 키로 서명하여 클라이언트가 누가 번들을 배포했는지 검증할 수 있게 합니다. 이 페이지는 이
+세 가지 옵션을 설명하고, 마지막에 복사해서 바로 쓸 수 있는 완전한 설정으로 마무리합니다.
+
+나머지 설정 파일 내용(최상위 필드, `pack`, `serve`, `builtin`)은 [wvb.config 파일](/docs/config)을
+참고하세요. 런타임 측 동작, 즉 클라이언트가 이 번들을 무선(OTA)으로 다운로드하고 검증하고 활성화하는
+방법은 [원격 번들](/docs/guide/remote-bundles)을 참고하세요.
+
+## remote
+
+`remote`는 `RemoteConfig` 객체입니다. 모든 필드는 선택 사항이며, 여러분이 제공하는 `uploader`와
+`deployer`는 프로바이더 패키지에서 가져옵니다.
+
+| Field              | Type                                   | Default                    | Description                                                 |
+| ------------------ | -------------------------------------- | -------------------------- | ----------------------------------------------------------- |
+| `endpoint`         | `string`                               | —                          | 원격 서버의 기본 URL.                                       |
+| `bundleName`       | `BundleNameResolver`                   | `{ from: 'package.json' }` | 번들 이름을 결정하는 방법.                                  |
+| `version`          | `VersionResolver`                      | `{ from: 'package.json' }` | 배포할 버전을 결정하는 방법.                                |
+| `packBeforeUpload` | `boolean`                              | `true`                     | 업로드 전에 번들을 패킹.                                    |
+| `uploader`         | `BaseRemoteUploader`                   | —                          | `.wvb`를 서버에 업로드(프로바이더에서 제공).                |
+| `deployer`         | `BaseRemoteDeployer`                   | —                          | 버전을 배포됨으로 표시(프로바이더에서 제공).                |
+| `integrity`        | `boolean \| IntegrityMakeConfig \| fn` | —                          | 업로드 시 무결성 해시를 계산. [integrity](#integrity) 참고. |
+| `signature`        | `SignatureSignConfig \| fn`            | —                          | 업로드 시 무결성 해시에 서명. [signature](#signature) 참고. |
+
+<Callout type="info">
+`RemoteConfig`에는 `channel`이나 `allowOtherVersions` 필드가 없습니다. 채널은 배포 시점의 인자
+(`wvb deploy --channel <ch>`)이지, 설정 객체의 속성이 아닙니다.
+</Callout>
+
+### Resolvers
+
+`bundleName`과 `version`은 리터럴 문자열, 리졸버 객체, 또는 함수를 받습니다. 함수 형태는
+`{ packageJson, dir, file }`을 받아 문자열(또는 문자열의 `Promise`)을 반환합니다.
+
+```ts title="wvb.config.ts"
+remote: {
+  // 번들 이름: 'package.json'(name 필드, 스코프 제거) 또는 문자열 또는 함수.
+  bundleName: { from: 'package.json' },
+
+  // 버전: 'package.json'(version 필드), 'git'(HEAD 커밋 해시), 문자열, 또는 함수.
+  version: { from: 'git' },
+}
+```
+
+| Resolver     | Accepted forms                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------ |
+| `bundleName` | `{ from: 'package.json' }` \| `string` \| `(params) => string \| Promise<string>`                      |
+| `version`    | `{ from: 'package.json' }` \| `{ from: 'git' }` \| `string` \| `(params) => string \| Promise<string>` |
+
+`{ from: 'package.json' }`은 `name`/`version` 필드를 읽으며, 값이 없으면 오류를 던집니다.
+`{ from: 'git' }`(version 전용)은 현재 `HEAD` 커밋 해시를 사용합니다.
+
+### Providers
+
+`uploader`와 `deployer`는 `@wvb/config`에 내장되어 있지 않습니다. 프로바이더 패키지에서 가져옵니다.
+각 프로바이더는 `remote`에 스프레드로 펼쳐 넣을 수 있는 `{ uploader, deployer }`를 반환하는 팩토리를
+익스포트합니다(AWS는 `signature` 서명자도 함께 반환합니다).
+
+<Cards>
+  <Card
+    title="Local 프로바이더"
+    href="/docs/guide/providers/local"
+    description="개발과 테스트를 위해 디스크에서 번들을 제공합니다."
+  />
+  <Card
+    title="AWS 프로바이더"
+    href="/docs/guide/providers/aws"
+    description="S3 + CloudFront, 선택적으로 KMS 서명 지원."
+  />
+  <Card
+    title="Cloudflare 프로바이더"
+    href="/docs/guide/providers/cloudflare"
+    description="Workers 핸들러를 갖춘 R2 스토리지."
+  />
+</Cards>
+
+## integrity
+
+무결성 기능은 번들 바이트의 암호학적 해시를 계산하여 번들과 함께 저장합니다. 클라이언트는 다운로드 시
+해시를 다시 계산하고, 해시가 일치하지 않는 번들을 거부합니다. 이는 전송 중에 바이트가 손상되거나
+변조되지 않았다는 증거입니다. 해시는 **SHA-2**를 사용합니다.
+
+`integrity`는 세 가지 형태를 받습니다.
+
+```ts title="wvb.config.ts"
+// 1. Boolean — 기본 알고리즘(sha256)으로 활성화.
+integrity: true,
+
+// 2. 알고리즘 선택.
+integrity: { algorithm: 'sha384' },   // 'sha256' | 'sha384' | 'sha512'
+
+// 3. 커스텀 함수 — 전체 "<alg>:<base64>" 문자열을 직접 반환.
+integrity: async ({ data }) => `sha256:${await myHash(data)}`,
+```
+
+| Form          | Type                                               | Notes                          |
+| ------------- | -------------------------------------------------- | ------------------------------ |
+| Boolean       | `boolean`                                          | `true`는 기본 알고리즘을 사용. |
+| Config object | `{ algorithm?: 'sha256' \| 'sha384' \| 'sha512' }` | 기본 `algorithm`은 `'sha256'`. |
+| Function      | `(params: { data: Buffer }) => Promise<string>`    | 직렬화된 문자열을 반환.        |
+
+직렬화된 출력은 `"<alg>:<base64>"` 형태입니다. 알고리즘 이름, 콜론, 그다음 base64로 인코딩된 다이제스트가
+이어집니다. 예를 들어 `sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=`와 같습니다.
+
+## signature
+
+서명은 _누가_ 번들을 배포했는지 증명합니다. 무결성 문자열(위의 `"<alg>:<base64>"` 값)의 바이트를 개인
+키로 서명하고, 클라이언트는 이에 대응하는 공개 키로 그 결과를 검증합니다. 서명되는 메시지가 무결성
+문자열이기 때문에, 서명 검증에는 무결성 값이 반드시 존재해야 합니다.
+
+`signature`는 `SignatureSignConfig`(`algorithm`을 기준으로 하는 판별 유니언) 또는 커스텀 서명 함수입니다.
+이것은 **배포(서명) 측**이며, `@wvb/config`에 포함되어 제공됩니다.
+
+| `algorithm`        | Required fields                               | Optional fields |
+| ------------------ | --------------------------------------------- | --------------- |
+| `'ecdsa'`          | `curve` (`'p256'` \| `'p384'`), `hash`, `key` | —               |
+| `'ed25519'`        | `key`                                         | —               |
+| `'rsa-pkcs1-v1.5'` | `hash`, `key`                                 | —               |
+| `'rsa-pss'`        | `hash`, `key`                                 | `saltLength`    |
+
+`hash`는 `'sha256' | 'sha384' | 'sha512'` 중 하나입니다. `key`는 `SignatureSigningKeyConfig`입니다.
+
+| `format`                         | `data` type  |
+| -------------------------------- | ------------ |
+| `'jwk'`                          | `JsonWebKey` |
+| `'raw'` \| `'pkcs8'` \| `'spki'` | `Buffer`     |
+
+```ts title="wvb.config.ts"
+// ECDSA
+signature: {
+  algorithm: 'ecdsa',
+  curve: 'p256',                  // 'p256' | 'p384'
+  hash: 'sha256',
+  key: { format: 'pkcs8', data: privateKeyDerBuffer },
+},
+
+// Ed25519
+signature: {
+  algorithm: 'ed25519',
+  key: { format: 'pkcs8', data: privateKeyDerBuffer },
+},
+
+// RSA-PSS (또는 'rsa-pkcs1-v1.5')
+signature: {
+  algorithm: 'rsa-pss',
+  hash: 'sha256',
+  saltLength: 32,                 // rsa-pss 전용; 생략하면 hash 값에서 기본값을 정함
+  key: { format: 'pkcs8', data: privateKeyDerBuffer },
+},
+
+// 커스텀 서명자 — 무결성 문자열 바이트를 받아 base64 서명을 반환.
+signature: async ({ message }) => myExternalSigner(message),
+```
+
+<Callout type="info">
+  클라이언트는 대응하는 **공개** 키로 검증하며, 검증 측은 서명 측과 다른 키 포맷을 받습니다. SPKI,
+  PKCS#1(RSA 전용), SEC1(ECDSA 전용), raw 32바이트(Ed25519 전용)를 받지만 JWK는 받지 않습니다.
+  검증에 대해서는 [원격 번들](/docs/guide/remote-bundles)을, 클라이언트 측 헬퍼에 대해서는 [Node API
+  레퍼런스](/docs/references/node)를 참고하세요.
+</Callout>
+
+## Complete example
+
+AWS 프로바이더를 통해 배포하고, SHA-384로 해시하고, Ed25519로 서명하는 완전한 `wvb.config.ts`입니다.
+다른 프로바이더를 대상으로 하려면 `awsRemote`를 `localRemote`나 `cloudflareRemote`로 바꾸세요.
+
+```ts title="wvb.config.ts"
+import { readFileSync } from 'node:fs';
+import { defineConfig } from '@wvb/config';
+import { awsRemote } from '@wvb/remote-aws';
+
+export default defineConfig(() => {
+  const provider = awsRemote({
+    bucket: 'my-app-bundles',
+    aws: { region: 'us-east-1' },
+  });
+
+  return {
+    remote: {
+      endpoint: 'https://updates.example.com',
+      bundleName: { from: 'package.json' },
+      version: { from: 'git' },
+      uploader: provider.uploader,
+      deployer: provider.deployer,
+      integrity: { algorithm: 'sha384' },
+      signature: {
+        algorithm: 'ed25519',
+        key: {
+          format: 'pkcs8',
+          data: readFileSync('./keys/signing-key.pkcs8.der'),
+        },
+      },
+    },
+  };
+});
+```
+
+배포하려면 먼저 `wvb upload`를 실행하여 `.wvb`를 푸시하고(`packBeforeUpload`가 `true`이면 먼저 패킹합니다),
+그다음 `wvb deploy --version <v>`를 실행하여 버전을 라이브로 표시합니다. 전체 명령어 집합은
+[CLI 레퍼런스](/docs/guide/cli)를, 원격을 처음부터 끝까지 구축하고 테스트하는 방법은
+[원격 가이드](/docs/guide/remote)를 참고하세요.

@@ -1,0 +1,165 @@
+---
+title: 번들 포맷
+description: .wvb 아카이브가 디스크에 섹션별로 어떻게 배치되는지, 그리고 체크섬이 손상으로부터 아카이브를 어떻게 보호하는지 설명합니다.
+---
+
+Webview Bundle은 빌드된 웹 자산을 압축하고 무결성을 검증한 하나의 아카이브로 묶은 단일 `.wvb` 파일입니다. 세 개의 섹션이 연속으로 기록됩니다. 고정 길이 17바이트 헤더 뒤에 가변 길이의 인덱스와 데이터 영역이 이어집니다.
+
+| Offset      | Section | Size       | 담는 내용                                 |
+| ----------- | ------- | ---------- | ----------------------------------------- |
+| `0`         | Header  | `17 bytes` | 매직 넘버, 포맷 버전, 인덱스 크기, 체크섬 |
+| `17`        | Index   | variable   | 경로 → 오프셋/길이/헤더 엔트리 맵         |
+| after index | Data    | variable   | 경로순으로 정렬된 LZ4 압축 파일 내용      |
+
+각 섹션은 자체 체크섬을 가지므로, 잘리거나 손상된 아카이브는 내용을 제공하기 전에 걸러집니다. 번들을 만들려면 [CLI](/docs/guide/cli) 또는 [Node API](/docs/references/node)를 참고하세요.
+
+```ts title="build.ts"
+import { readFile } from 'node:fs/promises';
+import { BundleBuilder, writeBundle } from '@wvb/node';
+
+const builder = new BundleBuilder();
+builder.insertEntry('/index.html', await readFile('dist/index.html'), 'text/html');
+builder.insertEntry('/app.js', await readFile('dist/app.js'), 'application/javascript');
+
+const bundle = builder.build();
+await writeBundle(bundle, '.wvb/app_1.0.0.wvb');
+```
+
+관례상 패킹된 파일은 `<name>_<version>.wvb` 형식으로 이름을 짓습니다. 예를 들어 `app_1.0.0.wvb`입니다. 번들 이름과 버전은 소스 수준의 개념으로, 파일명과 매니페스트에 존재할 뿐 아카이브 내부에는 들어가지 않습니다. [번들 소스](/docs/guide/bundle-sources)를 참고하세요.
+
+## 헤더
+
+헤더는 정확히 17바이트이며 고정 레이아웃을 가집니다. 직렬화기를 거치지 않고 직접 기록하므로, 모든 필드가 알려진 오프셋에 자리합니다.
+
+| Field        | Offset | Length | Encoding                       |
+| ------------ | ------ | ------ | ------------------------------ |
+| Magic number | 0      | 8      | raw bytes `0xF09F8C90F09F8E81` |
+| Version      | 8      | 1      | single byte (포맷 버전)        |
+| Index size   | 9      | 4      | `u32`, big-endian              |
+| Checksum     | 13     | 4      | `u32`, big-endian xxHash-32    |
+
+인덱스 크기가 `1234`인 `V1` 번들의 경우, 17바이트는 다음과 같습니다.
+
+```text
+F0 9F 8C 90 F0 9F 8E 81   magic  (🌐🎁)
+01                        version (V1)
+00 00 04 D2               index size = 1234, big-endian
+31 38 03 10               xxHash-32 of the first 13 bytes
+```
+
+- 매직 넘버 `0xF09F8C90F09F8E81`은 🌐🎁(지구본 + 포장된 선물)의 UTF-8 인코딩입니다. 이 바이트를 찾지 못한 리더는 해당 파일을 번들이 아닌 것으로 판단해 거부합니다.
+- 버전 바이트는 번들의 **포맷 버전**을 담습니다. 이 enum은 현재 `V1`이라는 단일 값만 가집니다. 이는 `1.0.0` 같은 번들의 릴리스 버전과는 별개이며, 릴리스 버전은 아카이브 내부에 절대 나타나지 않습니다.
+- 인덱스 크기는 뒤따르는 인덱스의 바이트 길이입니다. 인덱스 자체의 후행 체크섬은 여기에 **포함되지 않습니다**.
+- 체크섬은 처음 13바이트(체크섬 앞의 모든 바이트)에 대한 xxHash-32이며, big-endian으로 저장됩니다.
+
+디스크립터를 통해 헤더 필드를 다시 읽어올 수 있습니다.
+
+```ts
+import { readBundle } from '@wvb/node';
+
+const header = (await readBundle('app_1.0.0.wvb')).descriptor().header();
+header.version(); // 'v1'
+header.indexSize(); // 인덱스의 바이트 길이
+header.indexEndOffset(); // 17 + indexSize + 4 -> 데이터 섹션이 시작되는 위치
+```
+
+## 인덱스
+
+인덱스는 헤더 바로 뒤에 위치하며, 각 파일 경로(예: `/index.html`)를 해당 파일의 바이트 위치와 제공 방식을 설명하는 엔트리로 매핑합니다. 각 엔트리는 다음을 담습니다.
+
+| Field            | Type   | 의미                                              |
+| ---------------- | ------ | ------------------------------------------------- |
+| `offset`         | `u64`  | 데이터 섹션 내에서 이 파일 데이터의 바이트 오프셋 |
+| `len`            | `u64`  | **압축된** 바이트의 길이                          |
+| `content_type`   | string | MIME 타입. 제공 시 `Content-Type` 헤더에 사용됨   |
+| `content_length` | `u64`  | 원본 **비압축** 크기. `Content-Length`에 사용됨   |
+| `headers`        | map    | 파일 제공 시 재생할 HTTP 헤더 이름/값 쌍          |
+
+```ts
+const index = (await readBundle('app_1.0.0.wvb')).descriptor().index();
+
+index.containsPath('/index.html'); // true
+index.getEntry('/index.html');
+// {
+//   offset: 0,
+//   len: 184,                       // 압축됨
+//   contentType: 'text/html',
+//   contentLength: 412,             // 비압축
+//   headers: { 'cache-control': 'no-cache' },
+//   isEmpty: false,
+// }
+```
+
+직렬화 세부 사항:
+
+- big-endian 가변 길이 정수 구성으로 [bincode](https://github.com/bincode-org/bincode)를 사용해 인코딩합니다. 숫자 필드는 고정 폭이 아니라 varint로 인코딩됩니다.
+- 맵은 인코딩 전에 경로순으로 정렬됩니다. 따라서 출력 바이트는 결정적이며 삽입 순서와 무관합니다.
+- 인덱스 바이트에 대한 4바이트 big-endian xxHash-32 체크섬이 인덱스 바로 뒤에 기록됩니다.
+
+프로토콜 핸들러가 파일을 제공할 때는 저장된 `headers`를 재생한 다음, `content_type`으로 `Content-Type`을, `content_length`(비압축 크기)로 `Content-Length`를 설정합니다. URL이 엔트리로 어떻게 매핑되는지는 [프로토콜 처리](/docs/guide/protocol-handling)를 참고하세요.
+
+## 데이터
+
+데이터 섹션은 인덱스와 동일한 순서로, 경로순으로 정렬된 파일 내용을 담습니다. 각 파일은 LZ4로 압축된 바이트와 그 압축 바이트에 대한 4바이트 big-endian xxHash-32 체크섬으로 구성됩니다.
+
+```text
+[ LZ4 bytes for file A ][ xxHash-32 ][ LZ4 bytes for file B ][ xxHash-32 ] ...
+```
+
+파일은 크기를 앞에 붙이는 블록 포맷으로 [LZ4](https://github.com/lz4/lz4)를 사용해 압축됩니다. 따라서 비압축 길이가 압축 데이터와 함께 전달됩니다. 엔트리의 `offset`은 압축 바이트의 시작을 가리키고, `len`은 그 바이트의 길이이며, 파일별 체크섬은 `offset + len` 위치에 자리합니다.
+
+`getData`는 압축 해제된 바이트를 반환하고, `getDataChecksum`은 저장된 xxHash-32를 반환합니다. 호출자는 이를 사용해 정지 상태의 파일을 검증할 수 있습니다.
+
+```ts
+const bundle = await readBundle('app_1.0.0.wvb');
+
+bundle.getData('/index.html'); // Buffer (압축 해제됨) | null
+bundle.getDataChecksum('/index.html'); // number (xxHash-32) | null
+```
+
+## 체크섬과 무결성
+
+이 포맷은 서로 다른 두 가지 작업을 위해 두 가지 해싱 방식을 사용합니다.
+
+헤더, 인덱스, 파일별 데이터에 들어가는 **내부 체크섬**은 모두 **xxHash-32**입니다. 이들은 저장 무결성을 지킵니다. 파일이 잘리거나, 일부만 기록되거나, 디스크에서 손상되는 경우를 막습니다. xxHash는 빠르고 비암호학적이며, 이것이 바로 손상 검사에 필요한 특성입니다.
+
+번들의 **무결성** 값은 이와 다릅니다. 다운로드된 번들의 직렬화된 바이트에 대한 **SHA-2** 해시로, 클라이언트가 서버가 게시한 것을 정확히 받았는지 확인하는 데 쓰입니다. 알고리즘은 `sha256`(기본값), `sha384`, `sha512`이며, `<algorithm>:<base64>` 형식으로 직렬화됩니다.
+
+```text
+sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+sha384:Ws2q...
+```
+
+```ts
+import type { IntegrityAlgorithm, IntegrityPolicy } from '@wvb/node';
+// IntegrityAlgorithm = 'sha256' | 'sha384' | 'sha512'
+// IntegrityPolicy    = 'strict' | 'optional' | 'none'   (기본값: 'optional')
+```
+
+<Callout type="warn">
+  이 포맷은 무결성에 SHA-3가 아니라 **SHA-2**를 사용합니다. 두 작업은 서로 구별됩니다. xxHash-32는
+  정지 상태의 바이트를 보호하고, SHA-2 무결성은 다운로드한 내용을 검증합니다. 업데이트 중에 무결성과
+  서명이 어떻게 검사되는지는 [원격 번들](/docs/guide/remote-bundles)을 참고하세요.
+</Callout>
+
+## 다음으로 볼 내용
+
+정확한 상수와 필드 레이아웃을 포함한 바이트 수준 명세는 [docs.rs/wvb](https://docs.rs/wvb)의 Rust 크레이트 문서에 있습니다.
+
+<Cards>
+  <Card
+    title="번들 소스"
+    href="/docs/guide/bundle-sources"
+    description="번들 이름, 버전, 매니페스트가 기기 위의 번들을 어떻게 구성하는지 설명합니다."
+  />
+  <Card
+    title="프로토콜 처리"
+    href="/docs/guide/protocol-handling"
+    description="요청 URL이 번들 내부의 파일로 어떻게 해석되어 제공되는지 설명합니다."
+  />
+  <Card
+    title="원격 번들"
+    href="/docs/guide/remote-bundles"
+    description="더 새로운 번들을 무선(OTA)으로 다운로드하고 무결성과 서명을 검증합니다."
+  />
+</Cards>

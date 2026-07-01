@@ -10,13 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as KoIndexRouteImport } from './routes/ko/index'
 import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as DocsSplatRouteImport } from './routes/docs/$'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
+import { Route as KoDocsIndexRouteImport } from './routes/ko/docs/index'
+import { Route as KoDocsSplatRouteImport } from './routes/ko/docs/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KoIndexRoute = KoIndexRouteImport.update({
+  id: '/ko/',
+  path: '/ko/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsIndexRoute = DocsIndexRouteImport.update({
@@ -34,18 +42,34 @@ const ApiSearchRoute = ApiSearchRouteImport.update({
   path: '/api/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KoDocsIndexRoute = KoDocsIndexRouteImport.update({
+  id: '/ko/docs/',
+  path: '/ko/docs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KoDocsSplatRoute = KoDocsSplatRouteImport.update({
+  id: '/ko/docs/$',
+  path: '/ko/docs/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/search': typeof ApiSearchRoute
   '/docs/$': typeof DocsSplatRoute
   '/docs/': typeof DocsIndexRoute
+  '/ko/': typeof KoIndexRoute
+  '/ko/docs/$': typeof KoDocsSplatRoute
+  '/ko/docs/': typeof KoDocsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/search': typeof ApiSearchRoute
   '/docs/$': typeof DocsSplatRoute
   '/docs': typeof DocsIndexRoute
+  '/ko': typeof KoIndexRoute
+  '/ko/docs/$': typeof KoDocsSplatRoute
+  '/ko/docs': typeof KoDocsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +77,38 @@ export interface FileRoutesById {
   '/api/search': typeof ApiSearchRoute
   '/docs/$': typeof DocsSplatRoute
   '/docs/': typeof DocsIndexRoute
+  '/ko/': typeof KoIndexRoute
+  '/ko/docs/$': typeof KoDocsSplatRoute
+  '/ko/docs/': typeof KoDocsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/search' | '/docs/$' | '/docs/'
+  fullPaths:
+    | '/'
+    | '/api/search'
+    | '/docs/$'
+    | '/docs/'
+    | '/ko/'
+    | '/ko/docs/$'
+    | '/ko/docs/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/search' | '/docs/$' | '/docs'
-  id: '__root__' | '/' | '/api/search' | '/docs/$' | '/docs/'
+  to:
+    | '/'
+    | '/api/search'
+    | '/docs/$'
+    | '/docs'
+    | '/ko'
+    | '/ko/docs/$'
+    | '/ko/docs'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/search'
+    | '/docs/$'
+    | '/docs/'
+    | '/ko/'
+    | '/ko/docs/$'
+    | '/ko/docs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +116,9 @@ export interface RootRouteChildren {
   ApiSearchRoute: typeof ApiSearchRoute
   DocsSplatRoute: typeof DocsSplatRoute
   DocsIndexRoute: typeof DocsIndexRoute
+  KoIndexRoute: typeof KoIndexRoute
+  KoDocsSplatRoute: typeof KoDocsSplatRoute
+  KoDocsIndexRoute: typeof KoDocsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -76,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ko/': {
+      id: '/ko/'
+      path: '/ko'
+      fullPath: '/ko/'
+      preLoaderRoute: typeof KoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs/': {
@@ -99,6 +158,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ko/docs/': {
+      id: '/ko/docs/'
+      path: '/ko/docs'
+      fullPath: '/ko/docs/'
+      preLoaderRoute: typeof KoDocsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ko/docs/$': {
+      id: '/ko/docs/$'
+      path: '/ko/docs/$'
+      fullPath: '/ko/docs/$'
+      preLoaderRoute: typeof KoDocsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +180,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSearchRoute: ApiSearchRoute,
   DocsSplatRoute: DocsSplatRoute,
   DocsIndexRoute: DocsIndexRoute,
+  KoIndexRoute: KoIndexRoute,
+  KoDocsSplatRoute: KoDocsSplatRoute,
+  KoDocsIndexRoute: KoDocsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

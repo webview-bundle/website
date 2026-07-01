@@ -1,0 +1,97 @@
+---
+title: 번들 목록 조회
+description: GET /bundles는 원격 서버가 현재 배포한 번들을 반환하며, 선택적으로 채널 범위로 좁힐 수 있습니다.
+---
+
+원격 서버가 현재 배포한 번들을 반환합니다. 클라이언트와 업데이터는 메타데이터를 읽거나 바이트를 다운로드하기 전에 이 엔드포인트를 먼저 호출합니다. 이를 통해 어떤 번들이 존재하고 각 번들이 어떤 버전으로 배포되었는지 확인합니다.
+
+```http
+GET /bundles
+```
+
+## 파라미터
+
+| Name      | In    | Type   | Required | Description                                                     |
+| --------- | ----- | ------ | -------- | --------------------------------------------------------------- |
+| `channel` | query | string | No       | 특정 채널의 배포를 선택합니다. 생략하면 기본 배포가 조회됩니다. |
+
+## 응답
+
+| Status | Description                         |
+| ------ | ----------------------------------- |
+| `200`  | 현재 배포된 번들의 JSON 배열입니다. |
+
+4xx 응답에 대해서는 [오류](/docs/guide/spec/errors)를 참고하세요.
+
+### 응답 헤더
+
+| Header         | Required | Description                                |
+| -------------- | -------- | ------------------------------------------ |
+| `Content-Type` | Yes      | 목록 응답의 경우 `application/json`입니다. |
+
+### 응답 본문
+
+본문은 JSON 배열입니다. 각 항목은 배포된 번들 하나를 `name`과 `version`으로 나타냅니다. 배포되지 않은 번들은 제외됩니다.
+
+```json
+[
+  { "name": string, "version": string }
+]
+```
+
+| Field     | Type   | Description             |
+| --------- | ------ | ----------------------- |
+| `name`    | string | 번들 이름입니다.        |
+| `version` | string | 현재 배포된 버전입니다. |
+
+## 예제
+
+```sh
+curl -s http://localhost:4313/bundles
+```
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+  { "name": "app", "version": "1.2.0" },
+  { "name": "admin", "version": "0.4.1" }
+]
+```
+
+`?channel=`로 목록을 특정 채널 범위로 좁힙니다.
+
+```sh
+curl -s 'http://localhost:4313/bundles?channel=beta'
+```
+
+<Callout type="info">
+  이 작업은 원격 HTTP 계약의 진입점입니다. 번들의 현재 메타데이터를 읽거나 바이트를 다운로드하려면
+  [원격 HTTP 명세](/docs/guide/spec) 개요를 참고하세요.
+</Callout>
+
+## 다음으로 볼 내용
+
+<Cards>
+  <Card
+    title="HEAD /bundles/{name}"
+    href="/docs/guide/spec/head-current"
+    description="본문 없이 현재 버전의 메타데이터 헤더를 읽습니다."
+  />
+  <Card
+    title="GET /bundles/{name}"
+    href="/docs/guide/spec/get-current"
+    description="번들의 현재 버전을 다운로드합니다."
+  />
+  <Card
+    title="오류"
+    href="/docs/guide/spec/errors"
+    description="상태 코드와 JSON 오류 본문 형태입니다."
+  />
+  <Card
+    title="원격 레퍼런스"
+    href="/docs/references/node/remote"
+    description="이 엔드포인트들을 호출하는 원격 클라이언트입니다."
+  />
+</Cards>

@@ -4,11 +4,15 @@ import { createFromSource } from 'fumadocs-core/search/server';
 import type { Garu } from 'garu-ko';
 import { docSource } from '../../doc';
 
-// Korean-aware search. The garu tokenizer runs real morphological analysis, so
-// `먹다` matches `먹었다`/`먹지` and `학교` matches `학교에서` — particles and endings
-// are stripped instead of being treated as word boundaries. We compose it with
-// Orama's default tokenizer (a union of both token sets), so English and other
-// non-Korean text keep their existing tokenization unchanged.
+// Bilingual, per-locale search. English uses Orama's default tokenizer; Korean
+// uses garu's real morphological analysis, so `먹다` matches `먹었다`/`먹지` and
+// `학교` matches `학교에서` — particles and endings are stripped instead of being
+// treated as word boundaries. The Korean tokenizer is composed with the default
+// tokenizer (a union of both token sets) so English code and terms embedded in
+// Korean pages still tokenize normally.
+//
+// (Without this, the default per-locale mapping sends `ko` to Orama language
+// `ko`, which has no stemmer and throws "Language 'ko' is not supported".)
 //
 // garu-ko normally fetches/reads its WASM + model at runtime, which the workerd
 // runtime forbids. Instead the WASM is imported as a pre-compiled module and the
@@ -42,20 +46,24 @@ async function buildSearchServer() {
 
   const korean = await createTokenizer({ garu });
   const base = oramaTokenizer.createTokenizer({ language: 'english' });
+  const koreanTokenizer = {
+    language: 'korean',
+    normalizationCache: new Map<string, string>(),
+    tokenize(raw: string, language?: string, prop?: string, withCache?: boolean): string[] {
+      return [
+        ...new Set([
+          ...base.tokenize(raw, language, prop, withCache),
+          ...korean.tokenize(raw, language, prop),
+        ]),
+      ];
+    },
+  };
 
   return createFromSource(docSource, {
     // https://docs.orama.com/docs/orama-js/supported-languages
-    tokenizer: {
-      language: 'english',
-      normalizationCache: new Map(),
-      tokenize(raw, language, prop, withCache) {
-        return [
-          ...new Set([
-            ...base.tokenize(raw, language, prop, withCache),
-            ...korean.tokenize(raw, language, prop),
-          ]),
-        ];
-      },
+    localeMap: {
+      en: 'english',
+      ko: { tokenizer: koreanTokenizer },
     },
   });
 }

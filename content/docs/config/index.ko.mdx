@@ -1,0 +1,307 @@
+---
+title: 설정
+description: CLI와 프로그래밍 API가 pack, remote, serve, builtin 옵션을 읽어 오는 wvb.config 파일입니다.
+---
+
+단 하나의 `wvb.config` 파일이 모든 Webview Bundle 워크플로를 이끕니다. `wvb` CLI와
+프로그래밍 API(`@wvb/cli/api`)가 모두 이 파일을 불러옵니다. 따라서 설정 하나로
+패킹, 제공, 원격 배포, 빌트인 설치를 일관되게 유지합니다. `@wvb/config`의
+`defineConfig`로 작성하면 완전한 타입 체크와 에디터 자동 완성을 얻습니다.
+
+이 페이지에서는 설정 파일 자체와 최상위 `pack`, `serve`, `builtin` 섹션을 다룹니다.
+원격 배포, 무결성, 서명 옵션은 별도 페이지에서 설명합니다.
+
+<Cards>
+  <Card
+    title="원격, 무결성 및 서명"
+    href="/docs/config/remote"
+    description="remote 섹션: 엔드포인트, 업로더/배포자, 무결성 해싱, 서명입니다."
+  />
+  <Card
+    title="CLI 명령어"
+    href="/docs/guide/cli"
+    description="모든 wvb 명령어와 플래그가 설정을 재정의하는 방식입니다."
+  />
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="패킹된 번들을 사용하는 @wvb/node 런타임입니다."
+  />
+</Cards>
+
+## 설정 파일
+
+설정 파일을 프로젝트 루트에 두세요. CLI는 작업 디렉터리에서 다음 순서로 처음 일치하는
+파일을 자동으로 찾습니다.
+
+```text
+wvb.config.js
+wvb.config.cjs
+wvb.config.mjs
+wvb.config.ts
+wvb.config.cts
+wvb.config.mts
+webview-bundle.config.js
+webview-bundle.config.cjs
+webview-bundle.config.mjs
+webview-bundle.config.ts
+webview-bundle.config.cts
+webview-bundle.config.mts
+wvb.config.json
+wvb.config.jsonc
+```
+
+`wvb.config.*`와 `webview-bundle.config.*` 두 기본 이름 모두 `.js`, `.cjs`, `.mjs`,
+`.ts`, `.cts`, `.mts` 확장자를 지원합니다. `.json`과 `.jsonc` 형식은 `wvb.config`
+기본 이름에서만 인식됩니다. 자동 탐색에 의존하는 대신 특정 파일을 지정하려면 어떤
+명령어에든 `--config`(별칭 `-C`)를 전달하세요.
+
+```sh
+wvb pack --config ./configs/wvb.prod.ts
+```
+
+### defineConfig
+
+설정을 `@wvb/config`의 `defineConfig`로 감싸세요. 이 함수는 런타임에서는 항등 함수이며,
+타입을 붙이는 것이 유일한 역할입니다. 객체, 설정으로 해석되는 프로미스, 또는 설정을
+반환하는 동기 혹은 비동기 함수를 받습니다. 따라서 불러오는 시점에 값을 계산할 수 있습니다.
+
+<Tabs items={['Object', 'Async function']}>
+  <Tab value="Object">
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  root: process.cwd(),
+  pack: {
+    srcDir: './dist',
+  },
+  serve: {
+    port: 4312,
+  },
+});
+```
+  </Tab>
+  <Tab value="Async function">
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig(async () => {
+  const endpoint = process.env.WVB_ENDPOINT;
+  return {
+    remote: {
+      endpoint,
+    },
+  };
+});
+```
+  </Tab>
+</Tabs>
+
+<Callout type="info">이 패키지를 개발 의존성으로 설치하세요: `npm install -D @wvb/config`.</Callout>
+
+## 최상위 필드
+
+설정 객체는 다섯 개의 선택 필드를 가집니다. 최상위에서는 그 외에 아무것도 읽지 않습니다.
+
+| Field     | Type            | Default         |
+| --------- | --------------- | --------------- |
+| `root`    | `string`        | `process.cwd()` |
+| `pack`    | `PackConfig`    | —               |
+| `remote`  | `RemoteConfig`  | —               |
+| `serve`   | `ServeConfig`   | —               |
+| `builtin` | `BuiltinConfig` | —               |
+
+`root`는 상대 경로를 해석하는 데 사용하는 프로젝트 루트를 설정합니다. 절대 경로일 수도
+있고 설정 파일 기준 상대 경로일 수도 있습니다. `remote` 필드는
+[원격, 무결성 및 서명](/docs/config/remote) 페이지에서 설명합니다.
+
+## pack
+
+`pack`(`PackConfig`)은 `wvb pack`의 기본값을 설정합니다. CLI 플래그는 호출할 때마다
+이 값을 재정의합니다.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+    outFile: '.wvb/app',
+    overwrite: true,
+    ignore: ['*.map', /\.DS_Store$/],
+    headers: {
+      '*.html': { 'cache-control': 'max-age=0' },
+      '*.js': { 'cache-control': 'max-age=31536000' },
+    },
+  },
+});
+```
+
+| Field       | Type                                                                                 | Default       |
+| ----------- | ------------------------------------------------------------------------------------ | ------------- |
+| `srcDir`    | `string`                                                                             | `./dist`      |
+| `outFile`   | `string`                                                                             | `.wvb/<name>` |
+| `overwrite` | `boolean`                                                                            | `true`        |
+| `ignore`    | `Array<string \| RegExp> \| ((file: string) => boolean \| Promise<boolean>)`         | —             |
+| `headers`   | `Record<glob, HeadersInit> \| Array<[glob, HeadersInit]> \| ((file) => HeadersInit)` | —             |
+
+`outFile`은 단일 출력 경로입니다. 확장자를 생략하면 `.wvb` 확장자가 자동으로 붙습니다.
+경로가 절대 경로가 아니면 `root` 기준 상대 경로로 해석됩니다. 기본값 `.wvb/<name>`은
+`package.json`의 name에서 스코프 접두사를 제거하여 `<name>`을 도출합니다.
+
+<Callout type="warn">
+  이 필드는 완전한 경로인 `outFile`입니다. `pack`에는 `outFileName`이나 `outDir`가 없습니다. 하위
+  디렉터리를 포함한 전체 출력 경로를 `outFile`에 작성하세요.
+</Callout>
+
+`ignore`는 글로브와 정규식의 배열, 또는 불리언을 반환하는 프레디킷(선택적으로 비동기)을
+받습니다. `headers`는 일치하는 파일에 HTTP 헤더를 붙이며 세 가지 형태를 받습니다.
+
+```ts
+// 1. 글로브를 키로 갖는 Record
+headers: {
+  '*.html': { 'cache-control': 'max-age=3600' },
+}
+
+// 2. [glob, HeadersInit] 튜플의 배열
+headers: [
+  ['*.html', { 'cache-control': 'max-age=3600' }],
+  ['*.png', [['cache-control', 'max-age=0']]], // HeadersInit는 [name, value] 쌍도 받습니다
+]
+
+// 3. 파일별로 헤더를 반환하는 함수
+headers: (file) => (file.endsWith('.html') ? { 'cache-control': 'max-age=0' } : undefined)
+```
+
+## serve
+
+`serve`(`ServeConfig`)는 `wvb serve`의 기본값을 설정합니다. `wvb serve`는 개발용으로
+패킹된 번들을 제공하는 로컬 서버입니다.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  serve: {
+    file: './.wvb/app.wvb',
+    port: 4312,
+    silent: false,
+  },
+});
+```
+
+| Field    | Type      | Default                 |
+| -------- | --------- | ----------------------- |
+| `file`   | `string`  | the `pack.outFile` path |
+| `port`   | `number`  | `4312`                  |
+| `silent` | `boolean` | —                       |
+
+`file`을 생략하면 해석된 `pack.outFile` 경로로 대체됩니다. 요청 로그 출력을 끄려면
+`silent`를 설정하세요.
+
+<Callout type="info">
+  `serve`에는 `hostname` 필드가 없습니다. 다른 호스트에 바인딩하려면 명령줄에서 `wvb serve`에
+  `--hostname`(별칭 `-H`)을 전달하세요.
+</Callout>
+
+## builtin
+
+`builtin`(`BuiltinConfig`)은 `wvb builtin`의 기본값을 설정합니다. `wvb builtin`은 앱
+안에 함께 배포되는 번들을 설치합니다. 번들은 원격에서 다운로드하거나 로컬 워크스페이스에서
+수집합니다.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  builtin: {
+    outDir: '.wvb/builtin/bundles',
+    target: { type: 'remote' },
+    include: ['app*'],
+    exclude: [/^internal-/],
+    clean: true,
+  },
+});
+```
+
+| Field     | Type                                                                 | Default                |
+| --------- | -------------------------------------------------------------------- | ---------------------- |
+| `outDir`  | `string`                                                             | `.wvb/builtin/bundles` |
+| `target`  | `BuiltinTarget`                                                      | `{ type: 'remote' }`   |
+| `include` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)` | —                      |
+| `exclude` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)` | —                      |
+| `clean`   | `boolean`                                                            | `true`                 |
+
+`include`와 `exclude`는 후보 번들을 필터링합니다. 각 필드는 글로브 문자열, 정규식, 둘 중
+하나의 배열, 또는 프레디킷 `(info: { name: string; version: string }) => boolean`(선택적으로
+비동기)을 받습니다. `clean`을 활성화하면 설치 전에 출력 디렉터리를 비웁니다.
+
+### target
+
+`target`은 `type`을 기준으로 하는 판별 유니온입니다. 서버에서 번들을 다운로드하려면
+`remote`를, 저장소의 워크스페이스에서 번들을 수집하려면 `local`을 선택하세요.
+
+```ts
+// remote 타겟 — 서버에서 다운로드
+target: {
+  type: 'remote',
+  endpoint: 'https://updates.example.com',
+  download: {
+    concurrency: 4,
+    // http: { /* @wvb/node의 HttpOptions */ },
+  },
+}
+
+// local 타겟 — 워크스페이스에서 수집
+target: {
+  type: 'local',
+  workspaces: ['packages/*'],
+  bundleName: { from: 'package.json' },
+  version: { from: 'package.json' },
+  packBeforeInstall: true,
+}
+```
+
+`remote` 타겟에서 `endpoint`와 `download`는 선택 사항입니다. 유일한 동시성 조절 값은
+`download.concurrency`입니다. `download.http`는 [`@wvb/node`](/docs/references/node)의
+`HttpOptions` 타입을 받습니다.
+
+| `remote` field         | Type          | Default |
+| ---------------------- | ------------- | ------- |
+| `endpoint`             | `string`      | —       |
+| `download.concurrency` | `number`      | —       |
+| `download.http`        | `HttpOptions` | —       |
+
+`local` 타겟에서 `workspaces`는 필수입니다. 이는 설정 전체에서 유일하게 필수인 필드입니다.
+`integrity`와 `signature` 옵션은 remote 섹션과 동일한 형태를 공유합니다.
+[원격, 무결성 및 서명](/docs/config/remote)을 참고하세요.
+
+| `local` field       | Type                                                | Default  |
+| ------------------- | --------------------------------------------------- | -------- |
+| `workspaces`        | `string[] \| (() => string[] \| Promise<string[]>)` | required |
+| `bundleName`        | `BundleNameResolver`                                | —        |
+| `version`           | `VersionResolver`                                   | —        |
+| `integrity`         | `boolean \| IntegrityMakeConfig`                    | —        |
+| `signature`         | `SignatureSignConfig`                               | —        |
+| `packBeforeInstall` | `boolean`                                           | `true`   |
+
+## 다음 단계
+
+<Cards>
+  <Card
+    title="원격, 무결성 및 서명"
+    href="/docs/config/remote"
+    description="원격 엔드포인트, 업로더/배포자, 무결성 해싱, 서명을 설정합니다."
+  />
+  <Card
+    title="CLI 명령어"
+    href="/docs/guide/cli"
+    description="명령줄에서 pack, serve, upload, deploy, builtin을 실행합니다."
+  />
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="@wvb/node로 런타임에 번들을 제공하고 검증합니다."
+  />
+</Cards>

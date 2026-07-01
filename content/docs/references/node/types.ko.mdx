@@ -1,0 +1,169 @@
+---
+title: 타입
+description: '@wvb/node API 전반에서 공유되는 열거형, 유니온, 옵션 인터페이스, 결과 타입입니다.'
+---
+
+[Node API](/docs/references/node)의 클래스와 함수가 반환하고 받아들이는 보조 타입들입니다. reader, [BundleSource](/docs/references/node/source), [프로토콜 핸들러](/docs/references/node/protocol), [Remote](/docs/references/node/remote), [Updater](/docs/references/node/updater) 페이지가 여기서 정의한 형태들을 참조합니다.
+
+## 열거형과 유니온
+
+고정된 값 집합에 이름을 붙이는 문자열 리터럴 유니온입니다.
+
+```ts
+type Version = 'v1';
+
+type HttpMethod =
+  | 'get'
+  | 'head'
+  | 'options'
+  | 'post'
+  | 'put'
+  | 'patch'
+  | 'delete'
+  | 'trace'
+  | 'connect';
+
+type BundleSourceKind = 'builtin' | 'remote';
+```
+
+`Version`은 번들 포맷 버전입니다. 현재는 `v1`만 존재합니다.
+
+### 무결성
+
+```ts
+// SHA-2 계열이며, sha384를 권장합니다.
+type IntegrityAlgorithm = 'sha256' | 'sha384' | 'sha512';
+
+// optional이 기본값입니다.
+type IntegrityPolicy = 'strict' | 'optional' | 'none';
+```
+
+무결성은 SHA-2를 사용하며, `"<alg>:<base64>"` 형태로 직렬화됩니다(예: `sha256:n4bQ…`). `strict`는 값이 존재하고 일치해야 합니다. `optional`은 값이 존재할 때만 검증합니다. `none`은 검사를 건너뜁니다. [Remote, 무결성 및 서명 설정](/docs/config/remote)을 참고하세요.
+
+### 서명
+
+```ts
+type SignatureAlgorithm =
+  | 'ecdsaSecp256R1'
+  | 'ecdsaSecp384R1'
+  | 'ed25519'
+  | 'rsaPkcs1V15'
+  | 'rsaPss';
+
+type VerifyingKeyFormat = 'spkiDer' | 'spkiPem' | 'pkcs1Der' | 'pkcs1Pem' | 'sec1' | 'raw';
+```
+
+서명은 무결성 문자열의 바이트에 서명하여 누가 번들을 게시했는지 증명합니다. 따라서 서명 검증에는 무결성 값이 존재해야 합니다.
+
+<Callout type="info">
+  키 포맷 제약: `pkcs1Der`와 `pkcs1Pem`은 RSA에만, `sec1`은 ECDSA에만, `raw`는 Ed25519에만(32바이트
+  키) 적용됩니다.
+</Callout>
+
+## 옵션 인터페이스
+
+생성자와 메서드에 전달하는 형태입니다.
+
+```ts
+type BundleSourceConfig = {
+  builtinDir: string;
+  remoteDir: string;
+  builtinManifestFilepath?: string;
+  remoteManifestFilepath?: string;
+};
+
+type UpdaterOptions = {
+  channel?: string;
+  integrityPolicy?: IntegrityPolicy;
+  integrityChecker?: (data: Uint8Array, integrity: string) => Promise<boolean>;
+  signatureVerifier?:
+    | SignatureVerifierOptions
+    | ((data: Uint8Array, signature: string) => Promise<boolean>);
+};
+
+type SignatureVerifierOptions = {
+  algorithm: SignatureAlgorithm;
+  key: { format: VerifyingKeyFormat; data: string | Uint8Array };
+};
+```
+
+`UpdaterOptions`는 선언적 `signatureVerifier`(알고리즘과 키)와 커스텀 콜백을 모두 받습니다. `integrityChecker`도 마찬가지로, 기본 SHA-2 검사를 직접 만든 함수로 대체할 수 있습니다.
+
+## 결과 타입
+
+reader, [BundleSource](/docs/references/node/source), [Updater](/docs/references/node/updater)가 반환하는 형태입니다.
+
+```ts
+type BundleManifestMetadata = {
+  etag?: string;
+  integrity?: string; // "<alg>:<base64>", 예: "sha256:n4bQ…"
+  signature?: string; // base64
+  lastModified?: string;
+};
+
+// BundleSource.loadVersion()
+type BundleSourceVersion = {
+  type: BundleSourceKind; // 'builtin' | 'remote'
+  version: string;
+};
+
+// BundleSource.listBundles()
+type ListBundleItem = {
+  type: BundleSourceKind;
+  name: string;
+  version: string;
+  current: boolean;
+  metadata: BundleManifestMetadata;
+};
+
+// Updater.getUpdate()
+type BundleUpdateInfo = {
+  name: string;
+  version: string; // 배포된 버전
+  localVersion?: string; // 설치된 버전이 있다면 그 버전
+  isAvailable: boolean; // version !== localVersion일 때 true
+  etag?: string;
+  integrity?: string;
+  signature?: string;
+  lastModified?: string;
+};
+
+// BundleBuilder.build() — seed는 테스트용입니다
+type BuildOptions = {
+  header?: { checksumSeed?: number };
+  index?: { checksumSeed?: number };
+  dataChecksumSeed?: number;
+};
+
+// 프로토콜 핸들러의 handle()이 반환합니다
+type HttpResponse = {
+  status: number;
+  headers: Record<string, string>;
+  body: Buffer;
+};
+```
+
+## 관련 문서
+
+<Cards>
+  <Card
+    title="Node API"
+    href="/docs/references/node"
+    description="@wvb/node와 이 타입들을 사용하는 클래스 개요입니다."
+  />
+  <Card
+    title="BundleSource"
+    href="/docs/references/node/source"
+    description="BundleSourceVersion, ListBundleItem, BundleManifestMetadata를 반환합니다."
+  />
+  <Card
+    title="Updater"
+    href="/docs/references/node/updater"
+    description="UpdaterOptions를 받고 BundleUpdateInfo를 반환합니다."
+  />
+  <Card
+    title="Remote 및 서명 설정"
+    href="/docs/config/remote"
+    description="wvb.config에서 무결성 정책과 서명을 설정합니다."
+  />
+</Cards>

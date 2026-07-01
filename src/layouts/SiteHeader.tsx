@@ -1,8 +1,10 @@
 import { usePathname } from 'fumadocs-core/framework';
 import { FullSearchTrigger, SearchTrigger } from 'fumadocs-ui/layouts/shared/slots/search-trigger';
 import { cn } from '../lib/cn';
+import { localizeHref, useLocale } from '../lib/locale';
+import { useUiStrings } from '../lib/ui-strings';
 import { LanguageDropdown } from './docs/LanguageDropdown';
-import { CONTROL_BUTTON, SECTIONS } from './header-shared';
+import { CONTROL_BUTTON } from './header-shared';
 import { GitHubIcon } from './home/components/icons';
 import { Logo } from './home/components/Logo';
 import { ThemeToggle } from './home/components/ThemeToggle';
@@ -16,6 +18,8 @@ import { MobileNav } from './MobileNav';
 // notebook layout's header grid area).
 export function SiteHeader({ className }: { className?: string }) {
   const pathname = usePathname();
+  const locale = useLocale();
+  const t = useUiStrings();
 
   return (
     <header
@@ -25,13 +29,13 @@ export function SiteHeader({ className }: { className?: string }) {
       )}
     >
       <div className="flex h-14 items-center gap-3 px-4 sm:gap-6 sm:px-6">
-        <a href="/" className="flex shrink-0 items-center gap-2">
+        <a href={localizeHref('/', locale)} className="flex shrink-0 items-center gap-2">
           <Logo width={26} height={26} />
           <span className="font-mono text-[15px] font-semibold tracking-tight">webview-bundle</span>
         </a>
 
         <nav className="hidden items-center gap-5 font-sans text-sm text-zinc-600 md:flex dark:text-zinc-400">
-          {SECTIONS.map(section => (
+          {t.sections.map(section => (
             <a
               key={section.href}
               href={section.href}
@@ -54,7 +58,7 @@ export function SiteHeader({ className }: { className?: string }) {
               href={GITHUB_URL}
               target="_blank"
               rel="noreferrer"
-              aria-label="GitHub repository"
+              aria-label={t.menu.github}
               className={CONTROL_BUTTON}
             >
               <GitHubIcon className="size-[15px]" />

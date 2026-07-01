@@ -1,0 +1,100 @@
+---
+title: wvb remote
+description: 원격을 검사하고 테스트합니다. 현재 배포된 번들을 보여주고, 사용 가능한 번들을 나열하며, 로컬 업데이트 서버를 실행합니다.
+---
+
+`wvb remote` 명령어 그룹은 원격 업데이트 서버를 검사하고 테스트합니다. 현재 어떤 버전이 배포되어 있는지 확인하고, 원격이 알고 있는 모든 번들을 나열하며, 프로덕션 HTTP 규약을 그대로 재현하는 로컬 서버를 실행할 때 사용하세요. 이렇게 하면 전체 업데이트 루프를 오프라인에서 실행해 볼 수 있습니다.
+
+세 개의 하위 명령어로 구성됩니다.
+
+- [`wvb remote current`](#wvb-remote-current-bundle) — 현재 배포된 버전과 그 메타데이터를 보여줍니다.
+- [`wvb remote list`](#wvb-remote-list) — 원격에서 사용 가능한 모든 번들을 나열합니다(별칭 `wvb remote ls`).
+- [`wvb remote local`](#wvb-remote-local) — 디렉터리를 기반으로 로컬 업데이트 서버를 시작합니다.
+
+앞의 두 명령어는 기본적으로 [설정](/docs/config/remote)에서 `remote.endpoint`를 읽습니다. 따라서 원격을 한 번 설정해 두면 `--endpoint` 플래그를 생략할 수 있습니다. 배포 모델과 로컬 테스트 과정은 [원격 구축하기](/docs/guide/remote)를 참고하세요.
+
+## wvb remote current [BUNDLE]
+
+번들을 직접 다운로드하지 않고, 현재 배포된 버전과 그 메타데이터를 보여줍니다. 출력에는 원격이 보고한 버전, ETag, 무결성, 서명, 마지막 수정 시각 값이 포함됩니다.
+
+```sh
+wvb remote current app --endpoint https://updates.example.com
+wvb remote current app --channel beta
+wvb remote current                                # 설정 기본값 사용
+```
+
+| Option       | Aliases | Default               | Description                                          |
+| ------------ | ------- | --------------------- | ---------------------------------------------------- |
+| `BUNDLE`     | —       | resolved from config  | 번들 이름. 지정하지 않으면 패키지 이름을 사용합니다. |
+| `--endpoint` | `-E`    | `remote.endpoint`     | 조회할 원격 엔드포인트.                              |
+| `--channel`  | —       | —                     | 릴리스 채널.                                         |
+| `--config`   | `-C`    | config auto-discovery | 설정 파일 경로.                                      |
+| `--cwd`      | —       | `process.cwd()`       | 경로를 확인할 작업 디렉터리.                         |
+
+## wvb remote list
+
+원격에서 사용 가능한 모든 번들을 나열합니다. 이 명령어에는 `wvb remote ls`라는 별칭도 있습니다. 출력이 JSON이므로 다른 도구로 그대로 파이프할 수 있습니다.
+
+```sh
+wvb remote list --endpoint https://updates.example.com
+wvb remote ls --channel beta
+wvb remote list | jq '.[].name'
+```
+
+| Option       | Aliases | Default               | Description                  |
+| ------------ | ------- | --------------------- | ---------------------------- |
+| `--endpoint` | `-E`    | `remote.endpoint`     | 조회할 원격 엔드포인트.      |
+| `--channel`  | —       | —                     | 릴리스 채널.                 |
+| `--config`   | `-C`    | config auto-discovery | 설정 파일 경로.              |
+| `--cwd`      | —       | `process.cwd()`       | 경로를 확인할 작업 디렉터리. |
+
+## wvb remote local
+
+디렉터리를 기반으로 로컬 업데이트 서버를 시작합니다. 프로덕션 원격과 동일한 HTTP 규약을 구현하므로, 호스팅된 [프로바이더](/docs/guide/providers/local)를 연결하기 전에 전체 업데이트 루프를 오프라인에서 테스트할 수 있습니다. 서버는 기본적으로 `~/.wvb/local`을 `4313` 포트로 제공합니다.
+
+```sh
+wvb remote local                                  # http://localhost:4313, ~/.wvb/local 제공
+wvb remote local --base-dir ./.wvb/local --port 4313
+wvb remote local --allow-other-versions --hostname 0.0.0.0
+```
+
+| Option                   | Aliases | Default        | Env        | Description                              |
+| ------------------------ | ------- | -------------- | ---------- | ---------------------------------------- |
+| `--base-dir`             | —       | `~/.wvb/local` | —          | 제공할 디렉터리.                         |
+| `--allow-other-versions` | —       | `false`        | —          | 현재 버전이 아닌 버전도 제공하도록 허용. |
+| `--hostname`             | `-H`    | `localhost`    | `HOSTNAME` | 바인딩할 호스트 이름.                    |
+| `--port`                 | `-P`    | `4313`         | `PORT`     | 수신 대기할 포트.                        |
+| `--silent`               | —       | `false`        | —          | 요청 로깅 비활성화.                      |
+
+<Callout type="info">
+  `remote local`은 선택적 패키지인 `@wvb/remote-local-provider`가 필요하며, 명령어가 이를 필요할 때
+  임포트합니다. 다른 하위 명령어와 달리 `--config`나 `--cwd`를 읽지 않습니다. 서버는 `SIGINT` 또는
+  `SIGTERM`에서 깔끔하게 종료됩니다.
+</Callout>
+
+로컬 서버는 기본적으로 각 번들에서 현재 버전으로 표시된 버전만 제공합니다. `--allow-other-versions`를 전달하면 특정 이전 버전도 함께 제공합니다. 이는 롤백과 버전 고정을 테스트할 때 유용합니다.
+
+## 참고
+
+<Cards>
+  <Card
+    title="CLI 개요"
+    href="/docs/guide/cli"
+    description="wvb CLI 설치, 전역 플래그, 설정 탐색."
+  />
+  <Card
+    title="wvb deploy"
+    href="/docs/guide/commands/deploy"
+    description="업로드한 버전을 클라이언트가 받는 현재 버전으로 표시합니다."
+  />
+  <Card
+    title="wvb download"
+    href="/docs/guide/commands/download"
+    description="원격에서 현재 버전 또는 특정 버전을 다운로드합니다."
+  />
+  <Card
+    title="로컬 프로바이더"
+    href="/docs/guide/providers/local"
+    description="@wvb/remote-local-provider를 업데이트 서버로 실행합니다."
+  />
+</Cards>

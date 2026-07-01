@@ -1,8 +1,13 @@
-// oxlint-disable jsx_a11y/html-has-lang
-// oxlint-disable jsx_a11y/lang
-import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router';
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+  useRouterState,
+} from '@tanstack/react-router';
 import { RootProvider } from 'fumadocs-ui/provider/tanstack';
 import { ReactNode } from 'react';
+import { KO_UI_TRANSLATIONS, localeFromPathname } from '../lib/locale';
 import styles from '../styles.css?url';
 
 export const Route = createRootRoute({
@@ -40,13 +45,21 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
+  const pathname = useRouterState({ select: state => state.location.pathname });
+  const locale = localeFromPathname(pathname);
+
   return (
-    <html suppressHydrationWarning={true}>
+    <html lang={locale} suppressHydrationWarning={true}>
       <head>
         <HeadContent />
       </head>
       <body>
-        <RootProvider theme={{ enabled: true }}>{children}</RootProvider>
+        <RootProvider
+          theme={{ enabled: true }}
+          i18n={{ locale, translations: locale === 'ko' ? KO_UI_TRANSLATIONS : undefined }}
+        >
+          {children}
+        </RootProvider>
         <Scripts />
       </body>
     </html>
