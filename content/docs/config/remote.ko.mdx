@@ -161,8 +161,8 @@ signature: async ({ message }) => myExternalSigner(message),
 
 <Callout type="info">
   클라이언트는 대응하는 **공개** 키로 검증하며, 검증 측은 서명 측과 다른 키 포맷을 받습니다. SPKI,
-  PKCS#1(RSA 전용), SEC1(ECDSA 전용), raw 32바이트(Ed25519 전용)를 받지만 JWK는 받지 않습니다.
-  검증에 대해서는 [원격 번들](/docs/guide/remote-bundles)을, 클라이언트 측 헬퍼에 대해서는 [Node API
+  PKCS#1(RSA 전용), SEC1(ECDSA 전용), raw 32바이트(Ed25519 전용)를 받지만 JWK는 받지 않습니다. 검증
+  방법은 [원격 번들](/docs/guide/remote-bundles)을, 클라이언트 측 헬퍼는 [Node API
   레퍼런스](/docs/references/node)를 참고하세요.
 </Callout>
 

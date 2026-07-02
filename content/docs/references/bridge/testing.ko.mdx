@@ -26,7 +26,7 @@ import { mockInvoke, mockPlatform, mockBridge, clearInvokeMocks } from '@wvb/bri
 
 ### mockInvoke
 
-`mockInvoke(command, handler)`는 단일 명령어에 핸들러를 등록하고 `Disposable`을 반환합니다. `command`는 명령어 그룹에서 온, 점으로 구분되고 타입이 지정된 키입니다. `handler`는 일치하는 호출이 resolve할 값을 만듭니다. 반환값을 dispose하면 해당 목만 제거됩니다.
+`mockInvoke(command, handler)`는 단일 명령어에 핸들러를 등록하고 `Disposable`을 반환합니다. `command`는 명령어 그룹에 속한, 점으로 구분되고 타입이 지정된 키입니다. `handler`는 일치하는 호출이 resolve할 값을 만듭니다. 반환값을 dispose하면 해당 목만 제거됩니다.
 
 ```ts
 import { mockInvoke } from '@wvb/bridge/testing';

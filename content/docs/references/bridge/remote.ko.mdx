@@ -28,7 +28,7 @@ await remote.downloadVersion('app', '1.2.0');
 
 ## 반환값
 
-`getInfo`, `download`, `downloadVersion`는 `RemoteBundleInfo`로 resolve됩니다. `download`와 `downloadVersion`는 오직 `RemoteBundleInfo`로만 resolve되며, 번들 바이트는 bridge를 통해 전달되지 않습니다. 네이티브 호스트가 다운로드한 번들을 자신의 소스 저장소에 기록하고, 웹 쪽은 메타데이터만 받습니다.
+`getInfo`, `download`, `downloadVersion`은 `RemoteBundleInfo`로 resolve됩니다. `download`와 `downloadVersion`은 오직 `RemoteBundleInfo`로만 resolve되며, 번들 바이트는 bridge를 통해 전달되지 않습니다. 네이티브 호스트가 다운로드한 번들을 자신의 소스 저장소에 기록하고, 웹 쪽은 메타데이터만 받습니다.
 
 `listBundles`는 원격이 현재 제공하는 번들 목록으로 resolve되며, 이는 원격의 `GET /bundles` 응답과 동일합니다.
 
