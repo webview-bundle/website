@@ -7,7 +7,7 @@ description: 패킹된 .wvb 빌트인을 추가 리소스로 함께 배포하고
 
 ## 플러그인이 하는 일
 
-이 플러그인은 Forge의 `PluginBase`를 확장하고 `packageAfterCopy`에 훅을 겁니다. 패키징 시점에 Webview Bundle 설정을 확인하고, 빌트인 `.wvb` 번들을 설치합니다(`remote` 타깃에서 다운로드하거나 `@wvb/cli`로 로컬 워크스페이스에서 패킹). 그런 다음 번들을 `<root>/.wvb/builtin/bundles` 아래에 배치하고, 복사된 앱 디렉터리 옆의 패키징된 앱 리소스로 복사합니다. 이 위치가 바로 `@wvb/electron`이 런타임에 빌트인 번들을 읽어 들이는 곳입니다.
+이 플러그인은 Forge의 `PluginBase`를 확장하고 `packageAfterCopy`에 훅을 겁니다. 패키징 시점에 Webview Bundle 설정을 확인하고, 빌트인 `.wvb` 번들을 설치합니다(`remote` 타깃에서 다운로드하거나 `@wvb/cli`로 로컬 워크스페이스에서 패킹합니다). 그런 다음 번들을 `<root>/.wvb/builtin/bundles` 아래에 배치하고, 복사된 앱 디렉터리 옆의 패키징된 앱 리소스로 복사합니다. 이 위치가 바로 `@wvb/electron`이 런타임에 빌트인 번들을 읽어 들이는 곳입니다.
 
 정확한 인터페이스는 패키지 소스를 참고하세요: [`@wvb/electron-forge`](https://github.com/webview-bundle/webview-bundle/tree/main/packages/electron-forge).
 

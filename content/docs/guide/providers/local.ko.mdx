@@ -130,7 +130,7 @@ wvb remote local --base-dir ~/.wvb/my-app --port 4313
 
 ### allowOtherVersions
 
-기본적으로 서버는 배포된 버전만 제공합니다. `GET /bundles/{name}/{version}`은 `403 Forbidden`을 반환하는데, 이는 클라우드 프로바이더와 동일하며 클라이언트를 특정 버전에 고정된 상태로 유지합니다.
+기본적으로 서버는 배포된 버전만 제공합니다. `GET /bundles/{name}/{version}`은 `403 Forbidden`을 반환하는데, 이는 클라우드 프로바이더와 동일하며 클라이언트를 특정 버전에 고정해 둡니다.
 
 ```sh
 curl -i http://localhost:4313/bundles/app/1.0.0

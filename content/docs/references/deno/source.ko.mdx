@@ -3,7 +3,7 @@ title: 소스
 description: builtin 디렉터리와 remote 디렉터리에서 번들을 해석하는 Deno의 BundleSource 클래스입니다.
 ---
 
-`BundleSource`는 디스크에서 번들을 읽어 들이는 Deno 바인딩의 진입점입니다. builtin 디렉터리와 remote 디렉터리에서 번들을 해석하며, 이때 remote 디렉터리가 우선합니다. 또한 [`@wvb/node`](/docs/references/node)의 `BundleSource`와 동일한 데이터 API를 제공합니다. Deno 바인딩의 다른 대부분의 클래스 — `BundleProtocol`, `Updater` — 는 `BundleSource`를 받아 이를 통해 데이터를 읽습니다.
+`BundleSource`는 디스크에서 번들을 읽어 들이는 Deno 바인딩의 진입점입니다. builtin 디렉터리와 remote 디렉터리에서 번들을 해석하며, 이때 remote 디렉터리가 우선합니다. 또한 [`@wvb/node`](/docs/references/node)의 `BundleSource`와 동일한 데이터 API를 제공합니다. Deno 바인딩의 다른 클래스 대부분 — `BundleProtocol`, `Updater` — 은 `BundleSource`를 받아 이를 통해 데이터를 읽습니다.
 
 ## 소스 생성하기
 

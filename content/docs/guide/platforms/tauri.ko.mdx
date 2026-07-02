@@ -162,7 +162,7 @@ resources에 디렉터리를 나열하여 빌드와 함께 배포하세요.
 
 ## 프런트엔드에서 업데이트 제어
 
-`Remote`를 추가하면 OTA 다운로드를 활성화합니다.
+`Remote`를 추가하면 OTA 다운로드가 활성화됩니다.
 
 ```rust title="src-tauri/src/lib.rs"
 use wvb_tauri::{Config, Protocol, Remote, Source};
@@ -279,7 +279,7 @@ try {
 
 ## 서명 검증 및 무결성 고정
 
-`SignatureVerifier`가 포함된 `Updater`를 추가하면 다운로드된 번들에 게시자 서명을 요구합니다. 검증기는 클로저로부터 지연 방식으로 만들어집니다.
+`SignatureVerifier`가 포함된 `Updater`를 추가하면 다운로드된 번들에 게시자 서명을 요구합니다. 검증기는 클로저에서 지연 방식으로 만들어집니다.
 
 ```rust title="src-tauri/src/lib.rs"
 use wvb_tauri::{Config, Ed25519Verifier, IntegrityPolicy, Protocol, Remote, Source, Updater};

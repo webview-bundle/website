@@ -31,7 +31,7 @@ The global flags `--color`, `--log-level`, and `--log-verbose` also apply. See t
 
 ## Requirements
 
-`deploy` requires `remote.deployer` in your [config](/docs/config/remote). The deployer is the component that records which version is current on the remote, so a remote without one cannot be deployed to.
+`deploy` requires `remote.deployer` in your [config](/docs/config/remote). The deployer is the component that records which version is current on the remote, so you cannot deploy to a remote without one.
 
 <Callout type="info">
   The version is the `--version` (`-V`) flag, not a positional argument. If you omit it, deploy uses

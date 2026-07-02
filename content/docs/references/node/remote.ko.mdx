@@ -28,7 +28,7 @@ const remote = new Remote('https://bundles.example.com');
 | `download`        | `(bundleName, channel?): Promise<[RemoteBundleInfo, Bundle, Buffer]>` |
 | `downloadVersion` | `(bundleName, version): Promise<[RemoteBundleInfo, Bundle, Buffer]>`  |
 
-`listBundles`는 원격이 제공하는 번들을 나열하며, `channel`로 필터링할 수도 있습니다. `getInfo`는 단일 번들의 현재 메타데이터를 읽습니다. `download`는 번들의 현재 버전을 가져오고, `downloadVersion`은 특정 버전을 가져옵니다. 두 다운로드 메서드 모두 번들 정보, 파싱된 [`Bundle`](/docs/references/node/bundle), 그리고 원본 `.wvb` 바이트를 담은 `Buffer`로 이루어진 튜플로 반환됩니다.
+`listBundles`는 원격이 제공하는 번들을 나열하며, `channel`로 필터링할 수도 있습니다. `getInfo`는 단일 번들의 현재 메타데이터를 읽습니다. `download`는 번들의 현재 버전을 가져오고, `downloadVersion`은 특정 버전을 가져옵니다. 두 다운로드 메서드 모두 번들 정보, 파싱된 [`Bundle`](/docs/references/node/bundle), 그리고 원본 `.wvb` 바이트를 담은 `Buffer`로 이루어진 튜플을 반환합니다.
 
 ```ts
 const [info, bundle, bytes] = await remote.download('my-app', 'stable');
@@ -99,7 +99,7 @@ const remote = new Remote('https://bundles.example.com', {
 
 ## Result shapes
 
-`getInfo`, `download`, `downloadVersion`는 `RemoteBundleInfo`를 반환합니다. `listBundles`는 `ListRemoteBundleInfo` 배열을 반환합니다.
+`getInfo`, `download`, `downloadVersion`은 `RemoteBundleInfo`를 반환합니다. `listBundles`는 `ListRemoteBundleInfo` 배열을 반환합니다.
 
 ```ts
 type ListRemoteBundleInfo = {
@@ -117,7 +117,7 @@ type RemoteBundleInfo = {
 };
 ```
 
-`integrity`와 `signature` 필드는 원격이 `Webview-Bundle-Integrity`와 `Webview-Bundle-Signature` 응답 헤더로 알리는 값을 담습니다. `404`(배포되지 않음)나 `403`(금지됨) 같은 실패 응답을 클라이언트가 어떻게 표면화하는지는 [Errors](/docs/guide/spec/errors)를 참고하세요.
+`integrity`와 `signature` 필드는 원격이 `Webview-Bundle-Integrity`와 `Webview-Bundle-Signature` 응답 헤더로 알리는 값을 담습니다. `404`(배포되지 않음)나 `403`(금지됨) 같은 실패 응답을 클라이언트가 어떻게 드러내는지는 [Errors](/docs/guide/spec/errors)를 참고하세요.
 
 ## Related
 

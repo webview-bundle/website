@@ -1,15 +1,15 @@
 ---
 title: Electron Builder
-description: 패키징 시점에 내장 .wvb 번들을 설치하고, electron-builder 앱에서 네이티브 @wvb/node 애드온을 유지합니다.
+description: 패키징 시점에 빌트인 .wvb 번들을 설치하고, electron-builder 앱에서 네이티브 @wvb/node 애드온을 유지합니다.
 ---
 
-`@wvb/electron-builder`는 Webview Bundle을 [electron-builder](https://www.electron.build/) 패키징과 통합합니다. electron-builder의 `afterPack` 단계에 훅을 걸어, 내장 `.wvb` 번들을 패키징된 앱의 리소스에 설치합니다. 그 결과 `@wvb/electron`이 런타임에 제공하는 번들이 앱과 함께 배포됩니다. 단, 네이티브 `@wvb/node` 애드온을 ASAR 아카이브에서 제외하도록 electron-builder를 직접 설정해야 합니다. 런타임 설정은 [Electron 가이드](/docs/guide/platforms/electron)를 먼저 읽으세요. Forge용 동일 기능은 [Electron Forge](/docs/guide/platforms/electron/forge)를 참고하세요.
+`@wvb/electron-builder`는 Webview Bundle을 [electron-builder](https://www.electron.build/) 패키징과 통합합니다. electron-builder의 `afterPack` 단계에 훅을 걸어, 빌트인 `.wvb` 번들을 패키징된 앱의 리소스에 설치합니다. 그 결과 `@wvb/electron`이 런타임에 제공하는 번들이 앱과 함께 배포됩니다. 단, 네이티브 `@wvb/node` 애드온을 ASAR 아카이브에서 제외하도록 electron-builder를 직접 설정해야 합니다. 런타임 설정은 [Electron 가이드](/docs/guide/platforms/electron)를 먼저 읽으세요. Forge용 동일 기능은 [Electron Forge](/docs/guide/platforms/electron/forge)를 참고하세요.
 
 ## 하는 일
 
-패키징 시점에 이 플러그인은 Webview Bundle 설정을 해석하고 내장 번들을 설치합니다. 내장 번들은 `remote` 타깃에서 다운로드하거나, `@wvb/cli`를 통해 로컬 워크스페이스에서 패킹합니다. 그런 다음 번들을 `<root>/.wvb/builtin/bundles/<platform>-<arch>` 아래에 준비하고, 패키징된 앱의 `Resources/<bundlesDir>` 디렉터리로 복사합니다. 이 경로는 `@wvb/electron`이 패키징된 상태에서 내장 번들을 읽는 위치(`process.resourcesPath/bundles`)와 정확히 일치합니다. 따라서 런타임은 추가 설정 없이 번들을 인식합니다.
+패키징 시점에 이 플러그인은 Webview Bundle 설정을 해석하고 빌트인 번들을 설치합니다. 빌트인 번들은 `remote` 타깃에서 다운로드하거나, `@wvb/cli`를 통해 로컬 워크스페이스에서 패킹합니다. 그런 다음 번들을 `<root>/.wvb/builtin/bundles/<platform>-<arch>` 아래에 준비하고, 패키징된 앱의 `Resources/<bundlesDir>` 디렉터리로 복사합니다. 이 경로는 `@wvb/electron`이 패키징된 상태에서 빌트인 번들을 읽는 위치(`process.resourcesPath/bundles`)와 정확히 일치합니다. 따라서 런타임은 추가 설정 없이 번들을 인식합니다.
 
-이 플러그인은 `electron-builder` 24 이상을 필요로 하며(선택적 peer 의존성으로 선언됨), 번들을 해석하고 패킹하기 위해 `@wvb/cli`와 `@wvb/config`를 가져옵니다.
+이 플러그인은 `electron-builder` 24 이상이 필요하며(선택적 peer 의존성으로 선언됨), 번들을 해석하고 패킹하기 위해 `@wvb/cli`와 `@wvb/config`를 가져옵니다.
 
 ## 플러그인 설정
 
@@ -42,7 +42,7 @@ export default withWebviewBundle(
 );
 ```
 
-훅을 직접 연결하고 싶다면, electron-builder의 `afterPack` 함수를 반환하는 로우 레벨 팩토리 `webviewBundleAfterPack(options?)`(별칭 `wvbAfterPack`)를 사용하세요. 이 패키지는 `resolveResourcesPath(ctx)`도 내보냅니다. 이 함수는 주어진 빌드 컨텍스트에 대해 패키징된 앱의 리소스 디렉터리를 반환합니다.
+훅을 직접 연결하고 싶다면, electron-builder의 `afterPack` 함수를 반환하는 로우 레벨 팩토리 `webviewBundleAfterPack(options?)`(별칭 `wvbAfterPack`)을 사용하세요. 이 패키지는 `resolveResourcesPath(ctx)`도 내보냅니다. 이 함수는 주어진 빌드 컨텍스트에 대해 패키징된 앱의 리소스 디렉터리를 반환합니다.
 
 ### 옵션
 
@@ -51,7 +51,7 @@ export default withWebviewBundle(
 | Option                    | Type                | Default     | Meaning                                                                                       |
 | ------------------------- | ------------------- | ----------- | --------------------------------------------------------------------------------------------- |
 | `root`                    | `string`            | (resolved)  | 설정과 번들을 찾는 데 사용하는 프로젝트 루트                                                  |
-| `builtin`                 | `BuiltinConfig`     | from config | 설정 파일을 덮어쓰는 인라인 내장 설정                                                         |
+| `builtin`                 | `BuiltinConfig`     | from config | 설정 파일을 덮어쓰는 인라인 빌트인 설정                                                         |
 | `bundlesDir`              | `string`            | `'bundles'` | 패키징된 `Resources` 아래의 대상 디렉터리 이름                                                |
 | `configFile`              | `string \| boolean` | `true`      | `true`는 자동으로 찾아 병합하고, 경로를 지정하면 명시적으로 로드하며, `false`는 인라인만 사용 |
 | `channel`                 | `string`            | —           | 번들을 설치할 릴리스 채널(예: `"beta"`)                                                       |
@@ -70,7 +70,7 @@ export default withWebviewBundle(
 }
 ```
 
-플러그인이 내장 번들 설치를 처리하므로, 번들을 위해 `extraResources`를 지정할 필요는 없습니다. 플러그인을 쓰지 않고 `.wvb` 파일을 직접 준비한다면, 해당 디렉터리를 추가 리소스로 배포해 `Resources/bundles`에 들어가게 하세요.
+플러그인이 빌트인 번들 설치를 처리하므로, 번들을 위해 `extraResources`를 지정할 필요는 없습니다. 플러그인을 쓰지 않고 `.wvb` 파일을 직접 준비한다면, 해당 디렉터리를 추가 리소스로 배포해 `Resources/bundles`에 들어가게 하세요.
 
 ```json title="electron-builder 설정"
 {
@@ -94,7 +94,7 @@ export default withWebviewBundle(
   <Card
     title="Electron Forge"
     href="/docs/guide/platforms/electron/forge"
-    description="Electron Forge 플러그인 형태의 동일한 내장 설치 로직입니다."
+    description="Electron Forge 플러그인 형태의 동일한 빌트인 설치 로직입니다."
   />
   <Card
     title="설정"

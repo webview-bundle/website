@@ -37,7 +37,7 @@ HTTP/1.1 404 Not Found
 
 ## 그 밖의 오류
 
-그 밖의 `2xx` 외 상태에 대해서는 `{ "message": string }` 형태의 JSON 본문을 반환하세요. 클라이언트는 이 본문을 파싱하여, 상태 코드와 메시지를 모두 담은 원격 HTTP 오류를 발생시킵니다.
+그 밖의 `2xx` 외 상태에는 `{ "message": string }` 형태의 JSON 본문을 반환하세요. 클라이언트는 이 본문을 파싱하여, 상태 코드와 메시지를 모두 담은 원격 HTTP 오류를 발생시킵니다.
 
 ```http
 HTTP/1.1 500 Internal Server Error
