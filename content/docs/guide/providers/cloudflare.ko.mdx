@@ -68,7 +68,7 @@ export default defineConfig({
 | `uploader`      | object   | 내부 S3 업로더에 대한 선택적 재정의(`key`, `contentType`, `metadata` 등).             |
 | `deployer`      | object   | KV 디플로이어에 대한 선택적 재정의(`key`, `expiration`, `expirationTtl`, `metadata`). |
 
-기본값: 업로더는 `region: 'auto'`와 엔드포인트 `https://<accountId>.r2.cloudflarestorage.com`을 설정한 다음, `bundles/<name>/<name>_<version>.wvb` 키에 객체를 저장하고 `webview-bundle-*` 커스텀 메타데이터를 붙입니다. 디플로이어는 `<name>` 키(채널 배포일 때는 `<name>/<channel>`)에 버전을 KV로 씁니다.
+기본값: 업로더는 `region: 'auto'`와 엔드포인트 `https://<accountId>.r2.cloudflarestorage.com`을 설정한 다음, `bundles/<name>/<name>_<version>.wvb` 키에 객체를 저장하고 `webview-bundle-*` 커스텀 메타데이터를 붙입니다. 디플로이어는 버전을 KV의 `<name>` 키(채널 배포일 때는 `<name>/<channel>`)에 씁니다.
 
 레이아웃이 다르면 둘 중 어느 쪽이든 재정의하세요.
 
@@ -88,7 +88,7 @@ export default defineConfig({
 }),
 ```
 
-R2에는 S3 자격 증명이 필요합니다. AWS와 동일한 방식으로 제공하세요. S3 클라이언트가 읽는 환경변수를 통해 전달합니다.
+R2에는 S3 자격 증명이 필요합니다. AWS와 동일한 방식으로, S3 클라이언트가 읽는 환경변수를 통해 제공하세요.
 
 ```sh
 export AWS_ACCESS_KEY_ID=<r2-access-key-id>
@@ -103,7 +103,7 @@ wvb upload --version 1.2.0
 wvb deploy --version 1.2.0
 ```
 
-`wvb upload`는 기본적으로 배포하지 않습니다. `wvb deploy`를 실행하거나(또는 `upload`에 `--deploy`를 전달하여) 해당 버전을 라이브 상태로 만드세요.
+`wvb upload`는 기본적으로 배포하지 않습니다. `wvb deploy`를 실행하거나 `upload`에 `--deploy`를 전달해 해당 버전을 라이브 상태로 만드세요.
 
 ```sh
 wvb upload --version 1.2.0 --deploy
@@ -164,7 +164,7 @@ Worker를 배포하세요.
 npx wrangler deploy
 ```
 
-라이브 엔드포인트에 대해 계약을 검증하세요.
+라이브 엔드포인트에서 계약을 검증하세요.
 
 ```sh
 curl https://bundles.example.com/bundles

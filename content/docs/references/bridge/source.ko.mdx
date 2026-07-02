@@ -1,9 +1,9 @@
 ---
 title: Source
-description: 네이티브 호스트에서 내장 번들과 원격 번들을 읽고 관리하는 bridge source.* 명령어 그룹입니다.
+description: 네이티브 호스트에서 빌트인 번들과 원격 번들을 읽고 관리하는 bridge source.* 명령어 그룹입니다.
 ---
 
-`source`는 네이티브 번들 소스에 매핑되는 bridge 명령어 그룹입니다. 네이티브 번들 소스는 호스트가 내장 번들과 원격 번들을 저장하는 공간입니다. 각 메서드는 타입이 지정된 `invoke()` 호출이므로, 웹 측에서 타입 검사를 거쳐 대응하는 네이티브 핸들러로 라우팅됩니다. 이 그룹으로 번들을 나열하고, 버전과 메타데이터를 불러오고, 디스크상의 경로를 확인하고, 다운로드한 원격 번들을 관리하세요.
+`source`는 네이티브 번들 소스에 매핑되는 bridge 명령어 그룹입니다. 네이티브 번들 소스는 호스트가 빌트인 번들과 원격 번들을 저장하는 공간입니다. 각 메서드는 타입이 지정된 `invoke()` 호출이므로, 웹 측에서 타입 검사를 거쳐 대응하는 네이티브 핸들러로 라우팅됩니다. 이 그룹으로 번들을 나열하고, 버전과 메타데이터를 불러오고, 디스크상의 경로를 확인하고, 다운로드한 원격 번들을 관리하세요.
 
 이 명령어들이 호출하는 네이티브 측은 [Node API source 레퍼런스](/docs/references/node/source)를 참고하세요. `invoke()`, `platform`, `remote` 및 `updater` 그룹, 오류, 테스트 등 나머지 bridge 영역은 [Bridge 개요](/docs/references/bridge)를 참고하세요.
 
@@ -22,9 +22,9 @@ const path = await source.resolveFilepath('app');
 | `loadVersion(bundleName)`                       | 번들의 활성 버전을 불러옵니다.                  |
 | `updateVersion(bundleName, version)`            | 번들의 활성 원격 버전을 설정합니다.             |
 | `resolveFilepath(bundleName)`                   | 소스가 제공하는 디스크상의 경로를 확인합니다.   |
-| `getBuiltinBundleFilepath(bundleName, version)` | 내장 번들 파일의 경로입니다.                    |
+| `getBuiltinBundleFilepath(bundleName, version)` | 빌트인 번들 파일의 경로입니다.                  |
 | `getRemoteBundleFilepath(bundleName, version)`  | 원격 번들 파일의 경로입니다.                    |
-| `loadBuiltinMetadata(bundleName, version)`      | 내장 번들의 메타데이터를 불러옵니다.            |
+| `loadBuiltinMetadata(bundleName, version)`      | 빌트인 번들의 메타데이터를 불러옵니다.          |
 | `loadRemoteMetadata(bundleName, version)`       | 원격 번들의 메타데이터를 불러옵니다.            |
 | `unloadDescriptor(bundleName)`                  | 캐시된 번들 디스크립터를 제거합니다.            |
 | `removeRemoteBundle(bundleName, version)`       | 다운로드한 원격 번들을 삭제합니다.              |
@@ -50,7 +50,7 @@ async function tidyRemoteBundles(bundleName: string) {
 }
 ```
 
-특정 다운로드 버전을 삭제하려면 `removeRemoteBundle(bundleName, version)`을 호출하세요.
+다운로드한 특정 버전을 삭제하려면 `removeRemoteBundle(bundleName, version)`을 호출하세요.
 
 ## See also
 

@@ -56,7 +56,7 @@ const source = new BundleSource({
 
 `fetch*` 메서드는 파싱된 [`Bundle`](/docs/references/node/bundle)을 읽습니다. `fetchBundle`은 우선 규칙을 따르고, `fetchBuiltinBundle`과 `fetchRemoteBundle`은 특정 디렉터리 하나만 대상으로 합니다. `fetchDescriptor`는 모든 파일을 메모리에 로드하지 않고 [`BundleDescriptor`](/docs/references/node/bundle)를 반환합니다.
 
-`loadDescriptor`는 single-flight 방식으로 `LoadedDescriptor`를 캐시합니다. 따라서 동시에 호출한 여러 호출자가 하나의 로드를 공유합니다. `unloadDescriptor`는 캐시된 핸들을 해제합니다. remote 디렉터리에 기록하는 경로는 `writeRemoteBundle`입니다. 이 메서드는 다운로드한 번들과 그 [`BundleManifestMetadata`](/docs/references/node/types)를 저장합니다. `remoteRetainedVersions`는 소스가 이름에 대해 보관하는 버전(현재 버전과 이전 버전)을 나열합니다. `removeRemoteBundle`은 특정 버전을 삭제하고, `pruneRemoteBundles`는 더 이상 보관되지 않는 버전을 제거합니다.
+`loadDescriptor`는 single-flight 방식으로 `LoadedDescriptor`를 캐시합니다. 따라서 여러 호출자가 동시에 호출해도 하나의 로드를 공유합니다. `unloadDescriptor`는 캐시된 핸들을 해제합니다. remote 디렉터리에 기록하는 경로는 `writeRemoteBundle`입니다. 이 메서드는 다운로드한 번들과 그 [`BundleManifestMetadata`](/docs/references/node/types)를 저장합니다. `remoteRetainedVersions`는 소스가 이름에 대해 보관하는 버전(현재 버전과 이전 버전)을 나열합니다. `removeRemoteBundle`은 특정 버전을 삭제하고, `pruneRemoteBundles`는 더 이상 보관되지 않는 버전을 제거합니다.
 
 <Callout type="info">
   상위 수준의 OTA 흐름은 대개 [`Updater`](/docs/references/node/updater)를 통해 이 메서드들을

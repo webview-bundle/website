@@ -12,7 +12,7 @@ Rust 코어는 스킴을 등록하거나 검증하지 않습니다. 코어는 UR
 
 ## bundle 프로토콜
 
-요청은 URI의 두 부분으로 번들 소스에 대해 해석됩니다. 하나는 **번들 이름**(첫 `.`까지의 호스트)이고, 다른 하나는 **경로**(퍼센트 디코딩된 값)입니다.
+요청은 URI의 두 부분을 기준으로 번들 소스에서 해석됩니다. 하나는 **번들 이름**(첫 `.`까지의 호스트)이고, 다른 하나는 **경로**(퍼센트 디코딩된 값)입니다.
 
 ```text
 app://app.wvb/index.html        -> bundle "app",   file "/index.html"
@@ -33,7 +33,7 @@ app://myapp.wvb/assets/logo.png -> bundle "myapp", file "/assets/logo.png"
 
 `GET`과 `HEAD`만 제공하며, 그 외의 메서드는 **405 Method Not Allowed**를 반환합니다. `HEAD`는 본문이 비어 있는 헤더를 반환합니다.
 
-제공되는 파일에 대해 핸들러는 인덱스에 저장된 해당 파일의 헤더를 재생한 뒤, `Content-Type`(인덱스 엔트리에서 가져옴)과 `Content-Length`(압축 해제된 크기)를 덮어씁니다.
+파일을 제공할 때 핸들러는 인덱스에 저장된 해당 파일의 헤더를 재생한 뒤, `Content-Type`(인덱스 엔트리에서 가져옴)과 `Content-Length`(압축 해제된 크기)를 덮어씁니다.
 
 ```text
 GET app://app.wvb/assets/app.js
@@ -148,7 +148,7 @@ app.whenReady().then(async () => {
 }
 ```
 
-권한과 렌더러 브리지에 대해서는 [Electron 가이드](/docs/guide/platforms/electron)를 참고하세요.
+권한과 렌더러 브리지는 [Electron 가이드](/docs/guide/platforms/electron)를 참고하세요.
 
 </Tab>
 <Tab value="Tauri">

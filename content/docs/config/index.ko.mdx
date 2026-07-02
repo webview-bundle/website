@@ -63,7 +63,7 @@ wvb pack --config ./configs/wvb.prod.ts
 ### defineConfig
 
 설정을 `@wvb/config`의 `defineConfig`로 감싸세요. 이 함수는 런타임에서는 항등 함수이며,
-타입을 붙이는 것이 유일한 역할입니다. 객체, 설정으로 해석되는 프로미스, 또는 설정을
+타입을 붙이는 것이 유일한 역할입니다. 객체, 설정으로 이행되는 프로미스, 또는 설정을
 반환하는 동기 혹은 비동기 함수를 받습니다. 따라서 불러오는 시점에 값을 계산할 수 있습니다.
 
 <Tabs items={['Object', 'Async function']}>
