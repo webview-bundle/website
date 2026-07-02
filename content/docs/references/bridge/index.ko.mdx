@@ -37,7 +37,7 @@ yarn add @wvb/bridge
 
 ## invoke
 
-`invoke()`는 저수준 진입점입니다. 타입이 지정된 모든 명령어 헬퍼가 이 위에 만들어져 있으므로, 보통은 `source`, `remote`, `updater`를 사용합니다. 타입이 지정된 그룹이 다루지 않는 명령어에만 `invoke()`를 직접 사용하세요.
+`invoke()`는 저수준 진입점입니다. 타입이 지정된 모든 명령어 헬퍼가 이를 기반으로 만들어져 있으므로, 보통은 `source`, `remote`, `updater`를 사용합니다. 타입이 지정된 그룹이 다루지 않는 명령어에만 `invoke()`를 직접 사용하세요.
 
 ```ts
 import { invoke } from '@wvb/bridge';
@@ -80,7 +80,7 @@ console.log(platform.type); // 'electron' | 'tauri' | 'android' | 'ios'
 
 ## Transports
 
-각 플랫폼은 저마다의 전송 방식을 가지며, 모두 `invoke()` 뒤에 숨겨져 있습니다.
+각 플랫폼에는 저마다의 전송 방식이 있으며, 모두 `invoke()` 뒤에 숨겨져 있습니다.
 
 - **Electron**은 `window.wvbElectron.invoke(name, params)`를 호출합니다.
 - **Tauri**는 `wvb-tauri` 플러그인 명령어를 호출하며, 명령어 이름을 snake case로 변환합니다.
@@ -97,7 +97,7 @@ console.log(platform.type); // 'electron' | 'tauri' | 'android' | 'ios'
   <Card
     title="source"
     href="/docs/references/bridge/source"
-    description="네이티브 번들 소스 — 내장 번들과 원격 번들을 나열하고, 불러오고, 관리합니다."
+    description="네이티브 번들 소스 — 빌트인 번들과 원격 번들을 나열하고, 불러오고, 관리합니다."
   />
   <Card
     title="remote"

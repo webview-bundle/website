@@ -3,7 +3,7 @@ title: AWS 프로바이더
 description: S3, CloudFront, Lambda@Edge와 선택적 KMS 서명을 사용해 AWS에서 원격 Webview Bundle을 호스팅하고, 제공하고, 프로비저닝합니다.
 ---
 
-번들을 직접 관리하는 AWS 계정에 게시하고 글로벌 CDN으로 제공합니다. 번들은 **S3**에 저장되고, **CloudFront**가 이를 캐싱하며, 두 개의 **Lambda@Edge** 함수가 원격 HTTP 계약을 S3 읽기로 변환합니다. 그리고 **KMS**로 각 번들에 선택적으로 서명할 수 있습니다.
+직접 관리하는 AWS 계정에 번들을 게시하고 글로벌 CDN으로 제공합니다. 번들은 **S3**에 저장되고, **CloudFront**가 이를 캐싱하며, 두 개의 **Lambda@Edge** 함수가 원격 HTTP 계약을 S3 읽기로 변환합니다. 그리고 **KMS**로 각 번들에 선택적으로 서명할 수 있습니다.
 이 구성 요소들이 구현하는 계약과 프로바이더를 선택하는 방법은 [원격 구축하기](/docs/guide/remote)를 참고하세요.
 
 ## 지원 서비스
