@@ -1,0 +1,121 @@
+---
+title: Node API
+description: Node.js에서 Webview Bundle을 읽고, 제공하고, 업데이트하는 N-API 네이티브 애드온인 @wvb/node의 레퍼런스입니다.
+---
+
+`@wvb/node` 0.1.0은 Webview Bundle의 Node.js 바인딩입니다. N-API 네이티브 애드온(`wvb-node` Rust 크레이트)으로 제공되며, 플랫폼별 사전 빌드 바이너리를 포함합니다. 따라서 Rust 툴체인 없이 설치하고 실행할 수 있습니다. 이 패키지는 번들 리더와 라이터, `BundleSource`, 프로토콜 핸들러, `Remote` 클라이언트, `Updater`를 노출합니다. 모두 `@wvb/electron`과 CLI의 원격 작업을 뒷받침하는 것과 동일한 구성 요소입니다.
+
+웹뷰 안에서 실행되는 웹 앱은 `@wvb/node`를 직접 호출하지 않습니다. 대신 [`@wvb/bridge`](/docs/references/javascript/bridge)를 사용합니다. `@wvb/bridge`의 `source`, `remote`, `updater` 명령어가 여기서 문서화하는 클래스에 대응합니다. 전체 흐름은 [원격 번들](/docs/guide/over-the-air)을 참고하세요. 실험적인 Deno 대응 구현은 [Deno API](/docs/references/javascript/deno)를 참고하세요.
+
+<Callout type="info">
+애드온은 `@wvb/node-<platform>` 선택적 의존성 중 하나에서 사전 빌드 바이너리를 해석합니다(macOS, Linux, Windows, Android에 걸친 12개의 NAPI 타깃). 지원되는 Node 엔진은 `>= 12.22.0 < 13`, `>= 14.17.0 < 15`, `>= 15.12.0 < 16`, `>= 16.0.0`입니다.
+</Callout>
+
+## Install
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/node
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/node
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/node
+```
+
+  </Tab>
+</Tabs>
+
+## Top-level functions
+
+이 함수들은 `.wvb` 아카이브를 읽고 씁니다.
+
+| Function                | Signature                                                        | Returns                      |
+| ----------------------- | ---------------------------------------------------------------- | ---------------------------- |
+| `readBundle`            | `readBundle(filepath: string): Promise<Bundle>`                  | 디스크에서 읽어 파싱한 번들. |
+| `readBundleFromBuffer`  | `readBundleFromBuffer(buffer: Buffer): Bundle`                   | 메모리 버퍼에서 파싱한 번들. |
+| `writeBundle`           | `writeBundle(bundle: Bundle, filepath: string): Promise<bigint>` | 기록한 바이트 수.            |
+| `writeBundleIntoBuffer` | `writeBundleIntoBuffer(bundle: Bundle): Buffer`                  | 직렬화한 `.wvb` 바이트.      |
+
+## API reference
+
+클래스, 열거형, 옵션 타입은 주제별 페이지로 나누어 정리했습니다.
+
+<Cards>
+  <Card
+    title="Bundle"
+    href="/docs/references/javascript/node/bundle"
+    description="번들 포맷, 리더, 빌더, 디스크립터."
+  />
+  <Card
+    title="BundleSource"
+    href="/docs/references/javascript/node/source"
+    description="빌트인 디렉터리와 원격 디렉터리에서 번들을 해석합니다."
+  />
+  <Card
+    title="프로토콜"
+    href="/docs/references/javascript/node/protocol"
+    description="BundleProtocol과 LocalProtocol 요청 핸들러."
+  />
+  <Card
+    title="Remote"
+    href="/docs/references/javascript/node/remote"
+    description="번들 원격 서버용 HTTP 클라이언트."
+  />
+  <Card
+    title="Updater"
+    href="/docs/references/javascript/node/updater"
+    description="최신 번들을 확인하고, 다운로드하고, 설치합니다."
+  />
+  <Card
+    title="타입"
+    href="/docs/references/javascript/node/types"
+    description="열거형, 옵션, 결과 타입."
+  />
+</Cards>
+
+## Example
+
+디스크에서 `.wvb` 아카이브를 읽고 그 안에서 파일 하나를 꺼냅니다.
+
+```ts
+import { readBundle } from '@wvb/node';
+
+const bundle = await readBundle('./dist/app.wvb');
+
+const html = bundle.getData('index.html');
+if (html) {
+  console.log(html.toString('utf8'));
+}
+```
+
+## Related
+
+<Cards>
+  <Card
+    title="원격 번들과 업데이트"
+    href="/docs/guide/over-the-air"
+    description="업데이트, 무결성, 서명 검증이 어떻게 맞물리는지 설명합니다."
+  />
+  <Card
+    title="원격, 무결성 및 서명 설정"
+    href="/docs/references/configuration/remote"
+    description="wvb.config에서 원격 서버, 무결성 정책, 서명을 설정합니다."
+  />
+  <Card
+    title="Deno API"
+    href="/docs/references/javascript/deno"
+    description="@wvb/node의 실험적인 Deno 대응 구현."
+  />
+</Cards>

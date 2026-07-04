@@ -1,0 +1,84 @@
+---
+title: Bundle
+description: .wvb 아카이브를 읽고, 빌드하고, 검사하기 위한 @wvb/node 클래스.
+---
+
+`@wvb/node`는 메모리와 디스크에서 `.wvb` 아카이브를 다루는 소규모 클래스 집합을 제공합니다. `Bundle`과 `BundleBuilder`는 번들 전체를 읽고 씁니다. `BundleDescriptor`, `Header`, `Index`, `LoadedDescriptor`는 번들의 구조를 검사하고, 전체를 메모리에 올리지 않고도 개별 파일을 가져올 수 있게 합니다.
+
+소스, 프로토콜, 원격 클라이언트, 업데이터까지 패키지의 전체 표면은 [Node API 개요](/docs/references/javascript/node)를 참고하세요. 바이트가 디스크에 배치되는 방식은 [.wvb 번들 포맷](/docs/guide/bundle-format)을 참고하세요.
+
+## 번들 읽기와 파일 가져오기
+
+`readBundle`을 호출해 디스크의 `.wvb` 파일을 파싱한 다음, `getData`로 개별 엔트리를 가져옵니다. `getData`는 `Buffer`를 반환하며, 경로가 번들에 없으면 `null`을 반환합니다.
+
+```ts
+import { readBundle } from '@wvb/node';
+
+const bundle = await readBundle('./dist/app.wvb');
+
+const html = bundle.getData('index.html');
+if (html) {
+  console.log(html.toString('utf8'));
+}
+```
+
+## 번들과 빌더
+
+`Bundle`은 메모리에 보관된, 파싱이 끝난 아카이브입니다. `readBundle`(또는 `readBundleFromBuffer`)에서 얻거나 `BundleBuilder.build`를 호출해 얻습니다. `BundleBuilder`는 엔트리를 모아 `Bundle`을 만들며, 이렇게 만든 번들을 디스크에 쓸 수 있습니다.
+
+| 클래스          | 생성자                                        | 주요 메서드                                                                                                                                                                                                                                              |
+| --------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Bundle`        | `readBundle` / `BundleBuilder.build`로 생성됨 | `descriptor(): BundleDescriptor`; `getData(path: string): Buffer \| null`; `getDataChecksum(path: string): number \| null`                                                                                                                               |
+| `BundleBuilder` | `new BundleBuilder(version?: Version)`        | `get version: Version`; `entryPaths(): Array<string>`; `insertEntry(path, data: Buffer, contentType?, headers?: Record<string, string>): boolean`; `removeEntry(path): boolean`; `containsEntry(path): boolean`; `build(options?: BuildOptions): Bundle` |
+
+<Callout type="info">
+  `getDataChecksum`은 파일 바이트의 내부 xxHash-32 체크섬을 반환하며, 이는 아카이브 내부의 손상을
+  감지하는 데 쓰입니다. 이는 번들의 무결성 해시와는 다릅니다. 무결성 해시는 SHA-2 (`sha256`,
+  `sha384`, `sha512`)를 사용해 다운로드된 내용을 검증합니다.
+</Callout>
+
+## 디스크립터, 헤더, 인덱스
+
+디스크립터는 모든 파일을 메모리에 올리지 않고 번들의 구조를 노출합니다. `bundle.descriptor()`를 호출해 `BundleDescriptor`를 얻은 다음, 그 `Header`와 `Index`를 읽거나 필요할 때 개별 파일을 가져옵니다.
+
+| 클래스             | 주요 메서드                                                                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `BundleDescriptor` | `header(): Header`; `index(): Index`; `getData(filepath, path): Buffer \| null`; `getDataChecksum(filepath, path): number \| null`; `asyncGetData(...)`; `asyncGetDataChecksum(...)` |
+| `Header`           | `version(): Version`; `indexEndOffset(): bigint`; `indexSize(): number`                                                                                                              |
+| `Index`            | `entries(): Record<string, IndexEntry>`; `getEntry(path): IndexEntry \| null`; `containsPath(path): boolean`                                                                         |
+| `LoadedDescriptor` | `descriptor(): BundleDescriptor`; `getData(path): Promise<Buffer \| null>` (지연 디스크 읽기); `getDataChecksum(path): Promise<number \| null>`                                      |
+
+`Header`는 번들의 포맷 `version`과 인덱스가 파일 내 어디에 위치하는지를 설명합니다. `Index`는 각 파일 경로를 `IndexEntry`에 매핑합니다.
+
+```ts
+type IndexEntry = {
+  offset: number;
+  len: number; // 압축된 길이
+  isEmpty: boolean;
+  contentType: string;
+  contentLength: number; // 압축 해제된 길이
+  headers: Record<string, string>;
+};
+```
+
+`LoadedDescriptor`는 디스크의 파일에 대한 참조 카운트 핸들을 보유하며, 이 핸들은 가비지 컬렉션 시 해제됩니다. 따라서 `getData`와 `getDataChecksum`은 아카이브 전체를 버퍼링하지 않고 지연 방식으로 읽습니다.
+
+<Callout type="info">
+  `Version` 열거형에는 `'v1'`이라는 값 하나만 있습니다. `.wvb` 포맷 버전은 `@wvb/node` 패키지 버전과
+  독립적입니다.
+</Callout>
+
+## 관련 항목
+
+<Cards>
+  <Card
+    title="Node API"
+    href="/docs/references/javascript/node"
+    description="@wvb/node의 전체 표면: 소스, 프로토콜, 원격, 업데이터."
+  />
+  <Card
+    title="번들 포맷"
+    href="/docs/guide/bundle-format"
+    description=".wvb 아카이브가 체크섬과 무결성을 갖추어 디스크에 배치되는 방식."
+  />
+</Cards>

@@ -19,17 +19,33 @@ export function localeFromPathname(pathname: string): Locale {
 
 // Korean overrides for the built-in fumadocs-ui strings (search box, table of
 // contents, pager, theme/language menus). English uses fumadocs' defaults.
-export const KO_UI_TRANSLATIONS = {
-  search: '검색',
-  searchNoResult: '결과가 없습니다',
-  toc: '목차',
-  tocNoHeadings: '제목이 없습니다',
-  lastUpdate: '마지막 업데이트',
-  chooseLanguage: '언어 선택',
-  nextPage: '다음',
-  previousPage: '이전',
-  chooseTheme: '테마 선택',
-  editOnGithub: 'GitHub에서 편집',
+// Keys follow fumadocs' translation scheme: the English default text plus its
+// `(note)` (see fumadocs-ui `.translations`); the old flat keys no longer match.
+export const KO_UI_TRANSLATIONS: Record<string, string> = {
+  'Search(search trigger)': '검색',
+  'Search(search dialog)': '검색',
+  'Open Search(search trigger)(aria-label)': '검색 열기',
+  'Close Search(search dialog)(aria-label)': '검색 닫기',
+  'No results found(search dialog)': '결과가 없습니다',
+  'On this page(table of contents)': '목차',
+  'Table of Contents(inline table of contents)': '목차',
+  'No Headings(table of contents)': '제목이 없습니다',
+  'Last updated on(page footer)': '마지막 업데이트',
+  'Choose a language(language switcher)': '언어 선택',
+  'Choose a language(language switcher)(aria-label)': '언어 선택',
+  'Next Page(pagination)': '다음',
+  'Previous Page(pagination)': '이전',
+  'Edit on GitHub(edit page)': 'GitHub에서 편집',
+  'Toggle Theme(theme switcher)(aria-label)': '테마 전환',
+  'Light(theme switcher)(aria-label)': '라이트',
+  'Dark(theme switcher)(aria-label)': '다크',
+  'System(theme switcher)(aria-label)': '시스템',
+  'Collapse Sidebar(sidebar)(aria-label)': '사이드바 접기',
+  'Open Sidebar(sidebar)(aria-label)': '사이드바 열기',
+  'Toggle Menu(mobile menu)(aria-label)': '메뉴 전환',
+  'Page Not Found(404 page)': '페이지를 찾을 수 없습니다',
+  'Back to Home(404 page)': '홈으로',
+  displayName: '한국어',
 };
 
 // Prefix an internal, root-relative path with the locale ('' for English).

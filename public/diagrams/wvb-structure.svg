@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" role="img" aria-labelledby="t">
+  <title id="t">The .wvb file layout: a Header, Index, and Data section, each ending with an xxHash-32 checksum.</title>
+  <style>
+    .lbl { font: 600 15px ui-sans-serif, system-ui, sans-serif; fill: #18181b; }
+    .fld { font: 12px ui-sans-serif, system-ui, sans-serif; fill: #18181b; }
+    .sz  { font: 11px ui-monospace, "JetBrains Mono", monospace; fill: #71717a; }
+    .seg { fill: #f4f4f5; stroke: #e4e4e7; stroke-width: 1; }
+    .sum { fill: #eff6ff; stroke: #bfdbfe; stroke-width: 1; }
+    .sumtxt { fill: #2563eb; }
+    .rule { stroke: #d4d4d8; stroke-width: 1; }
+    @media (prefers-color-scheme: dark) {
+      .lbl, .fld { fill: #f4f4f5; }
+      .sz { fill: #a1a1aa; }
+      .seg { fill: #27272a; stroke: #3f3f46; }
+      .sum { fill: #172554; stroke: #1e40af; }
+      .sumtxt { fill: #60a5fa; }
+      .rule { stroke: #3f3f46; }
+    }
+  </style>
+
+  <!-- section labels -->
+  <text class="lbl" x="165" y="24" text-anchor="middle">Header (17 B)</text>
+  <text class="lbl" x="422" y="24" text-anchor="middle">Index</text>
+  <text class="lbl" x="637" y="24" text-anchor="middle">Data</text>
+  <line class="rule" x1="20" y1="34" x2="310" y2="34"/>
+  <line class="rule" x1="322" y1="34" x2="522" y2="34"/>
+  <line class="rule" x1="534" y1="34" x2="740" y2="34"/>
+
+  <!-- Header sub-fields -->
+  <g>
+    <rect class="seg" x="20"  y="48" width="110" height="64" rx="3"/>
+    <rect class="seg" x="132" y="48" width="56"  height="64" rx="3"/>
+    <rect class="seg" x="190" y="48" width="58"  height="64" rx="3"/>
+    <rect class="sum" x="250" y="48" width="60"  height="64" rx="3"/>
+    <text class="fld"    x="75"  y="84" text-anchor="middle">Magic</text>
+    <text class="fld"    x="160" y="84" text-anchor="middle">Version</text>
+    <text class="fld"    x="219" y="84" text-anchor="middle">Idx&#160;Size</text>
+    <text class="fld sumtxt" x="280" y="84" text-anchor="middle">Checksum</text>
+    <text class="sz" x="75"  y="130" text-anchor="middle">8 B</text>
+    <text class="sz" x="160" y="130" text-anchor="middle">1 B</text>
+    <text class="sz" x="219" y="130" text-anchor="middle">4 B</text>
+    <text class="sz" x="280" y="130" text-anchor="middle">4 B</text>
+  </g>
+
+  <!-- Index -->
+  <g>
+    <rect class="seg" x="322" y="48" width="140" height="64" rx="3"/>
+    <rect class="sum" x="464" y="48" width="58"  height="64" rx="3"/>
+    <text class="fld"    x="392" y="84" text-anchor="middle">Index</text>
+    <text class="fld sumtxt" x="493" y="84" text-anchor="middle">Checksum</text>
+    <text class="sz" x="392" y="130" text-anchor="middle">index size</text>
+    <text class="sz" x="493" y="130" text-anchor="middle">4 B</text>
+  </g>
+
+  <!-- Data -->
+  <g>
+    <rect class="seg" x="534" y="48" width="148" height="64" rx="3"/>
+    <rect class="sum" x="684" y="48" width="56"  height="64" rx="3"/>
+    <text class="fld"    x="608" y="84" text-anchor="middle">Data</text>
+    <text class="fld sumtxt" x="712" y="84" text-anchor="middle">Checksum</text>
+    <text class="sz" x="608" y="130" text-anchor="middle">variable</text>
+    <text class="sz" x="712" y="130" text-anchor="middle">4 B</text>
+  </g>
+</svg>

@@ -24,6 +24,7 @@
     "frontend/development",
     "frontend/packing",
     "frontend/upload",
+    "frontend/deploy",
     "frontend/bridges",
     "---Remote---",
     "remote/index",

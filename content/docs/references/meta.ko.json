@@ -1,5 +1,24 @@
 {
   "root": true,
   "title": "레퍼런스",
-  "pages": ["index", "[Rust (docs.rs)](https://docs.rs/wvb)", "node", "deno", "bridge"]
+  "pages": [
+    "index",
+    "cli",
+    "configuration",
+    "---Rust---",
+    "[wvb (docs.rs)](https://docs.rs/wvb)",
+    "[wvb-tauri (docs.rs)](https://docs.rs/wvb-tauri)",
+    "---JavaScript---",
+    "javascript/bridge",
+    "javascript/node",
+    "javascript/electron",
+    "javascript/electron-builder",
+    "javascript/electron-forge",
+    "javascript/deno",
+    "javascript/deno-desktop",
+    "javascript/remotes",
+    "---네이티브---",
+    "android",
+    "ios"
+  ]
 }

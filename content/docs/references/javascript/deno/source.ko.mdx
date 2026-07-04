@@ -1,0 +1,87 @@
+---
+title: 소스
+description: builtin 디렉터리와 remote 디렉터리에서 번들을 해석하는 Deno의 BundleSource 클래스입니다.
+---
+
+`BundleSource`는 디스크에서 번들을 읽어 들이는 Deno 바인딩의 진입점입니다. builtin 디렉터리와 remote 디렉터리에서 번들을 해석하며, 이때 remote 디렉터리가 우선합니다. 또한 [`@wvb/node`](/docs/references/javascript/node)의 `BundleSource`와 동일한 데이터 API를 제공합니다. Deno 바인딩의 다른 클래스 대부분 — `BundleProtocol`, `Updater` — 은 `BundleSource`를 받아 이를 통해 데이터를 읽습니다.
+
+## 소스 생성하기
+
+먼저 네이티브 라이브러리를 로드한 뒤, 로드된 `lib`와 옵션 객체를 생성자에 전달하세요. cdylib를 로드하는 두 가지 방법은 [Deno API 개요](/docs/references/javascript/deno)를 참고하세요.
+
+```ts title="source.ts"
+import { loadLibViaPlug, BundleSource } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+
+const source = new BundleSource(lib, {
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+```
+
+생성자는 두 개의 인자를 받습니다.
+
+| 인자      | 타입              | 설명                                                   |
+| --------- | ----------------- | ------------------------------------------------------ |
+| `lib`     | 로드된 라이브러리 | `loadLib`/`loadLibViaPlug`가 반환한 cdylib 핸들입니다. |
+| `options` | 객체              | 해석에 사용할 builtin 및 remote 디렉터리입니다.        |
+
+옵션은 다음과 같습니다.
+
+| 옵션         | 타입     | 설명                                                                                  |
+| ------------ | -------- | ------------------------------------------------------------------------------------- |
+| `builtinDir` | `string` | 앱에 기본 포함되어 배포되는 번들을 담는 디렉터리입니다.                               |
+| `remoteDir`  | `string` | 원격에서 다운로드한 번들을 담는 디렉터리입니다. `builtinDir`보다 우선하여 해석됩니다. |
+
+## 소스가 하는 일
+
+`BundleSource`는 Node `BundleSource`와 동일한 데이터 API를 제공합니다.
+
+- 해석할 수 있는 번들 목록을 조회합니다.
+- 특정 버전을 로드합니다.
+- 번들 또는 그 디스크립터를 가져옵니다.
+- 보관 중인 remote 버전을 정리합니다.
+
+이 공통 API의 정확한 메서드 이름, 시그니처, 반환 타입은 Deno 바인딩이 그대로 미러링하는 [Node API 레퍼런스](/docs/references/javascript/node)를 참고하세요.
+
+## 소스 사용하기
+
+`BundleSource`는 프로토콜과 업데이터가 데이터를 읽어 들이는 대상입니다. 번들의 파일을 웹뷰에 제공하려면 `BundleProtocol`에 전달하고, 다운로드한 최신 버전을 remote 디렉터리에 설치하려면 `Updater`에 전달하세요.
+
+```ts title="serve.ts"
+import { loadLibViaPlug, BundleProtocol, BundleSource, toResponse } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+
+const source = new BundleSource(lib, {
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+
+using protocol = new BundleProtocol(lib, source);
+
+Deno.serve(async req => {
+  const res = await protocol.handle('get', req.url, Object.fromEntries(req.headers));
+  return toResponse(res);
+});
+```
+
+해석된 파일이 웹뷰에 어떻게 전달되는지는 [프로토콜](/docs/references/javascript/deno/protocol)을 참고하세요.
+
+## Deno 관련 참고 사항
+
+Deno 바인딩은 Deno FFI를 통해 Rust cdylib와 통신합니다. 따라서 `BundleSource`는 직접 import하지 않고 로드된 `lib`로부터 생성합니다. FFI 클래스는 네이티브 핸들을 소유하므로, 사용이 끝나면 반드시 해제하세요. `using`으로 바인딩하여 스코프를 벗어날 때 해제하거나, `free()`를 명시적으로 호출하면 됩니다.
+
+<Cards>
+  <Card
+    title="Deno API"
+    href="/docs/references/javascript/deno"
+    description="네이티브 라이브러리를 로드하고 Deno 바인딩의 전체 API를 살펴보세요."
+  />
+  <Card
+    title="프로토콜"
+    href="/docs/references/javascript/deno/protocol"
+    description="커스텀 스킴을 통해 소스의 파일을 웹뷰에 제공하세요."
+  />
+</Cards>

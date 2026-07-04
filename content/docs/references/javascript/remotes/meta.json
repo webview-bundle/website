@@ -1,0 +1,13 @@
+{
+  "title": "Remotes",
+  "pages": [
+    "remote-aws",
+    "remote-aws-provider",
+    "remote-aws-provider-pulumi",
+    "remote-cloudflare",
+    "remote-cloudflare-provider",
+    "remote-cloudflare-pulumi",
+    "remote-local",
+    "remote-local-provider"
+  ]
+}

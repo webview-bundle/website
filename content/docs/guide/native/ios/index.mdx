@@ -1,0 +1,252 @@
+---
+title: Setup
+description: Serve and update Webview Bundle archives in a WKWebView using the webview-bundle-ios Swift package.
+---
+
+The `webview-bundle-ios` Swift package serves `.wvb` bundles to a `WKWebView` through a custom URL
+scheme and keeps them current with over-the-air (OTA) updates. Register a scheme, point a `WKWebView`
+at `app://app.wvb`, and the package answers every request from the bundle on disk — offline-first,
+with the updater pulling newer bundles in the background without an App Store release.
+
+## Requirements
+
+| Requirement     | Value                                                      |
+| --------------- | ---------------------------------------------------------- |
+| Minimum OS      | iOS 16, macOS 12 (`platforms: [.macOS(.v12), .iOS(.v16)]`) |
+| Swift tools     | 6.1, language mode 6                                       |
+| SwiftPM product | `WebViewBundle`                                            |
+
+The package binds the Rust core through a UniFFI-generated module named `WebViewBundleLibrary`, both
+exposed under the `WebViewBundle` module. See [Platform integration](/docs/guide/glue-to-native)
+for how the shared core reaches each platform.
+
+Add the package as a dependency (the install script below wires in the native FFI):
+
+```swift title="Package.swift"
+dependencies: [
+  .package(path: "../webview-bundle-ios"),
+],
+targets: [
+  .target(name: "App", dependencies: [
+    .product(name: "WebViewBundle", package: "webview-bundle-ios"),
+  ]),
+]
+```
+
+## Install the native FFI
+
+Resolve the native binary from a release before you build:
+
+```sh
+node scripts/install.mjs latest                 # highest ffi/* release
+node scripts/install.mjs 0.1.0                   # -> tag ffi/0.1.0
+node scripts/install.mjs ffi/0.1.0               # explicit release tag
+```
+
+The script reads the GitHub release for the resolved tag and:
+
+- Extracts the generated Swift bindings from the `apple.zip` asset into `Sources/WebViewBundle/`.
+- Resolves the SHA-256 checksum of the `WebViewBundleFFI.xcframework.zip` asset (preferring the digest
+  GitHub reports, falling back to downloading and hashing) and writes the checksum and tag into
+  `Package.swift`.
+
+It needs `unzip` on `PATH`. Override the source repo and authenticate for private repos:
+
+```sh
+export GITHUB_TOKEN=ghp_xxx                      # or GH_TOKEN, for a private source repo
+node scripts/install.mjs latest --repo webview-bundle/webview-bundle
+```
+
+## Quick start
+
+Configure once, register the scheme on a `WKWebViewConfiguration`, load the entry URL. Use a **custom
+scheme** — `http` and `https` are reserved and rejected at init.
+
+```swift title="ContentView.swift"
+import SwiftUI
+import WebKit
+import WebViewBundle
+
+let instance = try WebViewBundle.configure(
+  WebViewBundleConfig(
+    protocols: [.bundle(scheme: "app")],
+    updater: WebViewBundleUpdaterConfig(
+      remote: WebViewBundleRemoteConfig(endpoint: "https://bundles.example.com"),
+      integrityPolicy: .strict,
+      signatureVerifier: SignatureVerifierOptions(
+        algorithm: .ed25519,
+        key: SignatureVerifyingKey(format: .spkiDer, pem: nil, der: publicKeyDer)
+      )
+    )
+  )
+)
+
+let config = WKWebViewConfiguration()
+instance.install(on: config)            // registers the app:// scheme handler + JS bridge
+
+let webView = WKWebView(frame: .zero, configuration: config)
+webView.load(URLRequest(url: URL(string: "app://app.wvb")!))
+```
+
+`configure(_:)` builds the instance once and caches it process-wide. The entry URL `app://app.wvb`
+selects the bundle named `app`. To skip manual configuration, take a ready-made `WKWebView`:
+
+```swift
+let webView = instance.makeWebView()    // or: instance.makeConfiguration()
+webView.load(URLRequest(url: URL(string: "app://app.wvb")!))
+```
+
+Read the configured singleton anywhere — `shared` traps if read before `configure(_:)`, `safeShared`
+does not:
+
+```swift
+let wvb = WebViewBundle.shared           // precondition-fails if not yet configured
+let maybe = WebViewBundle.safeShared     // nil if not yet configured
+```
+
+## How serving works
+
+Each scheme gets a `WKURLSchemeHandler` registered via
+`setURLSchemeHandler(_:forURLScheme:)`; the handler maps each request to the Rust core, which answers
+from the bundle on disk.
+
+- **Bundle name = first label of the request host.** `app://app.wvb/index.html` resolves to bundle
+  `app`, path `/index.html`.
+- **Reserved schemes are rejected at init** (registering a handler for one raises an uncatchable
+  exception): `http`, `https`, `file`, `ftp`, `ftps`, `ws`, `wss`, `about`, `blob`, `data`,
+  `javascript`.
+- **A scheme must match `^[a-z][a-z0-9+.-]*$`** and be unique. Empty, malformed, duplicate, or
+  reserved schemes throw `WebViewBundleError`:
+
+```swift
+do {
+  _ = try WebViewBundle.configure(
+    WebViewBundleConfig(protocols: [.bundle(scheme: "https")]))
+} catch WebViewBundleError.reservedScheme(let scheme) {
+  print("\(scheme) is reserved")        // .emptyScheme / .invalidScheme / .duplicateScheme also exist
+}
+```
+
+Two protocol kinds exist — `.bundle` serves bundle entries, `.local` proxies to a local HTTP server
+(matching the full request host against the `hosts` map). See
+[Protocol handling](/docs/guide/protocol-handling) for the model.
+
+```swift
+WebViewBundleConfig(protocols: [
+  .bundle(scheme: "app"),
+  .local(scheme: "dev", hosts: ["myapp": "http://localhost:8080"]),
+])
+```
+
+## The bridge
+
+`install(on:)` also wires a JavaScript-to-native bridge. The web app posts to
+`window.webkit.messageHandlers.wvbIos`; the bridge accepts **main-frame messages only** (subframe and
+iframe messages are dropped) and exposes the source, remote, and updater commands.
+
+```ts title="web app"
+window.webkit.messageHandlers.wvbIos.postMessage({
+  name: 'updaterGetUpdate',
+  params: { bundleName: 'app' },
+});
+```
+
+## Sources
+
+Each app reads from two sources. See [Bundle sources](/docs/guide/bundle-sources) for the full model.
+
+- **Builtin** — read-only bundles shipped inside the app. Default dir is the app bundle's `/bundles`
+  folder; ship it as a folder reference so files land there.
+- **Remote** — the writable directory for downloaded updates. Default lives under Application Support,
+  namespaced by the app's bundle identifier.
+
+Override either path through `SourceOptions` on `WebViewBundleConfig.source`:
+
+```swift
+WebViewBundleConfig(
+  source: SourceOptions(
+    builtinDir: Foundation.Bundle.main.resourcePath.map { "\($0)/bundles" },
+    remoteDir: nil,                       // nil => default Application Support dir
+    builtinManifestFilepath: nil,
+    remoteManifestFilepath: nil
+  ),
+  protocols: [.bundle(scheme: "app")]
+)
+```
+
+<Callout type="warn">
+  Inside the `WebViewBundle` module, unqualified `Bundle` resolves to the FFI bundle class, not
+  `Foundation.Bundle`. Write `Foundation.Bundle` explicitly when you mean the app bundle.
+</Callout>
+
+## OTA updates
+
+Set `WebViewBundleConfig.updater` and the package builds a `Remote` and an `Updater` for you, reachable
+as `instance.remote` and `instance.updater`.
+
+```swift
+let updaterConfig = WebViewBundleUpdaterConfig(
+  remote: WebViewBundleRemoteConfig(endpoint: "https://bundles.example.com"),
+  channel: "stable",
+  integrityPolicy: .strict,
+  signatureVerifier: SignatureVerifierOptions(
+    algorithm: .ed25519,
+    key: SignatureVerifyingKey(format: .spkiDer, pem: nil, der: publicKeyDer)
+  )
+)
+```
+
+`integrityPolicy` is `.strict`, `.optional`, or `.none`. Integrity values are SHA-2 digests serialized
+as `sha256:<base64>`. The `signatureVerifier` proves who published a bundle:
+
+| Field                 | Values                                                                      |
+| --------------------- | --------------------------------------------------------------------------- |
+| `algorithm`           | `.ecdsaSecp256r1`, `.ecdsaSecp384r1`, `.ed25519`, `.rsaPkcs1V15`, `.rsaPss` |
+| `key.format`          | `.spkiDer`, `.spkiPem`, `.pkcs1Der`, `.pkcs1Pem`, `.sec1`, `.raw`           |
+| `key.pem` / `key.der` | `pem` for text keys, `der` for binary keys                                  |
+
+Drive the update cycle through the updater:
+
+```swift
+guard let updater = instance.updater else { return }
+
+let info = try await updater.getUpdate(bundleName: "app")   // check; no download
+if info.isAvailable {
+  _ = try await updater.downloadUpdate(bundleName: "app", version: info.version)
+  try await updater.install(bundleName: "app", version: info.version)
+}
+```
+
+`getUpdate` checks the remote for a newer version without downloading. `downloadUpdate` downloads and
+persists a version (latest when `version` is `nil`). `install` activates a staged version, verifies
+integrity and signature when configured, then prunes stale versions. Reload to render the new bundle:
+
+```swift
+try await updater.install(bundleName: "app", version: info.version)
+await webView.evaluateJavaScript("location.reload()")
+```
+
+A failed signature surfaces as the FFI error `Error.Signature(message:)`.
+
+For the remote HTTP contract, integrity, and signing details, see
+[Remote bundles](/docs/guide/over-the-air) and [Building a remote](/docs/guide/remote).
+
+## Next steps
+
+<Cards>
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/over-the-air"
+    description="How updating, integrity, and signatures work across platforms."
+  />
+  <Card
+    title="Building a remote"
+    href="/docs/guide/remote"
+    description="The remote HTTP contract, local testing, and choosing a provider."
+  />
+  <Card
+    title="References"
+    href="/docs/references"
+    description="API references for the core and language bindings."
+  />
+</Cards>

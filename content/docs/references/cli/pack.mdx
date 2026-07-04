@@ -1,0 +1,88 @@
+---
+title: wvb pack
+description: Pack a directory of built web assets into a single compressed, integrity-checked .wvb archive.
+---
+
+`wvb pack` packs a directory of built web assets (HTML, JS, CSS, media) into a single `.wvb` archive. The archive is compressed and checksummed. It is the unit your app ships and serves to its webview, or uploads to a remote for over-the-air (OTA) updates.
+
+Most projects run `wvb pack` with no arguments. The source directory, output path, and other defaults come from the [`wvb.config`](/docs/references/configuration) file discovered in the working directory.
+
+## Usage
+
+```sh
+wvb pack [SRC_DIR]
+```
+
+Pack the default source directory, then pack an explicit directory to a chosen output path:
+
+```sh
+wvb pack                                          # uses config defaults
+wvb pack ./dist
+wvb pack ./dist --outfile ./build/app.wvb
+```
+
+Exclude files with repeatable `--ignore` globs:
+
+```sh
+wvb pack ./dist --ignore '*.map' --ignore 'node_modules/**'
+```
+
+Attach response headers to matching files with `--header`, which takes three values per use:
+
+```sh
+wvb pack ./dist --header '*.html' 'cache-control' 'max-age=3600'
+```
+
+Do a dry run that reports what would be packed without writing the archive:
+
+```sh
+wvb pack ./dist --no-write
+```
+
+## Options
+
+| Option        | Aliases            | Default                   | Description                                                                 |
+| ------------- | ------------------ | ------------------------- | --------------------------------------------------------------------------- |
+| `SRC_DIR`     | —                  | `pack.srcDir` ?? `./dist` | Source directory to pack.                                                   |
+| `--outfile`   | `--out-file`, `-O` | `.wvb/<package name>`     | Output path. `.wvb` is appended if missing.                                 |
+| `--ignore`    | —                  | —                         | Glob of files to exclude. Repeatable.                                       |
+| `--header`    | `-H`               | —                         | Set headers on matching files: `--header <glob> <key> <value>`. Repeatable. |
+| `--no-write`  | —                  | writes by default         | Run the pack without writing the archive (dry run).                         |
+| `--overwrite` | —                  | `true`                    | Overwrite an existing output file.                                          |
+
+These flags also accept the common per-command `--config` (`-C`) and `--cwd` options. See the [CLI overview](/docs/references/cli) for how config discovery and global flags work.
+
+<Callout type="info">
+`pack` has no `--outdir` flag. The output directory is determined by `--outfile`; the default resolves to `.wvb/<package name>`, where the name comes from the nearest `package.json` with its scope stripped.
+</Callout>
+
+Boolean flags accept `--flag`, `--flag=true|false`, and a `--no-flag` negation. For example, `--no-write` turns off the default `--write` behavior, and `--no-overwrite` keeps an existing output file in place.
+
+## Configuration
+
+Set `pack` defaults in your [`wvb.config`](/docs/references/configuration) file so the command runs cleanly with no arguments. The config field for the output path is `outFile` (a single path; `.wvb` is appended automatically), and `overwrite` defaults to `true`. A flag passed on the command line always wins over the config value.
+
+## See also
+
+<Cards>
+  <Card
+    title="CLI overview"
+    href="/docs/references/cli"
+    description="Install the CLI, global flags, and config discovery."
+  />
+  <Card
+    title="wvb upload"
+    href="/docs/references/cli/remote-upload"
+    description="Pack, hash, sign, and upload a bundle to a remote."
+  />
+  <Card
+    title="wvb extract"
+    href="/docs/references/cli/unpack"
+    description="Unpack a .wvb archive's files back onto disk."
+  />
+  <Card
+    title="Configuration"
+    href="/docs/references/configuration"
+    description="The wvb.config file that supplies pack defaults."
+  />
+</Cards>

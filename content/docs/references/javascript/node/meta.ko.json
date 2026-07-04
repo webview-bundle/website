@@ -1,0 +1,4 @@
+{
+  "title": "@wvb/node",
+  "pages": ["index", "bundle", "source", "protocol", "remote", "updater", "types"]
+}

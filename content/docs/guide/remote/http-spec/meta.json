@@ -1,0 +1,4 @@
+{
+  "title": "HTTP Spec",
+  "pages": ["index", "endpoints", "errors"]
+}

@@ -1,0 +1,97 @@
+---
+title: List bundles
+description: GET /bundles returns the bundles a remote currently has deployed, optionally scoped to a channel.
+---
+
+Return the bundles a remote currently has deployed. The client and updater call this first to discover which bundles exist and what version each is deployed at, before reading metadata or downloading bytes.
+
+```http
+GET /bundles
+```
+
+## Parameters
+
+| Name      | In    | Type   | Required | Description                                                                     |
+| --------- | ----- | ------ | -------- | ------------------------------------------------------------------------------- |
+| `channel` | query | string | No       | Select a channel's deployments. When omitted, the default deployment is listed. |
+
+## Responses
+
+| Status | Description                                     |
+| ------ | ----------------------------------------------- |
+| `200`  | A JSON array of the currently deployed bundles. |
+
+For 4xx responses, see [Errors](/docs/guide/spec/errors).
+
+### Response headers
+
+| Header         | Required | Description                               |
+| -------------- | -------- | ----------------------------------------- |
+| `Content-Type` | Yes      | `application/json` for the list response. |
+
+### Response body
+
+The body is a JSON array. Each item describes one deployed bundle by `name` and `version`. Bundles that are not deployed are excluded.
+
+```json
+[
+  { "name": string, "version": string }
+]
+```
+
+| Field     | Type   | Description                     |
+| --------- | ------ | ------------------------------- |
+| `name`    | string | The bundle name.                |
+| `version` | string | The currently deployed version. |
+
+## Example
+
+```sh
+curl -s http://localhost:4313/bundles
+```
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+  { "name": "app", "version": "1.2.0" },
+  { "name": "admin", "version": "0.4.1" }
+]
+```
+
+Scope the list to a channel with `?channel=`:
+
+```sh
+curl -s 'http://localhost:4313/bundles?channel=beta'
+```
+
+<Callout type="info">
+  This operation is the entry point of the remote HTTP contract. To read a bundle's current metadata
+  or download its bytes, see the [Remote HTTP Spec](/docs/guide/spec) overview.
+</Callout>
+
+## Where to go next
+
+<Cards>
+  <Card
+    title="HEAD /bundles/{name}"
+    href="/docs/guide/spec/head-current"
+    description="Read the current version's metadata headers without a body."
+  />
+  <Card
+    title="GET /bundles/{name}"
+    href="/docs/guide/spec/get-current"
+    description="Download the current version of a bundle."
+  />
+  <Card
+    title="Errors"
+    href="/docs/guide/spec/errors"
+    description="Status codes and the JSON error body shape."
+  />
+  <Card
+    title="Remote reference"
+    href="/docs/references/javascript/node/remote"
+    description="The Remote client that calls these endpoints."
+  />
+</Cards>

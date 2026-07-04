@@ -1,0 +1,68 @@
+---
+title: Source
+description: The bridge source.* command group for reading and managing builtin and remote bundles on the native host.
+---
+
+`source` is the bridge command group that maps to the native bundle source — the host's store of builtin and remote bundles. Each method is a typed `invoke()` call, so it is type-checked web-side and routes to the matching native handler. Use it to list bundles, load versions and metadata, resolve on-disk paths, and manage downloaded remote bundles.
+
+For the native side these commands call into, see the [Node API source reference](/docs/references/javascript/node/source). For the rest of the bridge surface — `invoke()`, `platform`, the `remote` and `updater` groups, errors, and testing — see the [Bridge overview](/docs/references/javascript/bridge).
+
+```ts
+import { source } from '@wvb/bridge';
+
+const bundles = await source.listBundles();
+const path = await source.resolveFilepath('app');
+```
+
+## Methods
+
+| Method                                          | Purpose                                                |
+| ----------------------------------------------- | ------------------------------------------------------ |
+| `listBundles()`                                 | List available bundles.                                |
+| `loadVersion(bundleName)`                       | Load the active version for a bundle.                  |
+| `updateVersion(bundleName, version)`            | Set the active remote version for a bundle.            |
+| `resolveFilepath(bundleName)`                   | Resolve the on-disk path the source serves.            |
+| `getBuiltinBundleFilepath(bundleName, version)` | Path of a builtin bundle file.                         |
+| `getRemoteBundleFilepath(bundleName, version)`  | Path of a remote bundle file.                          |
+| `loadBuiltinMetadata(bundleName, version)`      | Load metadata for a builtin bundle.                    |
+| `loadRemoteMetadata(bundleName, version)`       | Load metadata for a remote bundle.                     |
+| `unloadDescriptor(bundleName)`                  | Drop a cached bundle descriptor.                       |
+| `removeRemoteBundle(bundleName, version)`       | Remove a downloaded remote bundle.                     |
+| `remoteRetainedVersions(bundleName)`            | List retained remote versions (current plus previous). |
+| `pruneRemoteBundles(bundleName)`                | Prune remote bundles that are no longer retained.      |
+
+<Callout type="info">
+The bridge `ListBundleItem` is nested as `{ type, item }`, which differs from the flat `ListBundleItem` in `@wvb/node`. Use the bridge types when working web-side.
+</Callout>
+
+## Managing remote bundles
+
+After an over-the-air (OTA) update lands, the host retains the current remote version plus previous ones. Read what is retained, then prune what is no longer needed:
+
+```ts
+import { source } from '@wvb/bridge';
+
+async function tidyRemoteBundles(bundleName: string) {
+  const retained = await source.remoteRetainedVersions(bundleName);
+  console.log('retained versions:', retained);
+
+  await source.pruneRemoteBundles(bundleName);
+}
+```
+
+To drop a specific downloaded version, call `removeRemoteBundle(bundleName, version)`.
+
+## See also
+
+<Cards>
+  <Card
+    title="Bridge overview"
+    href="/docs/references/javascript/bridge"
+    description="invoke(), platform detection, the remote and updater groups, errors, and testing."
+  />
+  <Card
+    title="Node API source"
+    href="/docs/references/javascript/node/source"
+    description="The native bundle source the bridge source group calls into."
+  />
+</Cards>

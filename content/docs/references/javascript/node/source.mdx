@@ -1,0 +1,92 @@
+---
+title: Source
+description: BundleSource resolves a bundle across the builtin and remote directories, with the remote copy taking priority.
+---
+
+`BundleSource` is the class in `@wvb/node` that decides which `.wvb` file to serve for a given bundle name. It manages bundles across two directories: a builtin directory for the bundles shipped with the app, and a remote directory for bundles downloaded over the air (OTA). When both directories hold a bundle for the same name, the remote copy wins, so an OTA update transparently supersedes the version that shipped in the app.
+
+A `BundleSource` is the foundation that [`BundleProtocol`](/docs/references/javascript/node/protocol) serves from and that [`Updater`](/docs/references/javascript/node/updater) stages downloads into. See [Bundle sources](/docs/guide/bundle-sources) for how the manifest, channels, and directory layout fit together, and the [Node API overview](/docs/references/javascript/node) for the full package surface.
+
+## Constructor
+
+```ts
+new BundleSource(config: BundleSourceConfig)
+```
+
+`config` is a [`BundleSourceConfig`](/docs/references/javascript/node/types). It points the source at the two directories and, optionally, at explicit manifest file paths:
+
+```ts
+import { BundleSource } from '@wvb/node';
+
+const source = new BundleSource({
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+```
+
+<Callout type="info">
+  When a bundle name resolves in both directories, `BundleSource` returns the remote version. This
+  is what lets a downloaded update take over from the builtin bundle without a native app-store
+  release.
+</Callout>
+
+## Methods
+
+| Method                     | Signature                                                        |
+| -------------------------- | ---------------------------------------------------------------- |
+| `listBundles`              | `(): Promise<ListBundleItem[]>`                                  |
+| `loadVersion`              | `(bundleName): Promise<BundleSourceVersion \| null>`             |
+| `updateRemoteVersion`      | `(bundleName, version): Promise<void>`                           |
+| `resolveFilepath`          | `(bundleName): Promise<string>`                                  |
+| `getBuiltinBundleFilepath` | `(bundleName, version): string`                                  |
+| `getRemoteBundleFilepath`  | `(bundleName, version): string`                                  |
+| `fetchBundle`              | `(bundleName): Promise<Bundle>`                                  |
+| `fetchBuiltinBundle`       | `(name, version): Promise<Bundle>`                               |
+| `fetchRemoteBundle`        | `(name, version): Promise<Bundle>`                               |
+| `fetchDescriptor`          | `(bundleName): Promise<BundleDescriptor>`                        |
+| `loadBuiltinMetadata`      | `(name, version): Promise<BundleManifestMetadata \| null>`       |
+| `loadRemoteMetadata`       | `(name, version): Promise<BundleManifestMetadata \| null>`       |
+| `writeRemoteBundle`        | `(name, version, bundle, metadata): Promise<void>`               |
+| `loadDescriptor`           | `(bundleName): Promise<LoadedDescriptor>` (single-flight cached) |
+| `unloadDescriptor`         | `(bundleName): boolean`                                          |
+| `removeRemoteBundle`       | `(name, version): Promise<boolean>`                              |
+| `remoteRetainedVersions`   | `(name): Promise<string[]>` (current + previous)                 |
+| `pruneRemoteBundles`       | `(name): Promise<string[]>`                                      |
+
+`listBundles` reports every bundle across both directories as a [`ListBundleItem`](/docs/references/javascript/node/types), each carrying its `type` (`builtin` or `remote`), name, version, whether it is current, and its manifest metadata. `loadVersion` resolves the effective version for a name and tells you which directory it came from. `resolveFilepath` returns the path that wins under the remote-priority rule, while `getBuiltinBundleFilepath` and `getRemoteBundleFilepath` compute a directory-specific path for an exact version.
+
+The `fetch*` methods read a parsed [`Bundle`](/docs/references/javascript/node/bundle): `fetchBundle` honors the priority rule, while `fetchBuiltinBundle` and `fetchRemoteBundle` target one directory explicitly. `fetchDescriptor` returns a [`BundleDescriptor`](/docs/references/javascript/node/bundle) without loading every file into memory.
+
+`loadDescriptor` caches a `LoadedDescriptor` with single-flight semantics, so concurrent callers share one load; `unloadDescriptor` drops that cached handle. The remote-directory write path is `writeRemoteBundle`, which persists a downloaded bundle and its [`BundleManifestMetadata`](/docs/references/javascript/node/types). `remoteRetainedVersions` lists the versions the source keeps for a name (current plus previous), `removeRemoteBundle` deletes a specific version, and `pruneRemoteBundles` removes versions that are no longer retained.
+
+<Callout type="info">
+  Higher-level OTA flows usually call these methods through
+  [`Updater`](/docs/references/javascript/node/updater), which stages and activates remote versions
+  for you. Reach for `BundleSource` directly when you need fine-grained control over resolution,
+  metadata, or cleanup.
+</Callout>
+
+## Related
+
+<Cards>
+  <Card
+    title="Bundle sources"
+    href="/docs/guide/bundle-sources"
+    description="Manifest, channels, and how builtin and remote directories are laid out."
+  />
+  <Card
+    title="Node API overview"
+    href="/docs/references/javascript/node"
+    description="The full @wvb/node surface: reader, builder, protocol, remote, and updater."
+  />
+  <Card
+    title="Types"
+    href="/docs/references/javascript/node/types"
+    description="BundleSourceConfig, ListBundleItem, and the other result types used here."
+  />
+  <Card
+    title="Updater"
+    href="/docs/references/javascript/node/updater"
+    description="Stages and activates remote versions on top of a BundleSource."
+  />
+</Cards>

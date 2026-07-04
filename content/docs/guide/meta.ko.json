@@ -24,11 +24,12 @@
     "frontend/development",
     "frontend/packing",
     "frontend/upload",
+    "frontend/deploy",
     "frontend/bridges",
     "---원격---",
-    "remote",
-    "remote-using-cli",
-    "providers",
-    "spec"
+    "remote/index",
+    "remote/using-cli",
+    "remote/providers",
+    "remote/http-spec"
   ]
 }

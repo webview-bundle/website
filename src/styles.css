@@ -128,6 +128,67 @@
   --radius-2xl: 8px;
 }
 
+/* Ambient brand glow used behind the landing feature grid (a subtle "breathing"
+ * light, gated behind `motion-safe`). */
+@keyframes wvb-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+/* Architecture diagram: a pulse travelling left→right along a flow connector. */
+@keyframes wvb-flow-x {
+  0% {
+    left: 0%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* Same, travelling top→bottom for the stacked (mobile) layout. */
+@keyframes wvb-flow-y {
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+/* Soft pulse for the bundle glow. */
+@keyframes wvb-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
 body {
   font-synthesis: style;
   text-rendering: optimizeLegibility;

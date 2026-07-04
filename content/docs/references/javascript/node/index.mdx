@@ -1,0 +1,121 @@
+---
+title: Node API
+description: Reference for @wvb/node — the N-API native addon that reads, serves, and updates Webview Bundles from Node.js.
+---
+
+`@wvb/node` 0.1.0 is the Node.js binding for Webview Bundle. It ships as an N-API native addon (the `wvb-node` Rust crate) with prebuilt platform binaries, so you install and run it without a Rust toolchain. The package exposes the bundle reader and writer, a `BundleSource`, the protocol handlers, a `Remote` client, and an `Updater` — the same building blocks that back `@wvb/electron` and the CLI's remote operations.
+
+The web app running inside the webview never calls `@wvb/node` directly. It uses [`@wvb/bridge`](/docs/references/javascript/bridge), whose `source`, `remote`, and `updater` commands map onto the classes documented here. See [Remote bundles](/docs/guide/over-the-air) for the end-to-end flow and [Deno API](/docs/references/javascript/deno) for the experimental Deno peer.
+
+<Callout type="info">
+The addon resolves a prebuilt binary from one of the `@wvb/node-<platform>` optional dependencies (12 NAPI targets across macOS, Linux, Windows, and Android). Supported Node engines are `>= 12.22.0 < 13`, `>= 14.17.0 < 15`, `>= 15.12.0 < 16`, and `>= 16.0.0`.
+</Callout>
+
+## Install
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/node
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/node
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/node
+```
+
+  </Tab>
+</Tabs>
+
+## Top-level functions
+
+These functions read and write `.wvb` archives.
+
+| Function                | Signature                                                        | Returns                                 |
+| ----------------------- | ---------------------------------------------------------------- | --------------------------------------- |
+| `readBundle`            | `readBundle(filepath: string): Promise<Bundle>`                  | Parsed bundle read from disk.           |
+| `readBundleFromBuffer`  | `readBundleFromBuffer(buffer: Buffer): Bundle`                   | Parsed bundle from an in-memory buffer. |
+| `writeBundle`           | `writeBundle(bundle: Bundle, filepath: string): Promise<bigint>` | Number of bytes written.                |
+| `writeBundleIntoBuffer` | `writeBundleIntoBuffer(bundle: Bundle): Buffer`                  | Serialized `.wvb` bytes.                |
+
+## API reference
+
+The classes, enums, and option types are split across focused pages.
+
+<Cards>
+  <Card
+    title="Bundle"
+    href="/docs/references/javascript/node/bundle"
+    description="Bundle format, reader, builder, and descriptor."
+  />
+  <Card
+    title="BundleSource"
+    href="/docs/references/javascript/node/source"
+    description="Resolve bundles across builtin and remote directories."
+  />
+  <Card
+    title="Protocol"
+    href="/docs/references/javascript/node/protocol"
+    description="BundleProtocol and LocalProtocol request handlers."
+  />
+  <Card
+    title="Remote"
+    href="/docs/references/javascript/node/remote"
+    description="HTTP client for a bundle remote."
+  />
+  <Card
+    title="Updater"
+    href="/docs/references/javascript/node/updater"
+    description="Check, download, and install newer bundles."
+  />
+  <Card
+    title="Types"
+    href="/docs/references/javascript/node/types"
+    description="Enums, options, and result types."
+  />
+</Cards>
+
+## Example
+
+Read a `.wvb` archive from disk and pull a file out of it.
+
+```ts
+import { readBundle } from '@wvb/node';
+
+const bundle = await readBundle('./dist/app.wvb');
+
+const html = bundle.getData('index.html');
+if (html) {
+  console.log(html.toString('utf8'));
+}
+```
+
+## Related
+
+<Cards>
+  <Card
+    title="Remote bundles"
+    href="/docs/guide/over-the-air"
+    description="How updating, integrity, and signature verification fit together."
+  />
+  <Card
+    title="Remote & signature config"
+    href="/docs/references/configuration/remote"
+    description="Configure remotes, integrity policy, and signing in wvb.config."
+  />
+  <Card
+    title="Deno API"
+    href="/docs/references/javascript/deno"
+    description="The experimental Deno peer of @wvb/node."
+  />
+</Cards>

@@ -1,0 +1,111 @@
+---
+title: Updater
+description: '@wvb/deno의 Updater로 Deno 데스크톱 앱에서 원격에 최신 번들이 있는지 확인하고 설치합니다.'
+---
+
+`Updater`는 [원격](/docs/references/javascript/deno/remote)에서 번들의 최신 버전을 확인하고 로컬 스토어에
+설치합니다. [`BundleSource`](/docs/references/javascript/deno/source)를 `Remote`에 연결하고, 무결성 및 서명
+정책을 적용하며, 다운로드한 번들을 기록합니다. 그러면 다음 실행 때 업데이트된 앱 코드가 제공됩니다.
+이 방식으로 Deno 데스크톱 앱은 새로운 릴리스 없이 무선(OTA) 업데이트를 전달합니다. 전체 흐름은
+[원격 번들](/docs/guide/over-the-air)을 참고하세요. 바인딩의 나머지 내용은
+[Deno API 개요](/docs/references/javascript/deno)를 참고하세요.
+
+## Constructor
+
+`Updater`는 로드된 `lib`, `BundleSource`, `Remote`, 그리고 선택적인 `UpdaterOptions`로 생성합니다.
+소스와 원격은 같은 `lib`을 사용해야 합니다.
+
+```ts title="updater.ts"
+import { loadLibViaPlug, BundleSource, Remote, Updater } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+
+const source = new BundleSource(lib, {
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+using remote = new Remote(lib, 'https://bundles.example.com');
+
+using updater = new Updater(lib, source, remote, {
+  integrityPolicy: 'strict',
+  signatureVerifier: {
+    algorithm: 'ed25519',
+    key: { format: 'raw', data: publicKeyBytes },
+  },
+});
+```
+
+| Parameter | Type             | Description                                                  |
+| --------- | ---------------- | ------------------------------------------------------------ |
+| `lib`     | loaded library   | `loadLib`/`loadLibViaPlug`로 얻은 네이티브 라이브러리입니다. |
+| `source`  | `BundleSource`   | 업데이트가 설치되는 로컬 스토어입니다.                       |
+| `remote`  | `Remote`         | 업데이트를 가져오는 원격 서버입니다.                         |
+| `options` | `UpdaterOptions` | 선택 사항. 무결성 정책과 서명 검증기입니다.                  |
+
+## Options
+
+`UpdaterOptions`는 가져온 번들을 설치하기 전에 어떻게 검증할지 설정합니다.
+
+| Option              | Type                       | Description                                                                     |
+| ------------------- | -------------------------- | ------------------------------------------------------------------------------- |
+| `integrityPolicy`   | `IntegrityPolicy`          | 무결성을 적용하는 방식입니다: `'strict'`, `'optional'`, `'none'`.               |
+| `signatureVerifier` | `SignatureVerifierOptions` | 선언적 서명 검증입니다. `algorithm`과 `key`(`format`과 키 `data`)로 지정합니다. |
+
+`IntegrityPolicy`는 `'strict' | 'optional' | 'none'` 유니온입니다. `SignatureVerifierOptions`는
+`SignatureAlgorithm`(예: `'ed25519'`)과 검증에 사용할 공개 키를 지정합니다.
+
+<Callout type="info">
+  Deno 바인딩의 검증은 선언적 방식만 지원합니다. [`@wvb/node`](/docs/references/javascript/node)의
+  사용자 정의 함수 콜백인 `integrityChecker`와 `signatureVerifier`는 FFI 경계를 넘지 못합니다.
+</Callout>
+
+## Methods
+
+업데이트는 세 단계로 실행합니다. 원격에 무엇이 있는지 확인하고, 다운로드한 다음, 설치합니다.
+
+```ts title="updater.ts"
+const update = await updater.getUpdate('app');
+if (update.isAvailable) {
+  await updater.download('app');
+  await updater.install('app', update.version);
+}
+```
+
+| Method                         | Returns            | Description                                                            |
+| ------------------------------ | ------------------ | ---------------------------------------------------------------------- |
+| `getUpdate(bundleName)`        | `BundleUpdateInfo` | 원격에서 최신 버전을 확인합니다. `isAvailable`과 `version`을 읽으세요. |
+| `download(bundleName)`         | `Promise<void>`    | 원격에서 현재 번들을 로컬 스토어로 가져옵니다.                         |
+| `install(bundleName, version)` | `Promise<void>`    | 다운로드한 버전을 설치하여 다음 실행 때 제공되게 합니다.               |
+
+`BundleUpdateInfo`는 업데이트가 있는지(`isAvailable`)와 대상 버전(`version`)을 알려줍니다.
+
+## Disposing instances
+
+`Updater`, `Remote`, 그리고 다른 FFI 클래스는 네이티브 핸들을 소유합니다. 이들은 `Disposable`입니다.
+사용을 마치면 `free()`를 호출하거나, `using`으로 바인딩하여 스코프를 벗어날 때 `[Symbol.dispose]`를
+통해 자동으로 해제되게 하세요.
+
+```ts
+using updater = new Updater(lib, source, remote);
+// 스코프가 끝나면 자동으로 해제됨
+
+const remote = new Remote(lib, 'https://bundles.example.com');
+try {
+  // ...
+} finally {
+  remote.free();
+}
+```
+
+<Cards>
+  <Card
+    title="원격 번들"
+    href="/docs/guide/over-the-air"
+    description="원격, 업데이트, 무결성, 서명이 어떻게 맞물리는지 설명합니다."
+  />
+  <Card
+    title="Deno API 개요"
+    href="/docs/references/javascript/deno"
+    description="네이티브 라이브러리를 로드하고 @wvb/deno의 나머지 표면을 살펴봅니다."
+  />
+</Cards>

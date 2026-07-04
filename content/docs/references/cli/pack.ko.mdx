@@ -1,0 +1,88 @@
+---
+title: wvb pack
+description: 빌드된 웹 자산 디렉터리를 압축되고 무결성이 검증된 단일 .wvb 아카이브로 묶습니다.
+---
+
+`wvb pack`은 빌드된 웹 자산(HTML, JS, CSS, 미디어)이 담긴 디렉터리를 단일 `.wvb` 아카이브로 묶습니다. 이 아카이브는 압축되고 체크섬이 계산됩니다. 앱은 이 아카이브를 배포하여 웹뷰에 제공하거나, 무선(OTA) 업데이트를 위해 원격 서버에 업로드합니다.
+
+대부분의 프로젝트는 `wvb pack`을 인자 없이 실행합니다. 소스 디렉터리, 출력 경로를 비롯한 기본값은 작업 디렉터리에서 발견된 [`wvb.config`](/docs/references/configuration) 파일에서 가져옵니다.
+
+## Usage
+
+```sh
+wvb pack [SRC_DIR]
+```
+
+기본 소스 디렉터리를 묶은 다음, 명시적인 디렉터리를 지정한 출력 경로로 묶습니다.
+
+```sh
+wvb pack                                          # 설정 기본값을 사용합니다
+wvb pack ./dist
+wvb pack ./dist --outfile ./build/app.wvb
+```
+
+반복 가능한 `--ignore` glob으로 파일을 제외합니다.
+
+```sh
+wvb pack ./dist --ignore '*.map' --ignore 'node_modules/**'
+```
+
+`--header`로 일치하는 파일에 응답 헤더를 붙입니다. 이 플래그는 사용할 때마다 값 세 개를 받습니다.
+
+```sh
+wvb pack ./dist --header '*.html' 'cache-control' 'max-age=3600'
+```
+
+아카이브를 쓰지 않고 무엇이 묶일지만 보고하는 드라이 런을 실행합니다.
+
+```sh
+wvb pack ./dist --no-write
+```
+
+## Options
+
+| Option        | Aliases            | Default                   | Description                                                                          |
+| ------------- | ------------------ | ------------------------- | ------------------------------------------------------------------------------------ |
+| `SRC_DIR`     | —                  | `pack.srcDir` ?? `./dist` | 묶을 소스 디렉터리입니다.                                                            |
+| `--outfile`   | `--out-file`, `-O` | `.wvb/<package name>`     | 출력 경로입니다. `.wvb`가 없으면 자동으로 붙습니다.                                  |
+| `--ignore`    | —                  | —                         | 제외할 파일의 glob입니다. 반복 가능합니다.                                           |
+| `--header`    | `-H`               | —                         | 일치하는 파일에 헤더를 설정합니다: `--header <glob> <key> <value>`. 반복 가능합니다. |
+| `--no-write`  | —                  | 기본적으로 씀             | 아카이브를 쓰지 않고 패킹을 실행합니다(드라이 런).                                   |
+| `--overwrite` | —                  | `true`                    | 기존 출력 파일을 덮어씁니다.                                                         |
+
+이 플래그들은 명령어마다 공통으로 쓰이는 `--config`(`-C`)와 `--cwd` 옵션도 받습니다. 설정 탐색과 전역 플래그의 동작 방식은 [CLI 개요](/docs/references/cli)를 참고하세요.
+
+<Callout type="info">
+`pack`에는 `--outdir` 플래그가 없습니다. 출력 디렉터리는 `--outfile`로 결정됩니다. 기본값은 `.wvb/<package name>`으로 해석되며, 이때 이름은 가장 가까운 `package.json`에서 스코프를 제거한 값입니다.
+</Callout>
+
+불리언 플래그는 `--flag`, `--flag=true|false`, 그리고 `--no-flag` 형태의 부정을 받습니다. 예를 들어 `--no-write`는 기본 동작인 `--write`를 끄고, `--no-overwrite`는 기존 출력 파일을 그대로 둡니다.
+
+## Configuration
+
+[`wvb.config`](/docs/references/configuration) 파일에 `pack` 기본값을 설정하면 명령어를 인자 없이 깔끔하게 실행할 수 있습니다. 출력 경로에 해당하는 설정 필드는 `outFile`이며(단일 경로이고, `.wvb`가 자동으로 붙습니다), `overwrite`의 기본값은 `true`입니다. 명령줄에서 전달한 플래그는 항상 설정값보다 우선합니다.
+
+## See also
+
+<Cards>
+  <Card
+    title="CLI 개요"
+    href="/docs/references/cli"
+    description="CLI 설치, 전역 플래그, 설정 탐색을 다룹니다."
+  />
+  <Card
+    title="wvb upload"
+    href="/docs/references/cli/remote-upload"
+    description="번들을 패킹하고, 해시를 계산하고, 서명하여 원격 서버에 업로드합니다."
+  />
+  <Card
+    title="wvb extract"
+    href="/docs/references/cli/unpack"
+    description="`.wvb` 아카이브의 파일을 다시 디스크로 풀어냅니다."
+  />
+  <Card
+    title="Configuration"
+    href="/docs/references/configuration"
+    description="pack 기본값을 제공하는 wvb.config 파일입니다."
+  />
+</Cards>

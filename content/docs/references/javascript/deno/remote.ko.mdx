@@ -1,0 +1,93 @@
+---
+title: Remote
+description: Deno의 Remote 클래스는 Deno FFI를 통해 원격 번들 서버와 통신하여 번들을 조회하고 다운로드합니다.
+---
+
+`Remote`는 Deno 바인딩에서 원격 번들 서버에 접속하는 클라이언트입니다. 서버가 알리는 번들 목록을
+조회하고 각 번들의 원시 `.wvb` 바이트를 다운로드합니다. 이를 통해 [`Updater`](/docs/references/javascript/deno/updater)가
+새 버전을 무선(OTA)으로 설치합니다. `Remote`는 [`@wvb/node`](/docs/references/javascript/node/remote)의 `Remote`와
+FFI 상의 대응 구현이며, [`@wvb/deno`](/docs/references/javascript/deno)의 나머지 부분과 마찬가지로 네이티브 FFI
+경계를 넘나듭니다.
+
+이 관계의 서버 측 — 원격 서버가 구현하는 HTTP 규약과 실행 방법 — 은 [원격 서버 만들기](/docs/guide/remote)를
+참고하세요.
+
+## Remote 생성하기
+
+먼저 네이티브 라이브러리를 로드한 뒤, 로드한 `lib`과 서버 엔드포인트, 그리고 선택 항목인 `RemoteOptions`로
+`Remote`를 생성합니다.
+
+```ts title="remote.ts"
+import { loadLibViaPlug, Remote } from 'jsr:@wvb/deno';
+
+const lib = await loadLibViaPlug();
+using remote = new Remote(lib, 'https://bundles.example.com');
+
+const list = await remote.listBundles();
+const { info, data } = await remote.download('app');
+// info: RemoteBundleInfo, data: Uint8Array (원시 .wvb 바이트)
+```
+
+엔드포인트는 원격 번들 서버의 기본 URL입니다. `RemoteOptions`는 `HttpOptions` 값을 포함한 선택적 요청
+설정을 담습니다. [아래 타입 레퍼런스](#options-and-types)를 참고하세요.
+
+## 메서드
+
+| Method                                 | Description                                                                       |
+| -------------------------------------- | --------------------------------------------------------------------------------- |
+| `listBundles()`                        | 원격 서버가 알리는 번들 목록(이름과 버전 쌍)을 조회합니다.                        |
+| `download(bundleName)`                 | `bundleName`의 현재 번들을 다운로드합니다. `{ info, data }`로 resolve됩니다.      |
+| `downloadVersion(bundleName, version)` | `bundleName`의 특정 `version`을 다운로드합니다. `{ info, data }`로 resolve됩니다. |
+| `free()`                               | 네이티브 핸들을 해제합니다. `[Symbol.dispose]`를 통해서도 호출됩니다.             |
+
+`download(bundleName)`과 `downloadVersion(bundleName, version)`은 모두 `{ info, data }`로 resolve됩니다.
+여기서 `info`는 `RemoteBundleInfo`이고, `data`는 원시 번들 바이트를 담은 `Uint8Array`입니다.
+
+```ts title="download.ts"
+const { info, data } = await remote.downloadVersion('app', '1.4.0');
+await Deno.writeFile('./bundles/remote/app.wvb', data);
+```
+
+## 옵션과 타입
+
+`Remote`는 다음 관련 타입들과 함께 동작합니다. 이 타입들의 형태는 [`@wvb/node` Remote
+레퍼런스](/docs/references/javascript/node/remote)와 동일하니, 필드 전체를 자세히 확인하려면 해당 문서를 참고하세요.
+
+| Type               | Role                                                 |
+| ------------------ | ---------------------------------------------------- |
+| `RemoteOptions`    | 생성자에 전달하는 선택적 설정입니다.                 |
+| `HttpOptions`      | `RemoteOptions`가 담는 HTTP 요청 설정입니다.         |
+| `RemoteBundleInfo` | 다운로드한 번들 바이트와 함께 반환되는 `info`입니다. |
+
+<Callout type="warn">
+  `HttpOptions.defaultHeaders`는 Deno `Remote`에서 지원되지 않습니다. FFI 경계를 넘나들기 때문에 이
+  `@wvb/node` 기능은 여기서 사용할 수 없습니다.
+</Callout>
+
+## Remote 정리하기
+
+`Remote`는 네이티브 핸들을 소유하며 `Disposable`입니다. `using`으로 바인딩하면 스코프를 벗어날 때 자동으로
+해제되고, 사용을 마쳤을 때 `free()`를 직접 호출할 수도 있습니다.
+
+```ts title="dispose.ts"
+const remote = new Remote(lib, 'https://bundles.example.com');
+try {
+  const list = await remote.listBundles();
+  // ...
+} finally {
+  remote.free();
+}
+```
+
+<Cards>
+  <Card
+    title="Deno API"
+    href="/docs/references/javascript/deno"
+    description="네이티브 라이브러리를 로드하고 @wvb/deno의 나머지 API를 살펴보세요."
+  />
+  <Card
+    title="원격 서버 만들기"
+    href="/docs/guide/remote"
+    description="원격 서버가 구현하는 HTTP 규약과 실행 방법입니다."
+  />
+</Cards>

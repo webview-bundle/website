@@ -6,10 +6,10 @@ description: API references for the Rust core, the Node and Deno bindings, and t
 Most app developers never touch these APIs directly. To ship Webview Bundle in an app, reach for the platform integration packages and follow the platform guides — they wrap the core for you. These references are for advanced and embedding use: hosting the core yourself, driving the Node or Deno bindings, or calling the native host from inside the webview.
 
 <Callout type="info">
-  Building an app? Start with the [platform integration guide](/docs/guide/platform-integration) and
-  pick your platform: [Electron](/docs/guide/platforms/electron),
-  [Tauri](/docs/guide/platforms/tauri), [Android](/docs/guide/platforms/android),
-  [iOS](/docs/guide/platforms/ios), or [Deno Desktop](/docs/guide/platforms/deno).
+  Building an app? Start with the [platform integration guide](/docs/guide/glue-to-native) and pick
+  your platform: [Electron](/docs/guide/native/electron), [Tauri](/docs/guide/native/tauri),
+  [Android](/docs/guide/native/android), [iOS](/docs/guide/native/ios), or [Deno
+  Desktop](/docs/guide/native/deno).
 </Callout>
 
 ## API references
@@ -22,24 +22,24 @@ Most app developers never touch these APIs directly. To ship Webview Bundle in a
   />
   <Card
     title="Node API"
-    href="/docs/references/node"
+    href="/docs/references/javascript/node"
     description="@wvb/node — N-API bindings for reading and writing bundles, serving them over a protocol, and running the updater from Node.js."
   />
   <Card
     title="Deno API"
-    href="/docs/references/deno"
+    href="/docs/references/javascript/deno"
     description="@wvb/deno — the Deno peer of @wvb/node. Experimental."
   />
   <Card
     title="Bridge"
-    href="/docs/references/bridge"
+    href="/docs/references/javascript/bridge"
     description="@wvb/bridge — call the native host from inside the webview with one invoke() API across every platform."
   />
 </Cards>
 
 ## Web-side bridge
 
-The bridge (`@wvb/bridge`) runs inside the webview and lets your web app call the native host. It exposes a single `invoke()` function plus typed `source`, `remote`, and `updater` helpers, so the same code works across Electron, Tauri, Android, and iOS — the per-platform transport is abstracted away. See the [Bridge reference](/docs/references/bridge) for the full API.
+The bridge (`@wvb/bridge`) runs inside the webview and lets your web app call the native host. It exposes a single `invoke()` function plus typed `source`, `remote`, and `updater` helpers, so the same code works across Electron, Tauri, Android, and iOS — the per-platform transport is abstracted away. See the [Bridge reference](/docs/references/javascript/bridge) for the full API.
 
 ```ts
 import { invoke, updater } from '@wvb/bridge';
@@ -55,11 +55,11 @@ if (update.isAvailable) {
 const bundles = await invoke('sourceListBundles');
 ```
 
-The native side hosts `@wvb/node` and answers these calls. For how the bridge fits into each platform, see the [platform integration guide](/docs/guide/platform-integration).
+The native side hosts `@wvb/node` and answers these calls. For how the bridge fits into each platform, see the [platform integration guide](/docs/guide/glue-to-native).
 
 ## Other platforms
 
 The Tauri and mobile integrations expose their own APIs, documented alongside their guides:
 
-- Tauri ships as the Rust crate `wvb-tauri` — see the [Tauri guide](/docs/guide/platforms/tauri).
-- Android (Kotlin) and iOS (Swift) bindings are covered in the [Android guide](/docs/guide/platforms/android) and the [iOS guide](/docs/guide/platforms/ios).
+- Tauri ships as the Rust crate `wvb-tauri` — see the [Tauri guide](/docs/guide/native/tauri).
+- Android (Kotlin) and iOS (Swift) bindings are covered in the [Android guide](/docs/guide/native/android) and the [iOS guide](/docs/guide/native/ios).

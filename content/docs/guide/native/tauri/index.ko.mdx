@@ -1,0 +1,363 @@
+---
+title: 설정
+description: Tauri v2 앱에 wvb-tauri 플러그인을 추가하면 웹뷰를 .wvb 번들에서 제공하며, 개발 서버 프록시와 무선(OTA) 업데이트를 사용할 수 있습니다.
+---
+
+`wvb-tauri`는 Tauri v2용 Webview Bundle 통합입니다. 플러그인으로 등록하면 앱은 커스텀 URL 스킴을 통해 로컬 `.wvb` 번들에서 웹뷰를 제공합니다. 개발 중에는 개발 서버를 프록시하고, 더 새로운 번들을 무선(OTA)으로 다운로드합니다. 동일한 플러그인이 데스크톱과 Tauri 모바일(Android 및 iOS)에서 모두 동작합니다.
+
+<Callout type="info">
+  Tauri는 Rust 크레이트 `wvb-tauri`(crates.io)를 사용합니다. `@wvb/tauri` npm 패키지는 없습니다.
+  프런트엔드는 Tauri의 표준 커맨드 브리지를 통해 플러그인과 통신하며, `@tauri-apps/api` 외에 추가
+  패키지는 필요하지 않습니다.
+</Callout>
+
+## 설치
+
+```toml title="src-tauri/Cargo.toml"
+[dependencies]
+wvb-tauri = "0.1"
+tauri = { version = "2", features = [] }
+```
+
+프런트엔드에서 업데이트를 제어하려면 웹 앱에 Tauri의 JS API를 설치하세요.
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install @tauri-apps/api
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @tauri-apps/api
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @tauri-apps/api
+```
+
+  </Tab>
+</Tabs>
+
+## 플러그인 등록
+
+`Config::new()`로 `Config`를 만든 다음, 번들 **소스**, 하나 이상의 **프로토콜**, 그리고 선택적으로 업데이트용 **원격**을 체이닝하세요.
+
+```rust title="src-tauri/src/lib.rs"
+use tauri::Manager;
+use wvb_tauri::{Config, Protocol, Source};
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+  tauri::Builder::default()
+    .plugin(wvb_tauri::init(
+      Config::new()
+        .source(Source::new().builtin_dir_fn(|app| {
+          Ok(app.path().resource_dir()?.join("bundles"))
+        }))
+        // `bundle://<name>.wvb/...`를 패킹된 번들에서 바로 제공합니다.
+        .protocol(Protocol::bundle("bundle"))
+        // 개발 중에는 `local://example.com/...`를 개발 서버로 프록시합니다.
+        .protocol(Protocol::local("local").host("example.com", "http://localhost:1420")),
+    ))
+    .run(tauri::generate_context!())
+    .expect("error while running tauri application");
+}
+```
+
+`Protocol::bundle(scheme)`는 패킹된 번들에서 파일을 제공하며, 요청 호스트에서 번들 이름을 유도합니다. 예를 들어 `bundle://app.wvb/index.html`은 번들 `app`의 파일 `/index.html`로 해석됩니다.
+
+`Protocol::local(scheme)`는 호스트를 localhost 개발 서버로 프록시하므로 동일한 스킴이 핫 리로드와 함께 동작합니다. `.hosts(...)`로 여러 호스트를 한 번에 매핑하세요.
+
+```rust
+use std::collections::HashMap;
+
+Protocol::local("local").hosts(HashMap::from([
+  ("example.com".to_string(), "http://localhost:1420".to_string()),
+  ("api.example.com".to_string(), "http://localhost:8080".to_string()),
+]));
+```
+
+`Source`는 번들이 위치한 곳을 해석합니다. 정적 경로 문자열이나 `AppHandle` 클로저를 사용하세요.
+
+```rust
+use wvb_tauri::Source;
+
+// 정적 경로 문자열(Tauri의 path API로 해석):
+Source::new().builtin_dir("$RESOURCE/bundles").remote_dir("$APPLOCALDATA/bundles");
+
+// 또는 AppHandle로 런타임에 경로를 계산:
+Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles")));
+```
+
+값을 설정하지 않으면 builtin 디렉터리는 앱 리소스 디렉터리의 `bundles`로, remote 디렉터리는 앱 로컬 데이터의 `bundles`로 기본 설정됩니다. 각 `.protocol(...)` 호출은 자체 비동기 URI 스킴을 등록합니다. 스킴이 요청을 해석하는 방식은 [프로토콜 처리](/docs/guide/protocol-handling)를 참고하세요.
+
+## 창을 커스텀 스킴으로 지정
+
+메인 창을 번들 스킴으로 바로 부팅하세요.
+
+```json title="src-tauri/tauri.conf.json"
+{
+  "app": {
+    "windows": [
+      {
+        "url": "bundle://app.wvb"
+      }
+    ]
+  }
+}
+```
+
+프런트엔드에서 플러그인 커맨드를 호출한다면 capability 파일에서 권한을 부여하세요. 네임스페이스는 `wvb-tauri`이며, `wvb-tauri:default`는 모든 source, remote, updater 커맨드를 허용합니다.
+
+```json title="src-tauri/capabilities/default.json"
+{
+  "identifier": "default",
+  "windows": ["main"],
+  "permissions": ["core:default", "wvb-tauri:default"]
+}
+```
+
+접근을 제한하려면 `wvb-tauri:default`를 필요한 개별 `wvb-tauri:allow-*` 권한으로 교체하세요.
+
+```json title="src-tauri/capabilities/default.json"
+{
+  "identifier": "default",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "wvb-tauri:allow-updater-get-update",
+    "wvb-tauri:allow-updater-download",
+    "wvb-tauri:allow-updater-install"
+  ]
+}
+```
+
+## 번들 패킹 및 배포
+
+프런트엔드를 빌드하고 `.wvb`로 패킹한 다음, 결과물을 소스 디렉터리에 배치하세요.
+
+```sh
+# 먼저 프런트엔드를 빌드한 뒤(예: `vite build`):
+npx wvb pack ./dist --outfile src-tauri/bundles/app/app_1.0.0.wvb
+```
+
+resources에 디렉터리를 나열하여 빌드와 함께 배포하세요.
+
+```json title="src-tauri/tauri.conf.json"
+{
+  "bundle": {
+    "resources": ["bundles/**/*"]
+  }
+}
+```
+
+전체 패킹 워크플로와 플래그는 [CLI 레퍼런스](/docs/references/cli)와 [번들 소스](/docs/guide/bundle-sources)를 참고하세요.
+
+## 프런트엔드에서 업데이트 제어
+
+`Remote`를 추가하면 OTA 다운로드가 활성화됩니다.
+
+```rust title="src-tauri/src/lib.rs"
+use wvb_tauri::{Config, Protocol, Remote, Source};
+
+Config::new()
+  .source(Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles"))))
+  .protocol(Protocol::bundle("bundle"))
+  .remote(Remote::new("https://updates.example.com"));
+```
+
+`Http`로 HTTP 클라이언트를 조정하고(기본값: 요청 타임아웃 `120_000` ms), `.on_download`로 진행 상황을 관찰하세요.
+
+```rust
+use wvb_tauri::{Http, Remote};
+
+Remote::new("https://updates.example.com")
+  .http(Http::new().timeout(30_000).user_agent("my-app/1.0".into()))
+  .on_download(|downloaded, total, _name| {
+    if let Some(total) = total {
+      println!("{downloaded}/{total} bytes");
+    }
+  });
+```
+
+플러그인 커맨드는 `plugin:wvb-tauri|<command_name>`으로 접근합니다. 인자는 JS 쪽에서 camelCase를 사용합니다(`bundle_name`은 `bundleName`이 됩니다). 핵심 OTA 흐름은 세 개의 updater 커맨드를 사용합니다.
+
+| 커맨드               | 인자                     | 반환값                                     |
+| -------------------- | ------------------------ | ------------------------------------------ |
+| `updater_get_update` | `bundleName`             | `BundleUpdateInfo` (사용 가능 여부 + 버전) |
+| `updater_download`   | `bundleName`, `version?` | `RemoteBundleInfo` (다운로드된 메타데이터) |
+| `updater_install`    | `bundleName`, `version`  | `null` (다운로드된 버전을 활성화)          |
+
+```ts title="src/update.ts"
+import { invoke } from '@tauri-apps/api/core';
+
+interface BundleUpdateInfo {
+  name: string;
+  version: string;
+  localVersion?: string;
+  isAvailable: boolean;
+}
+
+interface RemoteBundleInfo {
+  name: string;
+  version: string;
+  integrity?: string;
+  signature?: string;
+}
+
+export async function checkAndUpdate(bundleName: string) {
+  const update = await invoke<BundleUpdateInfo>('plugin:wvb-tauri|updater_get_update', {
+    bundleName,
+  });
+  if (!update.isAvailable) return;
+
+  const info = await invoke<RemoteBundleInfo>('plugin:wvb-tauri|updater_download', { bundleName });
+  await invoke('plugin:wvb-tauri|updater_install', {
+    bundleName,
+    version: info.version,
+  });
+  // 새 번들을 반영하도록 웹뷰를 다시 로드합니다
+  window.location.reload();
+}
+```
+
+플러그인은 로컬 번들을 관리하는 `source_*` 커맨드와 원격 번들을 나열하고 스테이징하는 `remote_*` 커맨드도 제공합니다.
+
+| 커맨드                  | 인자                     | 반환값                                        |
+| ----------------------- | ------------------------ | --------------------------------------------- |
+| `source_list_bundles`   | —                        | 로컬 번들 목록                                |
+| `source_load_version`   | `bundleName`             | 활성 로컬 버전(있는 경우)                     |
+| `source_update_version` | `bundleName`, `version`  | `null` (스테이징된 버전을 활성화)             |
+| `remote_list_bundles`   | `channel?`               | 원격 번들 목록                                |
+| `remote_get_info`       | `bundleName`, `channel?` | 현재 원격 메타데이터                          |
+| `remote_download`       | `bundleName`, `channel?` | `RemoteBundleInfo` (활성화하지 않고 스테이징) |
+
+`remote_download`는 버전을 활성화하지 않고 스테이징합니다. 이후 `source_update_version`으로 활성화하세요.
+
+```ts
+import { invoke } from '@tauri-apps/api/core';
+
+// 지금 원격 번들을 스테이징하고, 다음 실행 시 활성화합니다.
+const info = await invoke<{ version: string }>('plugin:wvb-tauri|remote_download', {
+  bundleName: 'app',
+});
+await invoke('plugin:wvb-tauri|source_update_version', {
+  bundleName: 'app',
+  version: info.version,
+});
+```
+
+전체 커맨드 집합(`source_*` 12개, `remote_*` 4개, `updater_*` 4개)은 [`packages/tauri/src/commands.rs`](https://github.com/webview-bundle/webview-bundle/blob/main/packages/tauri/src/commands.rs)에 정의되어 있습니다. 무결성 및 서명 검증이 다운로드 흐름에 어떻게 들어맞는지는 [원격 번들](/docs/guide/over-the-air)을, 서버 쪽은 [원격 설정](/docs/references/configuration/remote)을 참고하세요.
+
+<Callout type="info">
+  `remote_*` 커맨드는 설정에 `Remote`가 필요하고, `updater_*` 커맨드는 추가로 `Updater`가
+  필요합니다. 해당 설정 없이 호출하면 `code` 필드가 `remote_not_initialized` 또는
+  `updater_not_initialized`인 오류를 반환합니다.
+</Callout>
+
+프런트엔드에서 `code` 필드로 분기하세요.
+
+```ts
+import { invoke } from '@tauri-apps/api/core';
+
+try {
+  await invoke('plugin:wvb-tauri|updater_get_update', { bundleName: 'app' });
+} catch (err) {
+  const { code } = err as { message: string; code?: string };
+  if (code === 'updater_not_initialized') {
+    // Updater가 설정되지 않음 — OTA 확인을 건너뜁니다
+  }
+}
+```
+
+## 서명 검증 및 무결성 고정
+
+`SignatureVerifier`가 포함된 `Updater`를 추가하면 다운로드된 번들에 게시자 서명을 요구합니다. 검증기는 클로저에서 지연 방식으로 만들어집니다.
+
+```rust title="src-tauri/src/lib.rs"
+use wvb_tauri::{Config, Ed25519Verifier, IntegrityPolicy, Protocol, Remote, Source, Updater};
+
+const PUBLIC_KEY_PEM: &str = include_str!("../keys/public.pem");
+
+Config::new()
+  .source(Source::new())
+  .protocol(Protocol::bundle("bundle"))
+  .remote(Remote::new("https://updates.example.com"))
+  .updater(
+    Updater::new()
+      .channel("stable")
+      .integrity_policy(IntegrityPolicy::Strict)
+      .signature_verifier(|| Ok(Ed25519Verifier::from_pem(PUBLIC_KEY_PEM)?.into())),
+  );
+```
+
+`IntegrityPolicy`는 `Strict`(반드시 존재하고 일치해야 함), `Optional`(기본값 — 존재하면 검증), `None`(건너뜀) 중 하나입니다. 검증기 타입은 `EcdsaSecp256r1Verifier`, `EcdsaSecp384r1Verifier`, `Ed25519Verifier`, `RsaPkcs1V15Verifier`, `RsaPssVerifier`입니다. `Updater`에는 `Remote`가 필요하며, 없으면 업데이터가 만들어지지 않습니다.
+
+## Rust에서 플러그인 접근
+
+`App`, `AppHandle`, `Window` 중 무엇에서든 `WebviewBundleExtra` 트레이트가 `webview_bundle()`(별칭 `wvb()`)을 추가하여 관리 상태를 반환합니다. `.source()`는 항상 사용할 수 있고, `.remote()`와 `.updater()`는 `Option`을 반환합니다.
+
+```rust
+use wvb_tauri::WebviewBundleExtra;
+
+let wvb = app.wvb();
+let _source = wvb.source();
+
+if let Some(_updater) = wvb.updater() {
+  // updater는 `.remote(...)`와 `.updater(...)`가 모두 설정된 경우에만 존재합니다
+}
+```
+
+이는 프런트엔드 커맨드가 다루는 것과 동일한 상태이므로, Rust 쪽과 프런트엔드 주도 업데이트 로직을 섞어서 사용할 수 있습니다.
+
+## Tauri 모바일
+
+**iOS**에서는 builtin 번들이 실제 파일 시스템 리소스 디렉터리에 위치합니다. 데스크톱 설정 외에 추가 설정은 필요하지 않습니다. **Android**에서는 builtin 번들이 APK 안에 `asset://` 리소스로 배포되는데, 파일 시스템이 이를 직접 읽을 수 없습니다. 따라서 builtin 번들을 배포하는 앱은 Tauri 파일 시스템 플러그인도 등록해야 합니다.
+
+```rust title="src-tauri/src/lib.rs"
+tauri::Builder::default()
+  .plugin(tauri_plugin_fs::init())
+  .plugin(wvb_tauri::init(/* ... */));
+```
+
+그러면 플러그인이 첫 요청 시 APK에서 각 번들을 추출하여 앱 로컬 데이터에 캐시합니다. 원격 전용 앱(builtin 번들 없음)은 추가 Android 설정이 필요하지 않습니다. 플랫폼별 세부 사항은 [Android](/docs/guide/native/android) 및 [iOS](/docs/guide/native/ios) 가이드를, 현재 상태는 [플랫폼 지원](/docs/guide/getting-started/platform-support)을 참고하세요.
+
+## 문제 해결
+
+- **스킴에서 요청이 HTTP 500을 반환함** — 프로토콜 핸들러가 실패했습니다. 번들이 소스 디렉터리에 존재하는지, 그리고 호스트가 실제 번들 이름에 매핑되는지 확인하세요(`bundle://app.wvb/...` → 번들 `app`).
+- **`remote_not_initialized` / `updater_not_initialized`** — `Config`에 `.remote(...)`(및 `.updater(...)`) 없이 `remote_*` 또는 `updater_*` 커맨드를 호출했습니다. `error.code`로 분기하세요.
+- **ACL이 커맨드를 거부함** — 호출하는 창을 대상으로 하는 capability에 `wvb-tauri:default`(또는 특정 `wvb-tauri:allow-*` 권한)를 추가하세요.
+- **런타임에 번들을 찾을 수 없음** — `bundles` 디렉터리가 `tauri.conf.json`의 resources에 있는지, 그리고 `Source`가 이를 올바르게 해석하는지 확인하세요. Android에서는 builtin 번들을 배포할 때 `tauri_plugin_fs::init()`이 등록되어 있는지 확인하세요.
+
+## 더 알아보기
+
+<Cards>
+  <Card
+    title="프로토콜 처리"
+    href="/docs/guide/protocol-handling"
+    description="bundle 및 local 스킴이 웹뷰 요청을 해석하는 방식."
+  />
+  <Card
+    title="원격 번들"
+    href="/docs/guide/over-the-air"
+    description="OTA 업데이트, 무결성, 서명 검증."
+  />
+  <Card
+    title="CLI 레퍼런스"
+    href="/docs/references/cli"
+    description="명령줄에서 번들을 패킹, 제공, 배포하기."
+  />
+  <Card
+    title="wvb-tauri 소스"
+    href="https://github.com/webview-bundle/webview-bundle/tree/main/packages/tauri"
+    description="GitHub의 플러그인 크레이트."
+  />
+</Cards>
+```

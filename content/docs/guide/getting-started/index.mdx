@@ -6,11 +6,11 @@ title: Introduction
 
 ## Overview
 
-Webview Bundle is an offline-first delivery system for web applications on webview-based frameworks and platforms.
+Webview Bundle is an offline-first distributing system for web applications on webview-based frameworks and platforms.
 
 Instead of loading your web app over the network and rendering it in the webview, you pack it into a webview bundle file (`.wvb`) and render it from local resources. You can also set up a remote, download bundles from it, and update your app's code over the air — with no native release.
 
-Webview Bundle supports the platforms that host a webview — [Electron](https://electronjs.org), [Tauri](https://tauri.app), Android, iOS, and [Deno Desktop](https://deno.com/blog/v2.9#deno-desktop) (experimental) — and provides a [bridge](...) for communicating with the webview.
+Webview Bundle supports the platforms that host a webview — [Electron](https://electronjs.org), [Tauri](https://tauri.app), Android, iOS, and [Deno Desktop](https://deno.com/blog/v2.9#deno-desktop) (experimental) — and provides a [bridge](/docs/guide/core-concepts/communicate-between-native-and-webview) for communicating with the webview.
 
 ## Features
 
@@ -22,7 +22,7 @@ On the native side, the host intercepts the webview's requests and answers them 
 
 ### Over-the-air (OTA)
 
-Webview Bundle provides over-the-air (OTA) updates to keep the bundle inside the native app current. You create a [remote](...) provider, upload the bundles you want to ship, and download new bundles from the frontend or the native side whenever you choose.
+Webview Bundle provides over-the-air (OTA) updates to keep the bundle inside the native app current. You create a [remote](/docs/guide/core-concepts/over-the-air) provider, upload the bundles you want to ship, and download new bundles from the frontend or the native side whenever you choose.
 
 An over-the-air update needs no native release and no app restart, so the app stays current without disrupting the user. Electron, for example, downloads tens of megabytes and restarts the app to apply an update; Webview Bundle skips that.
 

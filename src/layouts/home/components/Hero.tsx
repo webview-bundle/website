@@ -32,7 +32,7 @@ export function Hero() {
             href={localizeHref(DOCS_URL, locale)}
             className="inline-flex items-center justify-center gap-2 rounded-md bg-brand px-5 py-2.5 font-mono text-[14px] font-medium text-white transition-colors hover:bg-brand-hover"
           >
-            {t.hero.readGuide}
+            {t.hero.getStarted}
             <ArrowRightIcon className="size-[13px]" />
           </a>
           <a

@@ -1,3 +1,90 @@
 ---
 title: Bundle source
 ---
+
+A **source** is the location on the device where bundles are stored. There are two types of source. One is the read-only builtin (`builtin`) source shipped inside the app package, and the other is the remote (`remote`) source that updates over the air from a remote server.
+
+## Builtin vs remote
+
+Webview Bundle splits bundle sources into builtin (`builtin`) and remote (`remote`).
+
+- **`builtin`** — a bundle shipped _inside_ the app package. It is read-only and serves as the fallback on first launch, before anything has been downloaded.
+- **`remote`** — a bundle downloaded from a remote server. It is writable and updates over the air without an app store release.
+
+When a bundle exists in both sources, **remote wins**. A source determines the version by checking the current version in the remote manifest first, and falls back to builtin when the bundle is not in remote.
+
+---
+
+This separation makes updates safe. A shipped builtin version is always available to fall back to, and a downloaded remote version naturally replaces the builtin version once it passes verification and installs. See [Over-The-Air](/docs/guide/core-concepts/over-the-air) for the download and verification flow.
+
+## Disk layout
+
+Inside the source directory, each bundle has its own folder, and the manifest lives at the root.
+
+```text
+{source_dir}/
+├── {name}/
+│   └── {name}_{version}.wvb
+└── manifest.json
+```
+
+For example, when the `app` bundle has two versions installed, `1.0.0` and `1.1.0`, the disk layout looks like this.
+
+```text
+{source_dir}/
+├── app/
+│   ├── app_1.0.0.wvb
+│   └── app_1.1.0.wvb
+└── manifest.json
+```
+
+The file path is always `{source_dir}/{name}/{name}_{version}.wvb`. The builtin bundle and the remote bundle are separate sources, so each is tracked by its own manifest.
+
+<Callout type="info">
+  Bundle names and versions become path components, so they are restricted to ASCII
+  `[A-Za-z0-9._-]`.
+</Callout>
+
+## Manifest
+
+`manifest.json` lives at the root of the source directory. For each bundle, it records the versions that exist, their metadata, and which version is current.
+
+```json title="manifest.json"
+{
+  "manifestVersion": 1,
+  "entries": {
+    "app": {
+      "versions": {
+        "1.0.0": {},
+        "1.1.0": {}
+      },
+      "currentVersion": "1.0.0"
+    }
+  }
+}
+```
+
+The fields are as follows.
+
+| Field                            | Type              | Description                                              |
+| -------------------------------- | ----------------- | -------------------------------------------------------- |
+| `manifestVersion`                | integer           | Manifest schema version. Always `1`.                     |
+| `entries`                        | object            | Map of bundle entries                                    |
+| `entries.{name}.versions`        | object            | Map of per-version metadata                              |
+| `entries.{name}.currentVersion`  | string (optional) | The active version served for this bundle.               |
+| `entries.{name}.previousVersion` | string (optional) | The version that was active just before the current one. |
+
+Each version's metadata is an object whose fields are all optional. The metadata is usually populated from the remote server's response headers when the bundle is downloaded.
+
+| Field          | Type   | Description                                                     |
+| -------------- | ------ | --------------------------------------------------------------- |
+| `etag`         | string | The server's `ETag` value for the downloaded bundle.            |
+| `integrity`    | string | Integrity hash, in `<alg>:<base64>` form (e.g. `sha256:n4bQ…`). |
+| `signature`    | string | Base64 signature over the integrity string.                     |
+| `lastModified` | string | The server's `Last-Modified` value.                             |
+
+### Current version and previous version
+
+`currentVersion` is the version the source serves right now. It may be absent when several versions are staged but none is active yet. Staging a version records it under `versions` without changing `currentVersion`.
+
+`previousVersion` is the version that was current just before the most recent activation. A source keeps it for two reasons. First, it lets you roll back to a build confirmed to work. Second, it keeps the previous file on disk so an in-flight request that already opened that file can finish reading cleanly while the new version becomes current. Only the current and previous versions are kept; older versions are cleaned up.

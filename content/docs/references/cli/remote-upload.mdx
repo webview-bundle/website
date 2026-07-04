@@ -1,0 +1,74 @@
+---
+title: wvb upload
+description: Pack, hash, sign, and upload a bundle to the configured remote, with an optional deploy step.
+---
+
+`wvb upload` publishes a bundle to your remote server. By default it runs the full pipeline in order — pack, then integrity, then signature, then upload — so a single command turns your built assets into a signed, integrity-checked bundle on the remote. The upload step requires `remote.uploader` in your [config](/docs/references/configuration/remote); the optional deploy step at the end also requires `remote.deployer`.
+
+```sh
+wvb upload                                       # uses config defaults
+wvb upload app --version 1.2.0
+wvb upload app --version 1.2.0 --deploy --channel beta
+wvb upload --no-pack --file ./build/app.wvb --force
+```
+
+## Options
+
+| Option             | Aliases | Default                          | Description                                                         |
+| ------------------ | ------- | -------------------------------- | ------------------------------------------------------------------- |
+| `BUNDLE`           | —       | from config / `--file` name      | Bundle name. Positional argument.                                   |
+| `--version`        | `-V`    | config or `package.json` version | Version to publish.                                                 |
+| `--file`           | `-F`    | resolved output path             | Path to the `.wvb` to upload.                                       |
+| `--force`          | —       | `false`                          | Overwrite if the version already exists on the remote.              |
+| `--deploy`         | —       | `false`                          | Deploy the version after uploading.                                 |
+| `--channel`        | —       | —                                | Channel to deploy to. Used with `--deploy`.                         |
+| `--pack`           | `-P`    | `true`                           | Pack from `pack.srcDir` before uploading. Pass `--no-pack` to skip. |
+| `--skip-integrity` | —       | `false`                          | Skip computing the integrity hash.                                  |
+| `--skip-signature` | —       | `false`                          | Skip signing the bundle.                                            |
+| `--config`         | `-C`    | config auto-discovery            | Path to the config file.                                            |
+| `--cwd`            | —       | `process.cwd()`                  | Working directory for resolving paths.                              |
+
+<Callout type="info">
+  The version is the `--version` (`-V`) flag, not a positional argument. The first positional is the
+  bundle name. `--deploy` defaults to `false`, so an upload publishes the version without making it
+  current — clients keep receiving the previously deployed version until you deploy this one.
+</Callout>
+
+## Pipeline
+
+`wvb upload` runs these stages in order:
+
+1. **Pack** — packs `pack.srcDir` into a `.wvb` archive. Skip with `--no-pack` and pass an existing bundle through `--file`.
+2. **Integrity** — computes the integrity hash. Skip with `--skip-integrity`.
+3. **Signature** — signs the bundle. Skip with `--skip-signature`.
+4. **Upload** — sends the bundle to the remote through `remote.uploader`.
+5. **Deploy** (optional) — runs only with `--deploy`, marking the uploaded version current through `remote.deployer`.
+
+On success the command prints the bundle endpoint.
+
+## Requirements
+
+- `remote.uploader` must be configured for the upload step. See [Remote, integrity & signature config](/docs/references/configuration/remote).
+- `remote.deployer` is additionally required when you pass `--deploy`. To deploy a version separately later, use [`wvb deploy`](/docs/references/cli/remote-deploy).
+
+For the publishing model and a local-testing walkthrough, see [Building a remote](/docs/guide/remote).
+
+## See also
+
+<Cards>
+  <Card
+    title="CLI overview"
+    href="/docs/references/cli"
+    description="Install, global flags, and config discovery for the wvb command-line tool."
+  />
+  <Card
+    title="wvb deploy"
+    href="/docs/references/cli/remote-deploy"
+    description="Mark an already-uploaded version as the current one clients receive."
+  />
+  <Card
+    title="wvb pack"
+    href="/docs/references/cli/pack"
+    description="Pack a directory of built web assets into a single .wvb archive."
+  />
+</Cards>

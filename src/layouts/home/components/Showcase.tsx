@@ -56,16 +56,13 @@ export function Showcase() {
           <div className="font-mono text-[11px] tracking-widest text-blue-300/80 uppercase">
             {t.showcase.eyebrow}
           </div>
-          <div className="font-mono text-[11.5px] text-zinc-400">one .wvb → every webview</div>
         </div>
 
         <h2 className="max-w-2xl text-3xl leading-[1.08] font-semibold tracking-[-0.02em] text-balance text-white sm:text-[40px]">
           {t.showcase.title}
         </h2>
         <p className="mt-4 max-w-xl font-mono text-[14px] leading-relaxed text-zinc-400">
-          {t.showcase.subtitleBefore}
-          <code className="text-zinc-200">.wvb</code>
-          {t.showcase.subtitleAfter}
+          {t.showcase.subtitle}
         </p>
       </div>
 

@@ -1,4 +1,0 @@
-{
-  "title": "Commands",
-  "pages": ["pack", "extract", "serve", "upload", "deploy", "download", "builtin", "remote"]
-}

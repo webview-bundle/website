@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 150" role="img" aria-labelledby="t">
+  <title id="t">The data section stores each entry's compressed bytes back to back; the index records the offset and length of each.</title>
+  <style>
+    .seg { fill: #f4f4f5; stroke: #e4e4e7; stroke-width: 1; }
+    .sum { fill: #eff6ff; stroke: #bfdbfe; stroke-width: 1; }
+    .path { font: 12px ui-monospace, "JetBrains Mono", monospace; fill: #18181b; }
+    .sumtxt { fill: #2563eb; }
+    .off { font: 11px ui-monospace, "JetBrains Mono", monospace; fill: #71717a; }
+    .tick { stroke: #d4d4d8; stroke-width: 1; }
+    @media (prefers-color-scheme: dark) {
+      .seg { fill: #27272a; stroke: #3f3f46; }
+      .sum { fill: #172554; stroke: #1e40af; }
+      .path { fill: #f4f4f5; }
+      .sumtxt { fill: #60a5fa; }
+      .off { fill: #a1a1aa; }
+      .tick { stroke: #3f3f46; }
+    }
+  </style>
+
+  <!-- offset ticks -->
+  <line class="tick" x1="20"  y1="44" x2="20"  y2="104"/>
+  <line class="tick" x1="250" y1="44" x2="250" y2="104"/>
+  <line class="tick" x1="450" y1="44" x2="450" y2="104"/>
+  <text class="off" x="20"  y="38" text-anchor="middle">0</text>
+  <text class="off" x="250" y="38" text-anchor="middle">768</text>
+  <text class="off" x="450" y="38" text-anchor="middle">1420</text>
+
+  <!-- segments -->
+  <rect class="seg" x="20"  y="52" width="228" height="48" rx="3"/>
+  <rect class="seg" x="250" y="52" width="198" height="48" rx="3"/>
+  <rect class="seg" x="450" y="52" width="150" height="48" rx="3"/>
+  <rect class="sum" x="602" y="52" width="88"  height="48" rx="3"/>
+  <text class="path" x="134" y="81" text-anchor="middle">/index.js</text>
+  <text class="path" x="349" y="81" text-anchor="middle">/index.html</text>
+  <text class="path" x="525" y="81" text-anchor="middle">…</text>
+  <text class="path sumtxt" x="646" y="81" text-anchor="middle">Checksum</text>
+</svg>

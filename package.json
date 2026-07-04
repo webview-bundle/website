@@ -12,7 +12,7 @@
     "lint:fix": "oxlint --type-aware --fix",
     "format": "oxfmt",
     "gen:cf-types": "wrangler types",
-    "genW:fumadocs": "fumadocs-mdx"
+    "gen:fumadocs": "fumadocs-mdx"
   },
   "dependencies": {
     "@base-ui/react": "1.6.0",

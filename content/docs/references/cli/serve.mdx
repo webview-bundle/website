@@ -1,0 +1,65 @@
+---
+title: wvb serve
+description: Serve a single .wvb bundle's files over HTTP to preview a packed bundle in a browser.
+---
+
+`wvb serve` starts a local HTTP server that unpacks one `.wvb` bundle and serves its files, so you can open a packed bundle in a browser and check it before shipping. Directory paths resolve to `index.html`, matching how a webview loads the bundle at runtime.
+
+By default the server listens on `http://localhost:4312`. It handles `SIGINT` and `SIGTERM` for a graceful shutdown, so `Ctrl+C` stops it cleanly.
+
+<Callout type="info">
+  `wvb serve` previews the contents of a single bundle. To test the full over-the-air (OTA) update
+  loop against an HTTP remote, run a local update server with [`wvb remote
+  local`](/docs/references/cli/remote) instead. See [Building a remote](/docs/guide/remote) for the
+  end-to-end walkthrough.
+</Callout>
+
+## Usage
+
+```sh
+wvb serve                                       # serve the bundle resolved from config
+wvb serve ./build/app.wvb                        # http://localhost:4312
+wvb serve ./build/app.wvb --port 8080 --hostname 0.0.0.0
+wvb serve ./build/app.wvb --silent               # disable request logging
+```
+
+If you omit `FILE`, `wvb serve` falls back to `serve.file` in your [config](/docs/references/configuration), and then to the resolved pack output path. A typical project that has run `wvb pack` can preview with a bare `wvb serve`.
+
+## Options
+
+| Option       | Aliases | Default         | Description                                                                 |
+| ------------ | ------- | --------------- | --------------------------------------------------------------------------- |
+| `FILE`       | —       | from config     | Bundle to serve. Falls back to `serve.file`, then the resolved pack output. |
+| `--hostname` | `-H`    | `localhost`     | Bind hostname. Reads the `HOSTNAME` env var.                                |
+| `--port`     | `-P`    | `4312`          | Port to listen on. Reads the `PORT` env var. Must be between 1 and 65535.   |
+| `--silent`   | —       | `false`         | Disable the request-logging middleware.                                     |
+| `--config`   | `-C`    | —               | Path to the config file.                                                    |
+| `--cwd`      | —       | `process.cwd()` | Working directory for resolving paths.                                      |
+
+Boolean flags accept `--silent`, `--silent=true|false`, and the `--no-silent` negation. The global `--color`, `--log-level`, and `--log-verbose` flags apply here as well; see the [CLI overview](/docs/references/cli).
+
+## Notes
+
+- The server resolves directory requests to `index.html`, so client-side routes that map to a directory load the bundle's entry document.
+- `--hostname 0.0.0.0` binds all interfaces, which is useful for previewing the bundle from another device on your network.
+- To call the same logic from JavaScript, use the `serve` function in the [programmatic API](/docs/references/cli/programmatic).
+
+## See also
+
+<Cards>
+  <Card
+    title="CLI overview"
+    href="/docs/references/cli"
+    description="Install, global flags, and config discovery for the wvb command-line tool."
+  />
+  <Card
+    title="wvb pack"
+    href="/docs/references/cli/pack"
+    description="Pack built web assets into the .wvb bundle that serve previews."
+  />
+  <Card
+    title="wvb remote"
+    href="/docs/references/cli/remote"
+    description="Run a local remote server to test the full OTA update loop."
+  />
+</Cards>

@@ -1,0 +1,59 @@
+---
+title: Remote
+description: 네이티브 호스트를 통해 설정된 원격 서버에 질의하는 bridge의 remote.* 명령어 그룹입니다.
+---
+
+`remote`는 네이티브 호스트를 통해 설정된 원격 서버와 통신하는 bridge 명령어 그룹입니다. 웹뷰 안의 웹 코드에서 이 그룹을 사용하면 원격이 제공하는 항목을 나열하고, 번들의 현재 정보를 조회하고, 다운로드를 실행할 수 있습니다. 웹 쪽에서 번들 바이트를 직접 다루지 않아도 됩니다.
+
+각 메서드는 대응하는 네이티브 핸들러로 라우팅되는 타입 지정 `invoke()` 호출입니다. 따라서 호출은 타입 검사를 거치며, `invoke()`를 직접 다룰 일은 거의 없습니다. 패키지 전반에 대한 내용은 [Bridge 개요](/docs/references/javascript/bridge)를 참고하세요. 이 명령어들이 도달하는 네이티브 쪽에 대한 내용은 [Node remote API](/docs/references/javascript/node/remote)를 참고하세요.
+
+## 메서드
+
+| Method                                 | Purpose                            |
+| -------------------------------------- | ---------------------------------- |
+| `listBundles()`                        | 원격이 제공하는 번들을 나열합니다. |
+| `getInfo(bundleName)`                  | 번들의 현재 정보를 가져옵니다.     |
+| `download(bundleName)`                 | 현재 버전을 다운로드합니다.        |
+| `downloadVersion(bundleName, version)` | 특정 버전을 다운로드합니다.        |
+
+```ts
+import { remote } from '@wvb/bridge';
+
+const bundles = await remote.listBundles();
+const info = await remote.getInfo('app');
+
+await remote.download('app');
+await remote.downloadVersion('app', '1.2.0');
+```
+
+## 반환값
+
+`getInfo`, `download`, `downloadVersion`은 `RemoteBundleInfo`로 resolve됩니다. `download`와 `downloadVersion`은 오직 `RemoteBundleInfo`로만 resolve되며, 번들 바이트는 bridge를 통해 전달되지 않습니다. 네이티브 호스트가 다운로드한 번들을 자신의 소스 저장소에 기록하고, 웹 쪽은 메타데이터만 받습니다.
+
+`listBundles`는 원격이 현재 제공하는 번들 목록으로 resolve되며, 이는 원격의 `GET /bundles` 응답과 동일합니다.
+
+<Callout type="info">
+  호스트에 원격이 설정되어 있지 않으면 이 호출들은 `code`가 `RemoteNotInitialized`인 `BridgeError`와
+  함께 실패합니다. 오류 처리에 대한 내용은 [Bridge 개요](/docs/references/javascript/bridge)를
+  참고하세요.
+</Callout>
+
+## 참고 자료
+
+<Cards>
+  <Card
+    title="Node remote API"
+    href="/docs/references/javascript/node/remote"
+    description="이 bridge 명령어들이 호출하는 네이티브 remote 클라이언트입니다."
+  />
+  <Card
+    title="Remote HTTP 명세"
+    href="/docs/guide/spec"
+    description="모든 원격 서버가 구현하는 HTTP 계약입니다."
+  />
+  <Card
+    title="Bridge 개요"
+    href="/docs/references/javascript/bridge"
+    description="웹 쪽 @wvb/bridge 패키지, invoke(), 오류 처리를 다룹니다."
+  />
+</Cards>
