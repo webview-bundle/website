@@ -1,0 +1,15 @@
+---
+title: 네이티브와 웹뷰 간 통신
+---
+
+(웹뷰에서 네이티브 기능을 사용하기 위한 어떻게 통신할 수 있는지에 대해 설명)
+
+## 브릿지 호출하기
+
+(`@wvb/bridge` 통합 브릿지 패키지를 사용하여 웹뷰에서 사용 가능)
+
+(브릿지 호출시 네이티브 단에 등록된 핸들러가 브릿지 호출을 처리해줌. 각 플랫폼/프레임워크 별 가이드)
+
+(Electron: ipc / Tauri : ipc / Android : JavaScriptInterface / iOS : WKScriptMessageHandler / Deno Desktop : Bindings(CEF))
+
+(브릿지 API를 사용하는 자세한 방법은 /docs/frontend/bridges 로 가이드)

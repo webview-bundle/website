@@ -1,0 +1,35 @@
+---
+title: Introduction
+---
+
+---
+
+## Overview
+
+Webview Bundle is an offline-first delivery system for web applications on webview-based frameworks and platforms.
+
+Instead of loading your web app over the network and rendering it in the webview, you pack it into a webview bundle file (`.wvb`) and render it from local resources. You can also set up a remote, download bundles from it, and update your app's code over the air — with no native release.
+
+Webview Bundle supports the platforms that host a webview — [Electron](https://electronjs.org), [Tauri](https://tauri.app), Android, iOS, and [Deno Desktop](https://deno.com/blog/v2.9#deno-desktop) (experimental) — and provides a [bridge](...) for communicating with the webview.
+
+## Features
+
+### Web inside native
+
+With Webview Bundle, you embed familiar frontend code in a native app and ship an application that runs offline. You pack the web app into the webview bundle (`.wvb`) format and include it in the native app bundle.
+
+On the native side, the host intercepts the webview's requests and answers them by reading resources from the bundle file. Because it serves local data instead of going over the network, the web app works offline.
+
+### Over-the-air (OTA)
+
+Webview Bundle provides over-the-air (OTA) updates to keep the bundle inside the native app current. You create a [remote](...) provider, upload the bundles you want to ship, and download new bundles from the frontend or the native side whenever you choose.
+
+An over-the-air update needs no native release and no app restart, so the app stays current without disrupting the user. Electron, for example, downloads tens of megabytes and restarts the app to apply an update; Webview Bundle skips that.
+
+### Multi-platform support
+
+The Webview Bundle core is written in Rust and builds for many platforms.
+
+- Node.js — a [native add-on](https://nodejs.org/api/n-api.html) built with [napi.rs](https://napi.rs/).
+- Android and iOS — Kotlin and Swift bindings generated with [UniFFI](https://github.com/mozilla/uniffi-rs).
+- Deno — a dynamic library linked through the [Deno FFI](https://docs.deno.com/runtime/fundamentals/ffi/) API.
