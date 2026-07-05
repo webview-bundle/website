@@ -1,3 +1,70 @@
 ---
 title: Cloudflare
+description: Cloudflare Worker 뒤의 R2에서 번들을 제공합니다.
 ---
+
+Cloudflare 프로바이더는 Worker를 통해 R2 버킷에서 번들을 제공하며, KV 네임스페이스로 어떤 버전이 배포되었는지 기록합니다.
+
+## 서버 프로비저닝
+
+`@wvb/remote-cloudflare-provider-pulumi`은 Worker, R2 버킷, KV 네임스페이스를 [Pulumi](https://www.pulumi.com) 컴포넌트로 프로비저닝합니다.
+
+```sh
+npm install @wvb/remote-cloudflare-provider-pulumi
+```
+
+```ts title="index.ts"
+import { WebviewBundleRemoteProvider } from '@wvb/remote-cloudflare-provider-pulumi';
+
+const remote = new WebviewBundleRemoteProvider('wvb', {
+  accountId: '<cloudflare-account-id>',
+});
+
+export const bucketName = remote.bucketName;
+export const kvNamespaceId = remote.kvNamespaceId;
+```
+
+Worker를 직접 작성하려면 `@wvb/remote-cloudflare-provider`이 [Hono](https://hono.dev) 앱을 내보냅니다. R2 버킷을 `BUCKET`으로, KV 네임스페이스를 `KV`로 바인딩한 뒤 핸들러에 매핑하세요.
+
+```ts title="src/worker.ts"
+import { wvbRemote } from '@wvb/remote-cloudflare-provider';
+
+const app = wvbRemote();
+
+export default {
+  fetch(req: Request, env: { KV: KVNamespace; BUCKET: R2Bucket }) {
+    return app.fetch(req, { kv: env.KV, r2: env.BUCKET });
+  },
+};
+```
+
+## 게시하기
+
+`@wvb/remote-cloudflare`은 `uploader`과 `deployer`을 설정용으로 제공합니다.
+
+```sh
+npm install -D @wvb/remote-cloudflare
+```
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+import { cloudflareRemote } from '@wvb/remote-cloudflare';
+
+export default defineConfig({
+  remote: {
+    endpoint: 'https://updates.example.com',
+    ...cloudflareRemote({
+      accountId: '<cloudflare-account-id>',
+      bucket: 'webview-bundle',
+      kvNamespaceId: '<kv-namespace-id>',
+    }),
+  },
+});
+```
+
+업로더는 S3 호환 API로 R2에 기록하므로 R2 액세스 키를 `s3ClientConfig.credentials`로 전달하고, 디플로이어는 Cloudflare API 토큰으로 KV를 갱신합니다. 전체 설정은 [Cloudflare 클라이언트 레퍼런스](/docs/references/javascript/remotes/remote-cloudflare)를 참고하세요.
+
+<Callout type="info">
+  Worker는 `BUCKET`이라는 R2 바인딩과 `KV`라는 KV 바인딩을 읽습니다. `wrangler.jsonc`에서 이 이름을
+  맞춰주세요.
+</Callout>

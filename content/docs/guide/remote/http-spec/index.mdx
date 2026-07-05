@@ -1,3 +1,46 @@
 ---
-title: HTTP spec
+title: Overview
 ---
+
+Any server that implements this HTTP contract can act as a remote. The [providers](/docs/guide/remote/providers/local) implement it for you; read this only when you build your own.
+
+A client reads bundles in three steps:
+
+1. [`GET /bundles`](/docs/guide/remote/http-spec/endpoints/list-bundles) — list the deployed bundles.
+2. [`HEAD /bundles/{name}`](/docs/guide/remote/http-spec/endpoints/head-current) — read the current version's metadata to check for an update.
+3. [`GET /bundles/{name}`](/docs/guide/remote/http-spec/endpoints/get-current) — download the current version's bytes. [`GET /bundles/{name}/{version}`](/docs/guide/remote/http-spec/endpoints/get-version) downloads an exact version.
+
+## Metadata headers
+
+Bundle responses carry metadata in `Webview-Bundle-*` headers, not the body. `Webview-Bundle-Name` and `Webview-Bundle-Version` are required — the client rejects a response missing either. `Webview-Bundle-Integrity` and `Webview-Bundle-Signature` are optional. Bundle bytes are served as `application/webview-bundle`.
+
+## Channels
+
+A channel selects a separate deployment track. The list, metadata, and current-download routes accept an optional `?channel=` query; omit it to target the default deployment. The exact-version route takes no channel.
+
+## Endpoints
+
+<Cards>
+  <Card
+    title="List bundles"
+    href="/docs/guide/remote/http-spec/endpoints/list-bundles"
+    description="GET /bundles"
+  />
+  <Card
+    title="Get current metadata"
+    href="/docs/guide/remote/http-spec/endpoints/head-current"
+    description="HEAD /bundles/{name}"
+  />
+  <Card
+    title="Download current bundle"
+    href="/docs/guide/remote/http-spec/endpoints/get-current"
+    description="GET /bundles/{name}"
+  />
+  <Card
+    title="Download a specific version"
+    href="/docs/guide/remote/http-spec/endpoints/get-version"
+    description="GET /bundles/{name}/{version}"
+  />
+</Cards>
+
+For non-2xx responses, see [Errors](/docs/guide/remote/http-spec/errors).
