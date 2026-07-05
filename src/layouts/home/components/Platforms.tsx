@@ -38,9 +38,11 @@ export function Platforms() {
             return (
               <div
                 key={platform.name}
-                className="flex flex-col items-center gap-3 bg-white px-4 py-8 dark:bg-[#09090a]"
+                className="group flex flex-col items-center gap-3 bg-white px-4 py-8 transition-colors hover:bg-zinc-50 dark:bg-[#09090a] dark:hover:bg-[#0d0d0f]"
               >
-                {Logo != null && <Logo className="size-8 text-zinc-800 dark:text-zinc-200" />}
+                {Logo != null && (
+                  <Logo className="size-8 text-zinc-800 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:text-brand dark:text-zinc-200 dark:group-hover:text-brand" />
+                )}
                 {/* Name + a fixed-height badge slot below it, so every framework
                     name stays on the same baseline whether or not it has a badge. */}
                 <div className="flex flex-col items-center gap-2">
@@ -58,6 +60,10 @@ export function Platforms() {
               </div>
             );
           })}
+          {/* One filler tile so the hairline grid never leaves a bare gap-cell:
+              5 platforms fill 2- and 3-column rows with one empty slot, but at
+              md+ the 5 columns divide evenly, so this hides. */}
+          <div aria-hidden="true" className="bg-white md:hidden dark:bg-[#09090a]" />
         </div>
       </div>
     </section>

@@ -75,15 +75,20 @@ export function Features() {
             return (
               <div
                 key={feature.title}
-                className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white/80 p-7 backdrop-blur-sm transition-colors hover:border-brand/40 sm:p-9 dark:border-zinc-900 dark:bg-[#0c0c0e]/80 dark:hover:border-brand/40"
+                className="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white/80 p-7 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-xl hover:shadow-brand/5 sm:p-9 dark:border-zinc-900 dark:bg-[#0c0c0e]/80 dark:hover:border-brand/40"
               >
+                {/* Brand glow that warms the card from the corner on hover. */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -right-16 -bottom-16 size-56 rounded-full bg-brand/10 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
+                />
                 {/* Oversized watermark icon that fills the wide card. */}
                 <FeatureIcon
                   aria-hidden="true"
                   className="pointer-events-none absolute -right-5 -bottom-5 size-32 text-zinc-100 transition-transform duration-500 group-hover:scale-110 dark:text-zinc-900"
                 />
                 <div className="relative">
-                  <div className="flex size-11 items-center justify-center rounded-md bg-brand/10 text-brand transition-transform duration-300 group-hover:scale-110">
+                  <div className="flex size-11 items-center justify-center rounded-md bg-gradient-to-br from-brand/15 to-brand-2/15 text-brand ring-1 ring-brand/15 transition-transform duration-300 group-hover:scale-110">
                     <FeatureIcon className="size-5" />
                   </div>
                   <h3 className="mt-5 text-[18px] font-semibold tracking-tight sm:text-[20px]">

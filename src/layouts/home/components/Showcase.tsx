@@ -58,7 +58,7 @@ export function Showcase() {
           </div>
         </div>
 
-        <h2 className="max-w-2xl text-3xl leading-[1.08] font-semibold tracking-[-0.02em] text-balance text-white sm:text-[40px]">
+        <h2 className="max-w-2xl bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-3xl leading-[1.08] font-semibold tracking-[-0.02em] text-balance text-transparent sm:text-[40px]">
           {t.showcase.title}
         </h2>
         <p className="mt-4 max-w-xl font-mono text-[14px] leading-relaxed text-zinc-400">
@@ -71,19 +71,18 @@ export function Showcase() {
         {/* Mobile/Desktop toggle — only below lg, where a single cut is shown at a time. */}
         <div className="mb-5 flex justify-center lg:hidden">
           <div
-            role="tablist"
+            role="group"
             aria-label={t.showcase.chooseView}
-            className="inline-flex gap-0.5 rounded-full border border-white/10 bg-white/[0.03] p-0.5 font-mono text-[12px]"
+            className="inline-flex gap-0.5 rounded-md border border-white/10 bg-white/[0.03] p-0.5 font-mono text-[12px]"
           >
             {VIEWS.map(v => (
               <button
                 key={v.id}
                 type="button"
-                role="tab"
-                aria-selected={view === v.id}
+                aria-pressed={view === v.id}
                 onClick={() => setView(v.id)}
                 className={cn(
-                  'rounded-full px-4 py-1.5 transition-colors',
+                  'rounded-sm px-4 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70',
                   view === v.id ? 'bg-white/10 text-white' : 'text-zinc-400 hover:text-zinc-200'
                 )}
               >

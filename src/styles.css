@@ -10,15 +10,21 @@
   --font-mono: 'JetBrains Mono Variable', monospace;
 }
 
-/* Brand accent — derived from the cube logo's blue. */
+/* Brand accent — derived from the cube logo's blue. `brand-2` is an in-family
+ * violet companion (the cube's blue pushed toward indigo) used only inside
+ * gradients and glows, never as a flat fill; it echoes the Showcase footage's
+ * own blue→violet lighting. Together they give the page vite-style energy
+ * without leaving the blue family. */
 @theme {
   --color-brand: #2563eb;
   --color-brand-hover: #1d4ed8;
+  --color-brand-2: #6d5cf6;
 }
 
 :root.dark {
   --color-brand: #3b82f6;
   --color-brand-hover: #60a5fa;
+  --color-brand-2: #8b7cf6;
 }
 
 /* ---------------------------------------------------------------------------
@@ -186,6 +192,33 @@
   }
   50% {
     opacity: 0.65;
+  }
+}
+
+/* Page-load reveal for the hero — a short rise + fade, staggered per element
+ * via inline `animation-delay`. Uses `both` fill so elements hold their start
+ * (invisible) state until their delay elapses. Gated behind `motion-safe`, so
+ * reduced-motion users skip the animation entirely and see the final layout. */
+@keyframes wvb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Gentle vertical bob for the bundle artifact, so it feels like a physical
+ * object hovering above the flow rather than a flat card. */
+@keyframes wvb-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
   }
 }
 

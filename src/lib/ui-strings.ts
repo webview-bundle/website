@@ -208,7 +208,9 @@ const ko: UiStrings = {
   },
   cta: {
     eyebrow: '시작하기',
-    title: '한 번 작성해, 모든 웹뷰에서, 원격으로 업데이트까지.',
+    // `\n` forces the line break at the clause boundary (rendered as <br> in
+    // CallToAction) so Korean never wraps mid-word ("웹뷰에|서").
+    title: '한 번 작성해, 모든 웹뷰에서,\n원격으로 업데이트까지.',
     getStarted: '가이드 시작하기',
     github: 'GitHub',
   },
