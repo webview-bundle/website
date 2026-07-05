@@ -1,0 +1,46 @@
+---
+title: 요약
+---
+
+이 HTTP 규약을 구현한 서버라면 무엇이든 리모트로 동작할 수 있습니다. [프로바이더](/docs/guide/remote/providers/local)는 이 규약을 대신 구현하므로, 직접 서버를 구축할 때만 읽으면 됩니다.
+
+클라이언트는 세 단계로 번들을 읽습니다.
+
+1. [`GET /bundles`](/docs/guide/remote/http-spec/endpoints/list-bundles) — 배포된 번들을 나열합니다.
+2. [`HEAD /bundles/{name}`](/docs/guide/remote/http-spec/endpoints/head-current) — 현재 버전의 메타데이터를 읽어 업데이트를 확인합니다.
+3. [`GET /bundles/{name}`](/docs/guide/remote/http-spec/endpoints/get-current) — 현재 버전의 바이트를 다운로드합니다. [`GET /bundles/{name}/{version}`](/docs/guide/remote/http-spec/endpoints/get-version)은 특정 버전을 다운로드합니다.
+
+## 메타데이터 헤더
+
+번들 응답은 메타데이터를 본문이 아니라 `Webview-Bundle-*` 헤더에 담습니다. `Webview-Bundle-Name`과 `Webview-Bundle-Version`은 필수이며, 둘 중 하나라도 빠지면 클라이언트가 응답을 거부합니다. `Webview-Bundle-Integrity`과 `Webview-Bundle-Signature`은 선택입니다. 번들 바이트는 `application/webview-bundle`로 제공됩니다.
+
+## 채널
+
+채널은 별도의 배포 트랙을 선택합니다. 목록, 메타데이터, 현재 버전 다운로드 경로는 선택적인 `?channel=` 쿼리를 받으며, 생략하면 기본 배포를 대상으로 합니다. 특정 버전 경로는 채널을 받지 않습니다.
+
+## 엔드포인트
+
+<Cards>
+  <Card
+    title="번들 목록 조회"
+    href="/docs/guide/remote/http-spec/endpoints/list-bundles"
+    description="GET /bundles"
+  />
+  <Card
+    title="현재 메타데이터 조회"
+    href="/docs/guide/remote/http-spec/endpoints/head-current"
+    description="HEAD /bundles/{name}"
+  />
+  <Card
+    title="현재 번들 다운로드"
+    href="/docs/guide/remote/http-spec/endpoints/get-current"
+    description="GET /bundles/{name}"
+  />
+  <Card
+    title="특정 버전 다운로드"
+    href="/docs/guide/remote/http-spec/endpoints/get-version"
+    description="GET /bundles/{name}/{version}"
+  />
+</Cards>
+
+non-2xx 응답은 [오류](/docs/guide/remote/http-spec/errors)를 참고하세요.

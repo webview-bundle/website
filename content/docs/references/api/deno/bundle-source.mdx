@@ -1,0 +1,136 @@
+---
+title: 'BundleSource'
+description: 'A bundle source over a builtinDir (read-only) and remoteDir (writable).'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A bundle source over a `builtinDir` (read-only) and `remoteDir` (writable). Pass it to
+[`BundleProtocol`](/docs/references/api/deno/bundle-protocol). Free it with `using` or `.free()` once no longer needed (the protocol
+keeps its own reference, so the source may be freed after the protocol is created).
+
+The data methods mirror `@wvb/node`'s `BundleSource` so `@wvb/deno-desktop` can serve the
+`@wvb/bridge` `source.*` commands.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/source.ts#L45)
+
+## Constructor
+
+```ts
+new BundleSource(config: BundleSourceConfig);
+```
+
+<TypeTable type={{ config: { type: 'BundleSourceConfig', required: true } }} />
+
+## Methods
+
+<TypeTable
+  type={{
+    '[dispose]': { type: '() => void', required: true, returns: 'void' },
+    free: { type: '() => void', required: true, returns: 'void' },
+    getBuiltinBundleFilepath: {
+      type: '(bundleName: string, version: string) => string',
+      description: 'Absolute path to a specific builtin bundle version.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'string',
+    },
+    getRemoteBundleFilepath: {
+      type: '(bundleName: string, version: string) => string',
+      description: 'Absolute path to a specific remote bundle version.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'string',
+    },
+    listBundles: {
+      type: '() => Promise<ListBundleItem[]>',
+      description: 'List every bundle version across the builtin + remote directories.',
+      required: true,
+      returns: 'Promise<ListBundleItem[]>',
+    },
+    loadBuiltinMetadata: {
+      type: '(bundleName: string, version: string) => Promise<BundleManifestMetadata>',
+      description: 'Manifest metadata for a builtin bundle version, or null.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<BundleManifestMetadata>',
+    },
+    loadRemoteMetadata: {
+      type: '(bundleName: string, version: string) => Promise<BundleManifestMetadata>',
+      description: 'Manifest metadata for a remote bundle version, or null.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<BundleManifestMetadata>',
+    },
+    loadVersion: {
+      type: '(bundleName: string) => Promise<BundleSourceVersion>',
+      description:
+        'The current version for bundleName (remote takes priority over builtin), or null.',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<BundleSourceVersion>',
+    },
+    pruneRemoteBundles: {
+      type: '(bundleName: string) => Promise<string[]>',
+      description:
+        'Remove every staged remote version except the retained set. Returns the removed versions.',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<string[]>',
+    },
+    remoteRetainedVersions: {
+      type: '(bundleName: string) => Promise<string[]>',
+      description: 'The remote versions that pruning retains (current + previous).',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<string[]>',
+    },
+    removeRemoteBundle: {
+      type: '(bundleName: string, version: string) => Promise<boolean>',
+      description: 'Remove a single staged remote bundle version (manifest entry + file).',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<boolean>',
+    },
+    resolveFilepath: {
+      type: '(bundleName: string) => Promise<string>',
+      description: 'Absolute path to the .wvb for the current version (remote over builtin).',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<string>',
+    },
+    unloadDescriptor: {
+      type: '(bundleName: string) => boolean',
+      description:
+        'Drop the cached descriptor for a bundle, if present. Returns whether one was removed.',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'boolean',
+    },
+    updateRemoteVersion: {
+      type: '(bundleName: string, version: string) => Promise<void>',
+      description: 'Set the current version of a remote bundle in the manifest.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<void>',
+    },
+  }}
+/>

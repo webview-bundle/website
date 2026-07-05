@@ -1,0 +1,39 @@
+---
+title: 'BundleUpdateInfo'
+description: 'Information about a bundle update.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Information about a bundle update.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1186)
+
+## Properties
+
+<TypeTable
+  type={{
+    etag: { type: 'string', description: 'ETag for caching', required: false },
+    integrity: {
+      type: 'string',
+      description: 'Integrity hash (e.g., "sha384-...")',
+      required: false,
+    },
+    isAvailable: { type: 'boolean', description: 'Whether an update is available', required: true },
+    lastModified: { type: 'string', description: 'Last modified timestamp', required: false },
+    localVersion: { type: 'string', description: 'Currently installed version', required: false },
+    name: { type: 'string', description: 'Bundle name', required: true },
+    signature: { type: 'string', description: 'Digital signature', required: false },
+    version: { type: 'string', description: 'Remote version available', required: true },
+  }}
+/>
+
+## Examples
+
+```typescript
+const updateInfo = await updater.getUpdate('app');
+if (updateInfo.isAvailable) {
+  console.log(`Update available: ${updateInfo.localVersion} → ${updateInfo.version}`);
+  await updater.download('app');
+}
+```

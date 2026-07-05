@@ -1,0 +1,38 @@
+---
+title: 'AfterPackContext'
+description: "Electron builder's after pack context type."
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Electron builder's after pack context type.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/electron-builder/src/config.ts#L6)
+
+## Properties
+
+<TypeTable
+  type={{
+    appOutDir: {
+      type: 'string',
+      description:
+        'Output directory for the current platform/arch build (contains the .app on macOS).',
+      required: true,
+    },
+    arch: {
+      type: 'number',
+      description:
+        "Target CPU arch (electron-builder's Arch enum value) — used to stage per target.",
+      required: true,
+    },
+    electronPlatformName: {
+      type: 'string',
+      description: "e.g. 'darwin', 'mas', 'win32', 'linux'.",
+      required: true,
+    },
+    packager: {
+      type: '{ appInfo: { productFilename: string }; projectDir: string }',
+      required: true,
+    },
+  }}
+/>

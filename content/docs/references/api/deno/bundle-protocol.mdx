@@ -1,0 +1,39 @@
+---
+title: 'BundleProtocol'
+description: 'Serves files from a BundleSource as HTTP responses — GET/HEAD, content-type, HTTP Range (206), and index.html directory-index fallback.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Serves files from a [`BundleSource`](/docs/references/api/deno/bundle-source) as HTTP responses — GET/HEAD, content-type, HTTP Range
+(206), and `index.html` directory-index fallback. Resolves the bundle name from the request URI
+host (`bundle://app/index.html` → bundle `app`).
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/protocol.ts#L30)
+
+## Constructor
+
+```ts
+new BundleProtocol(source: BundleSource);
+```
+
+<TypeTable type={{ source: { type: 'BundleSource', required: true } }} />
+
+## Methods
+
+<TypeTable
+  type={{
+    '[dispose]': { type: '() => void', required: true, returns: 'void' },
+    free: { type: '() => void', required: true, returns: 'void' },
+    handle: {
+      type: '(method: HttpMethod, uri: string, headers?: Record<string, string>) => Promise<HttpResponse>',
+      required: true,
+      parameters: [
+        { name: 'method', description: 'HttpMethod' },
+        { name: 'uri', description: 'string' },
+        { name: 'headers?', description: 'Record<string, string>' },
+      ],
+      returns: 'Promise<HttpResponse>',
+    },
+  }}
+/>

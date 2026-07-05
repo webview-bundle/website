@@ -1,0 +1,62 @@
+---
+title: Local
+description: Serve bundles from a local directory for development and testing.
+---
+
+The local provider runs a remote on your machine, backed by a directory. Use it to exercise the full upload → deploy → download loop offline before wiring in a hosted provider.
+
+## Run the server
+
+The quickest way needs no code — the CLI ships the server:
+
+```sh
+wvb remote local
+```
+
+This serves `~/.wvb/local` on `http://localhost:4313`. See [`wvb remote local`](/docs/references/cli/remote) for its flags (`--base-dir`, `--port`, `--allow-other-versions`).
+
+To embed the server yourself, `@wvb/remote-local-provider` exports a [Hono](https://hono.dev) app. Serve it with any Hono adapter:
+
+```sh
+npm install @wvb/remote-local-provider @hono/node-server
+```
+
+```ts title="server.ts"
+import { serve } from '@hono/node-server';
+import { wvbRemote } from '@wvb/remote-local-provider';
+
+const app = wvbRemote({ baseDir: '~/.wvb/local' });
+serve({ fetch: app.fetch, port: 4313 });
+```
+
+| Option               | Type      | Default        | Description                                               |
+| -------------------- | --------- | -------------- | --------------------------------------------------------- |
+| `baseDir`            | `string`  | `~/.wvb/local` | Directory that stores bundles and deployments.            |
+| `allowOtherVersions` | `boolean` | `false`        | Serve exact versions via `GET /bundles/{name}/{version}`. |
+
+## Publish to it
+
+`@wvb/remote-local` provides the `uploader` and `deployer` for your config, writing to the same directory the server reads.
+
+```sh
+npm install -D @wvb/remote-local
+```
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+import { localRemote } from '@wvb/remote-local';
+
+export default defineConfig({
+  remote: {
+    endpoint: 'http://localhost:4313',
+    ...localRemote({ baseDir: '~/.wvb/local' }),
+  },
+});
+```
+
+`localRemote()` returns `{ uploader, deployer }`. Spread it into `remote` so `wvb upload` and `wvb deploy` write bundles the local server can serve.
+
+<Callout type="info">
+  Point the server and the client at the same `baseDir`. The [CLI
+  walkthrough](/docs/guide/remote/using-cli) uses this provider end to end.
+</Callout>

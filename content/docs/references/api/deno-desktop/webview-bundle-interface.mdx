@@ -1,0 +1,33 @@
+---
+title: 'WebviewBundle'
+description: 'WebviewBundle — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/webview-bundle.ts#L48)
+
+## Properties
+
+<TypeTable
+  type={{
+    protocolSchemes: { type: 'readonly string[]', required: true },
+    remote: { type: 'any', required: true },
+    source: { type: 'BundleSource', required: true },
+    updater: { type: 'any', required: true },
+  }}
+/>
+
+## Methods
+
+<TypeTable
+  type={{
+    fetch: {
+      type: '(req: Request) => Promise<Response>',
+      description: 'A Deno.serve-compatible handler: Deno.serve(wvb.fetch).',
+      required: true,
+      parameters: [{ name: 'req', description: 'Request' }],
+      returns: 'Promise<Response>',
+    },
+  }}
+/>

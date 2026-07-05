@@ -1,0 +1,104 @@
+---
+title: 'SourceApi'
+description: 'SourceApi — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/bridge/src/source.ts#L117)
+
+## Methods
+
+<TypeTable
+  type={{
+    getBuiltinBundleFilepath: {
+      type: '(bundleName: string, version: string) => Promise<string>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<string>',
+    },
+    getRemoteBundleFilepath: {
+      type: '(bundleName: string, version: string) => Promise<string>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<string>',
+    },
+    listBundles: {
+      type: '() => Promise<ListBundleItem[]>',
+      required: true,
+      returns: 'Promise<ListBundleItem[]>',
+    },
+    loadBuiltinMetadata: {
+      type: '(bundleName: string, version: string) => Promise<BundleManifestMetadata | null>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<BundleManifestMetadata | null>',
+    },
+    loadRemoteMetadata: {
+      type: '(bundleName: string, version: string) => Promise<BundleManifestMetadata | null>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<BundleManifestMetadata | null>',
+    },
+    loadVersion: {
+      type: '(bundleName: string) => Promise<BundleSourceVersion | null>',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<BundleSourceVersion | null>',
+    },
+    pruneRemoteBundles: {
+      type: '(bundleName: string) => Promise<string[]>',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<string[]>',
+    },
+    remoteRetainedVersions: {
+      type: '(bundleName: string) => Promise<string[]>',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<string[]>',
+    },
+    removeRemoteBundle: {
+      type: '(bundleName: string, version: string) => Promise<boolean>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<boolean>',
+    },
+    resolveFilepath: {
+      type: '(bundleName: string) => Promise<string>',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<string>',
+    },
+    unloadDescriptor: {
+      type: '(bundleName: string) => Promise<boolean>',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<boolean>',
+    },
+    updateVersion: {
+      type: '(bundleName: string, version: string) => Promise<void>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<void>',
+    },
+  }}
+/>

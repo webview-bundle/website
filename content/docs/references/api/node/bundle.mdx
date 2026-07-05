@@ -1,0 +1,78 @@
+---
+title: 'Bundle'
+description: 'A complete bundle including metadata and file data.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A complete bundle including metadata and file data.
+
+Represents a `.wvb` bundle file loaded entirely into memory.
+Use this when you need to access multiple files or build new bundles.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L21)
+
+## Constructor
+
+```ts
+new Bundle();
+```
+
+## Methods
+
+<TypeTable
+  type={{
+    descriptor: {
+      type: '() => BundleDescriptor',
+      description: 'Returns the bundle descriptor (header and index).',
+      required: true,
+      returns: 'BundleDescriptor — Bundle metadata',
+    },
+    getData: {
+      type: '(path: string) => Buffer<ArrayBufferLike> | null',
+      description:
+        "Retrieves file data by path. Returns the decompressed file contents, or null if the path doesn't exist.",
+      required: true,
+      parameters: [
+        { name: 'path', description: 'string — File path in the bundle (e.g., "/index.html")' },
+      ],
+      returns: 'Buffer<ArrayBufferLike> | null — File contents or null if not found',
+    },
+    getDataChecksum: {
+      type: '(path: string) => number | null',
+      description: 'Retrieves the checksum of file data by path.',
+      required: true,
+      parameters: [{ name: 'path', description: 'string — File path in the bundle' }],
+      returns: 'number | null — xxHash-32 checksum or null if not found',
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+// Read a bundle from file
+const bundle = await readBundle('app.wvb');
+
+// Access files
+const html = bundle.getData('/index.html');
+if (html) {
+  console.log(html.toString('utf-8'));
+}
+```
+
+### descriptor
+
+```typescript
+const descriptor = bundle.descriptor();
+const index = descriptor.index();
+```
+
+### getData
+
+```typescript
+const data = bundle.getData('/index.html');
+if (data) {
+  console.log(data.toString('utf-8'));
+}
+```

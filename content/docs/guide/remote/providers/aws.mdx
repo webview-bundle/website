@@ -1,0 +1,59 @@
+---
+title: AWS
+description: Serve bundles from S3 behind CloudFront, with optional KMS signing.
+---
+
+The AWS provider serves bundles from an S3 bucket behind a CloudFront distribution. Two Lambda@Edge functions implement the remote HTTP contract at the edge.
+
+## Provision the server
+
+`@wvb/remote-aws-provider-pulumi` provisions the whole stack — bucket, distribution, and edge functions — as a [Pulumi](https://www.pulumi.com) component:
+
+```sh
+npm install @wvb/remote-aws-provider-pulumi
+```
+
+```ts title="index.ts"
+import { WebviewBundleRemoteProvider } from '@wvb/remote-aws-provider-pulumi';
+
+const remote = new WebviewBundleRemoteProvider('wvb', {
+  bucketName: 'my-bundles',
+  // allowOtherVersions: true,  // also serve GET /bundles/{name}/{version}
+});
+
+export const endpoint = remote.cloudfrontDistributionDomainName;
+```
+
+The request handler itself is `@wvb/remote-aws-provider` (`webviewBundleRemote`), which the component deploys for you. To wire the edge functions manually, see the [package reference](/docs/references/api/remotes/remote-aws-provider).
+
+## Publish to it
+
+`@wvb/remote-aws` provides the `uploader` and `deployer` — and an optional AWS KMS `signature` signer — for your config:
+
+```sh
+npm install -D @wvb/remote-aws
+```
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+import { awsRemote } from '@wvb/remote-aws';
+
+export default defineConfig({
+  remote: {
+    endpoint: 'https://d111111abcdef8.cloudfront.net',
+    integrity: { algorithm: 'sha256' },
+    ...awsRemote({
+      bucket: 'my-bundles',
+      // deployer: { invalidation: { distributionId: 'E1234567890ABC' } },
+      // signature: { keyId: 'arn:aws:kms:…', algorithm: 'ECDSA_SHA_256' },
+    }),
+  },
+});
+```
+
+`awsRemote()` returns `{ uploader, deployer, signature? }`. Credentials and region come from the standard AWS SDK chain; override them with the `aws` option. See the [AWS client reference](/docs/references/api/remotes/remote-aws) for every option.
+
+<Callout type="info">
+  The server option is `bucketName`; the client option is `bucket`. Both must point at the same
+  bucket. Lambda@Edge always runs in `us-east-1`, independent of the bucket's region.
+</Callout>

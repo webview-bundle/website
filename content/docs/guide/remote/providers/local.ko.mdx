@@ -1,0 +1,62 @@
+---
+title: Local
+description: 개발과 테스트를 위해 로컬 디렉터리에서 번들을 제공합니다.
+---
+
+로컬 프로바이더는 디렉터리를 기반으로 내 컴퓨터에서 리모트를 실행합니다. 호스팅형 프로바이더를 연동하기 전에 업로드 → 배포 → 다운로드 흐름 전체를 오프라인에서 실행해 볼 때 사용합니다.
+
+## 서버 실행
+
+가장 빠른 방법은 코드가 필요 없는 CLI입니다. 서버가 함께 제공됩니다.
+
+```sh
+wvb remote local
+```
+
+`~/.wvb/local`을 `http://localhost:4313`에서 제공합니다. 플래그(`--base-dir`, `--port`, `--allow-other-versions`)는 [`wvb remote local`](/docs/references/cli/remote)을 참고하세요.
+
+서버를 직접 임베드하려면 `@wvb/remote-local-provider`이 [Hono](https://hono.dev) 앱을 내보냅니다. 아무 Hono 어댑터로 실행하세요.
+
+```sh
+npm install @wvb/remote-local-provider @hono/node-server
+```
+
+```ts title="server.ts"
+import { serve } from '@hono/node-server';
+import { wvbRemote } from '@wvb/remote-local-provider';
+
+const app = wvbRemote({ baseDir: '~/.wvb/local' });
+serve({ fetch: app.fetch, port: 4313 });
+```
+
+| Option               | Type      | Default        | Description                                       |
+| -------------------- | --------- | -------------- | ------------------------------------------------- |
+| `baseDir`            | `string`  | `~/.wvb/local` | 번들과 배포 정보를 저장하는 디렉터리.             |
+| `allowOtherVersions` | `boolean` | `false`        | `GET /bundles/{name}/{version}`로 특정 버전 제공. |
+
+## 게시하기
+
+`@wvb/remote-local`은 서버가 읽는 디렉터리에 그대로 기록하는 `uploader`과 `deployer`을 설정용으로 제공합니다.
+
+```sh
+npm install -D @wvb/remote-local
+```
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+import { localRemote } from '@wvb/remote-local';
+
+export default defineConfig({
+  remote: {
+    endpoint: 'http://localhost:4313',
+    ...localRemote({ baseDir: '~/.wvb/local' }),
+  },
+});
+```
+
+`localRemote()`은 `{ uploader, deployer }`을 반환합니다. 이를 `remote`에 펼쳐 넣으면 `wvb upload`과 `wvb deploy`이 로컬 서버가 제공할 수 있는 번들을 기록합니다.
+
+<Callout type="info">
+  서버와 클라이언트가 같은 `baseDir`을 가리키게 하세요. [CLI
+  가이드](/docs/guide/remote/using-cli)에서 이 프로바이더를 처음부터 끝까지 사용합니다.
+</Callout>

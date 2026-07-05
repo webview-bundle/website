@@ -1,0 +1,4 @@
+{
+  "title": "Endpoints",
+  "pages": ["list-bundles", "head-current", "get-current", "get-version"]
+}

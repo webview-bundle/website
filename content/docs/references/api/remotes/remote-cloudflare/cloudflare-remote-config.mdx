@@ -1,0 +1,31 @@
+---
+title: 'CloudflareRemoteConfig'
+description: 'CloudflareRemoteConfig — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/remote/cloudflare/src/index.ts#L9)
+
+**Extends:** `CloudflareClientConfigLike`, `Pick<AwsRemoteConfig, "aws">`
+
+## Properties
+
+<TypeTable
+  type={{
+    accountId: { type: 'string', required: true },
+    aws: { type: 'AwsClientDefaults', required: false },
+    bucket: { type: 'string', required: true },
+    cloudflare: { type: 'Cloudflare', required: false },
+    cloudflareConfig: { type: 'ClientOptions', required: false },
+    deployer: {
+      type: 'Omit<CloudflareRemoteDeployerConfig, "accountId" | "kvNamespaceId">',
+      required: false,
+    },
+    kvNamespaceId: { type: 'string', required: true },
+    uploader: {
+      type: 'Omit<CloudflareRemoteUploaderConfig, "accountId" | "bucket">',
+      required: false,
+    },
+  }}
+/>

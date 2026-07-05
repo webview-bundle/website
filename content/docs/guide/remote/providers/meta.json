@@ -1,0 +1,4 @@
+{
+  "title": "Providers",
+  "pages": ["aws", "cloudflare", "local"]
+}

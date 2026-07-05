@@ -1,0 +1,44 @@
+---
+title: 'UpdaterApi'
+description: 'UpdaterApi — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/bridge/src/updater.ts#L40)
+
+## Methods
+
+<TypeTable
+  type={{
+    download: {
+      type: '(bundleName: string, version?: string) => Promise<RemoteBundleInfo>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version?', description: 'string' },
+      ],
+      returns: 'Promise<RemoteBundleInfo>',
+    },
+    getUpdate: {
+      type: '(bundleName: string) => Promise<BundleUpdateInfo>',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<BundleUpdateInfo>',
+    },
+    install: {
+      type: '(bundleName: string, version: string) => Promise<void>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<void>',
+    },
+    listRemotes: {
+      type: '() => Promise<ListRemoteBundleInfo[]>',
+      required: true,
+      returns: 'Promise<ListRemoteBundleInfo[]>',
+    },
+  }}
+/>

@@ -1,0 +1,77 @@
+---
+title: 'Index'
+description: 'Bundle index mapping file paths to their metadata.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Bundle index mapping file paths to their metadata.
+
+The index is stored as binary data in the bundle file and maps file paths
+to their metadata (offset, length, content-type, headers, etc.).
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L611)
+
+## Constructor
+
+```ts
+new Index();
+```
+
+## Methods
+
+<TypeTable
+  type={{
+    containsPath: {
+      type: '(path: string) => boolean',
+      description: 'Checks if a file path exists in the bundle.',
+      required: true,
+      parameters: [{ name: 'path', description: 'string — File path to check' }],
+      returns: 'boolean — True if the path exists',
+    },
+    entries: {
+      type: '() => Record<string, IndexEntry>',
+      description: 'Returns all index entries as a map of path to metadata.',
+      required: true,
+      returns: 'Record<string, IndexEntry> — Map of file paths to entry metadata',
+    },
+    getEntry: {
+      type: '(path: string) => IndexEntry | null',
+      description: 'Gets the index entry for a specific file path.',
+      required: true,
+      parameters: [
+        { name: 'path', description: 'string — File path in the bundle (e.g., "/index.html")' },
+      ],
+      returns: 'IndexEntry | null — Entry metadata or null if not found',
+    },
+  }}
+/>
+
+## Examples
+
+### containsPath
+
+```typescript
+if (index.containsPath('/app.js')) {
+  console.log('app.js is in the bundle');
+}
+```
+
+### entries
+
+```typescript
+const index = bundle.descriptor().index();
+const entries = index.entries();
+for (const [path, entry] of Object.entries(entries)) {
+  console.log(`${path}: ${entry.contentType}`);
+}
+```
+
+### getEntry
+
+```typescript
+const entry = index.getEntry('/index.html');
+if (entry) {
+  console.log(`Content-Type: ${entry.contentType}`);
+}
+```

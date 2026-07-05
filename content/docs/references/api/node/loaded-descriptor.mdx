@@ -1,0 +1,77 @@
+---
+title: 'LoadedDescriptor'
+description: 'A descriptor loaded (and cached) by a BundleSource.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A descriptor loaded (and cached) by a [`BundleSource`](/docs/references/api/node/bundle-source).
+
+Holds the parsed header/index together with the filepath it was loaded from, so
+reading entry data always targets the exact bundle version that produced this
+descriptor — even if the source's active version is swapped concurrently.
+
+The instance owns a reference-counted handle to the cached descriptor. When the
+JavaScript object is garbage-collected, the handle is released automatically; the
+underlying descriptor stays alive only while the source cache (see
+`BundleSource.loadDescriptor`) or another `LoadedDescriptor` references it.
+No manual disposal is required and no memory is leaked.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L671)
+
+## Constructor
+
+```ts
+new LoadedDescriptor();
+```
+
+## Methods
+
+<TypeTable
+  type={{
+    descriptor: {
+      type: '() => BundleDescriptor',
+      description:
+        'Returns the bundle descriptor The returned descriptor shares the same in-memory metadata and carries no reference back to the source, so it can outlive this LoadedDescriptor.',
+      required: true,
+      returns: 'BundleDescriptor — Bundle metadata',
+    },
+    getData: {
+      type: '(path: string) => Promise<Buffer<ArrayBufferLike> | null>',
+      description:
+        "Reads file data for path, loading it lazily from disk. The read targets the bundle file this descriptor was loaded from, so the data is always consistent with LoadedDescriptor.descriptor even if the source's active version changes meanwhile. Returns null if the path does not exist in the bundle.",
+      required: true,
+      parameters: [
+        { name: 'path', description: 'string — File path in the bundle (e.g., "/index.html")' },
+      ],
+      returns: 'Promise<Buffer<ArrayBufferLike> | null> — File contents or null if not found',
+    },
+    getDataChecksum: {
+      type: '(path: string) => Promise<number | null>',
+      description: 'Reads the checksum of file data for path, loading it lazily from disk.',
+      required: true,
+      parameters: [{ name: 'path', description: 'string — File path in the bundle' }],
+      returns: 'Promise<number | null> — xxHash-32 checksum or null if not found',
+    },
+  }}
+/>
+
+## Examples
+
+### descriptor
+
+```typescript
+const loaded = await source.loadDescriptor('app');
+const index = loaded.descriptor().index();
+console.log(index.containsPath('/index.html'));
+```
+
+### getData
+
+```typescript
+const loaded = await source.loadDescriptor('app');
+const html = await loaded.getData('/index.html');
+if (html) {
+  console.log(html.toString('utf-8'));
+}
+```

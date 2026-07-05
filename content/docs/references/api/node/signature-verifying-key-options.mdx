@@ -1,0 +1,43 @@
+---
+title: 'SignatureVerifyingKeyOptions'
+description: 'Public key configuration for signature verification.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Public key configuration for signature verification.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1484)
+
+## Properties
+
+<TypeTable
+  type={{
+    data: {
+      type: 'string | Uint8Array<ArrayBufferLike>',
+      description: 'The key data (string for PEM, Uint8Array for DER/Raw)',
+      required: true,
+    },
+    format: {
+      type: 'VerifyingKeyFormat',
+      description: 'The format of the public key',
+      required: true,
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+// PEM format (string)
+const pemKey = {
+  format: 'spkiPem',
+  data: publicKeyPem,
+};
+
+// DER format (binary)
+const derKey = {
+  format: 'spkiDer',
+  data: new Uint8Array(derKeyBytes),
+};
+```

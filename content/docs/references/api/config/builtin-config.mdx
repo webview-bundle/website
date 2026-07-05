@@ -1,0 +1,43 @@
+---
+title: 'BuiltinConfig'
+description: 'BuiltinConfig — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/config/src/builtin.ts#L54)
+
+## Properties
+
+<TypeTable
+  type={{
+    clean: {
+      type: 'boolean',
+      description: 'Clean up builtin directory before the operation.',
+      required: false,
+      default: 'true',
+    },
+    exclude: {
+      type: 'BuiltinBundleMatches',
+      description: 'Patterns to which bundles should be excluded from target bundles.',
+      required: false,
+    },
+    include: {
+      type: 'BuiltinBundleMatches',
+      description: 'Patterns to which bundles should be included from target bundles.',
+      required: false,
+    },
+    outDir: {
+      type: 'string',
+      description: 'Directory path where to download builtin bundles from target.',
+      required: false,
+      default: '".wvb/builtin/bundles"',
+    },
+    target: {
+      type: 'BuiltinTarget',
+      description: 'Target to install builtin bundles.',
+      required: false,
+      default: '{ type: "remote" }',
+    },
+  }}
+/>

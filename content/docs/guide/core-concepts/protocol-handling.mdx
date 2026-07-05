@@ -1,0 +1,93 @@
+---
+title: Handling protocols
+---
+
+Webview Bundle provides a protocol handler that responds to HTTP requests with the matching resource inside a bundle. On each platform and framework, this protocol handler serves webview requests by returning resources from a Webview Bundle as standard HTTP responses.
+
+## Bundle protocol
+
+The bundle protocol loads the file at the requested path from the Webview Bundle mapped to the request URI, then returns it as an HTTP response.
+
+For example, given the request URI `app://app.wvb/index.html`, the handler resolves the bundle name to `app` and the file path within the bundle to `/index.html`, then returns the HTTP response.
+
+```text
+app://app.wvb/index.html        -> bundle "app",   file "/index.html"
+app://myapp.wvb/assets/logo.png -> bundle "myapp", file "/assets/logo.png"
+```
+
+Path resolution fills in `index.html` like a static file server. When the path ends with a slash, or the last segment has no `.`, the handler fills in `index.html` and looks up that file in the bundle.
+
+```text
+/          -> /index.html       # path ends with a slash
+/about     -> /about/index.html # last segment has no "."
+/a.js      -> /a.js             # last segment has a ".", so it is served as-is
+```
+
+When the bundle is not found, the handler fails with a `BundleNotFound` error and responds with 500 (Internal Server Error).
+
+When the bundle exists but the file is not found inside it, the handler responds with 404 (Not Found).
+
+### Methods, headers, responses
+
+Only `GET` and `HEAD` are served; any other method returns 405 (Method Not Allowed). `HEAD` returns the headers with an empty body.
+
+When serving a file, the handler adds the `Content-Type` and `Content-Length` header values recorded in the index entry by default. Any other headers you added are also included in the response.
+
+```text
+GET app://app.wvb/assets/app.js
+-> 200 OK
+   cache-control: public, max-age=31536000   # value you set on the index entry
+   content-type: application/javascript      # value recorded in the index entry
+   content-length: 84213                     # decompressed size
+```
+
+### Range requests
+
+Webviews rely on range requests to seek media and resume large downloads. When the `Range` header is present, the handler returns 206 (Partial Content) with `Accept-Ranges: bytes` and `Content-Range`.
+
+```text
+GET app://app.wvb/media/clip.mp4
+Range: bytes=0-1023
+-> 206 Partial Content
+   accept-ranges: bytes
+   content-range: bytes 0-1023/5242880
+   content-length: 1024
+```
+
+- Each returned range is capped at `1000 * 1024` bytes (about 1 MB); a requested range larger than this is truncated.
+- Multiple ranges are returned as a `multipart/byteranges` response.
+- An unsatisfiable range returns 416 (Range Not Satisfiable) with `Content-Range: bytes */<length>`.
+
+```text
+Range: bytes=99999999-
+-> 416 Range Not Satisfiable
+   content-range: bytes */5242880
+```
+
+Ranges are computed against the decompressed content. Offsets therefore match the files the build produced.
+
+## Local protocol
+
+Instead of fetching resources from a Webview Bundle file (`.wvb`), the local protocol lets you proxy resources from localhost.
+
+This is useful during development. For example, to run hot reload from a [Vite](https://vite.dev/) dev server (such as `http://localhost:5173`), configure Electron as follows.
+
+```ts title="main.ts"
+import { localProtocol, wvb } from '@wvb/electron';
+
+const instance = wvb({
+  protocols: [
+    localProtocol('myscheme', {
+      hosts: {
+        'myapp.wvb': 'http://localhost:5173',
+      },
+    }),
+  ],
+});
+```
+
+You can then load the webview from the `myscheme://myapp.wvb` URL.
+
+---
+
+For details on using protocols on each platform and framework, see the "Native" section.

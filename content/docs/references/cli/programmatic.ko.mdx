@@ -1,0 +1,266 @@
+---
+title: 프로그래밍 방식 사용
+description: '@wvb/cli/api로 스크립트와 CI에 wvb CLI를 내장하고, 직접 작성한 코드에서 wvb 설정 파일을 불러옵니다.'
+---
+
+모든 `wvb` 명령어는 함수이기도 합니다. `@wvb/cli` 패키지는 `@wvb/cli/api`에서 프로그래밍 API를 제공합니다.
+이 API는 CLI가 실행하는 것과 동일한 패킹, 추출, 제공, 업로드, 로컬 원격 로직을 노출합니다. 따라서 별도로
+셸을 띄우지 않고도 빌드 스크립트, 테스트 하네스, CI에서 Webview Bundle을 다룰 수 있습니다. 기본 `@wvb/cli`
+엔트리는 설정 헬퍼 `defineConfig`, `loadConfigFile`, `resolveConfig`를 별도로 노출합니다. 이를 통해
+여러분의 도구가 CLI와 동일한 방식으로 `wvb.config` 파일을 읽고 해석할 수 있습니다.
+
+`@wvb/cli`가 필요한 스크립트나 워크스페이스에 의존성으로 설치하세요.
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @wvb/cli
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/cli
+```
+
+  </Tab>
+</Tabs>
+
+<Callout type="info">
+  반환값(패킹된 `Bundle`, 실행 중인 서버 핸들)이 필요하거나 모든 작업을 하나의 Node 프로세스 안에서
+  유지하고 싶다면, `wvb` 바이너리를 실행하는 대신 API를 사용하세요. 명령줄 인터페이스는 [CLI
+  레퍼런스](/docs/references/cli)를 참고하세요.
+</Callout>
+
+## `/api` 익스포트
+
+`@wvb/cli/api`에서 함수를 임포트하세요. 각 함수는 하나의 옵션 객체를 받고 프로미스를 반환합니다. 실패하면
+`ApiError`를 던집니다.
+
+| Function       | Signature                                                              |
+| -------------- | ---------------------------------------------------------------------- |
+| `pack`         | `pack(params: PackParams): Promise<PackResult>`                        |
+| `extract`      | `extract(params: ExtractParams): Promise<Bundle>`                      |
+| `serve`        | `serve(params: ServeParams): Promise<ServeInstance>`                   |
+| `remoteUpload` | `remoteUpload(params: RemoteUploadParams): Promise<void>`              |
+| `builtin`      | `builtin(params: BuiltinParams): Promise<BuiltinResult>`               |
+| `localRemote`  | `localRemote(params: LocalRemoteParams): Promise<LocalRemoteInstance>` |
+
+<Callout type="info">
+  `/api` 인터페이스는 의도적으로 CLI에 가깝게 설계되었으며, 완전한 클라이언트는 아닙니다. 여기에는
+  `deploy`나 `download` 함수가 없습니다. 이 명령어들은 CLI에만 존재하며,
+  [`@wvb/node`](/docs/references/api/node)의 `Remote` 클래스를 통해 원격과 통신합니다.
+</Callout>
+
+### pack
+
+소스 디렉터리를 `.wvb` 아카이브로 패킹합니다. `outFile`에서 확장자를 생략하면 `.wvb` 확장자가 자동으로
+붙습니다.
+
+```ts
+import { pack } from '@wvb/cli/api';
+
+const result = await pack({
+  srcDir: './dist',
+  outFile: './.wvb/app', // ./.wvb/app.wvb가 됩니다
+  write: true, // 기본값 true; false로 설정하면 메모리에만 패킹합니다
+  overwrite: true, // 기본값 true
+});
+
+console.log(result.outFilePath); // 작성된 .wvb의 절대 경로
+console.log(result.bundle); // 메모리에 있는 Bundle
+```
+
+`PackParams`는 `srcDir`, `outFile`, 선택적 `ignores`와 `headers`(설정 파일과 동일한 형태), `write`
+(기본값 `true`), `overwrite`(기본값 `true`), `cwd`(기본값 `process.cwd()`), `logLevel`(기본값
+`'info'`), 그리고 선택적 `logger`를 받습니다. 반환되는 `PackResult`는 `outFilePath`와 `bundle`
+(`@wvb/node`의 `Bundle`)을 가집니다.
+
+### extract
+
+`.wvb` 파일을 읽어 그 엔트리를 디렉터리에 씁니다.
+
+```ts
+import { extract } from '@wvb/cli/api';
+
+const bundle = await extract({
+  file: './.wvb/app.wvb',
+  outDir: './extracted', // 생략하면 .wvb/<basename>이 기본값입니다
+  clean: true, // 기본값 false; outDir을 먼저 제거합니다
+});
+```
+
+`ExtractParams`는 `file`(필수), 선택적 `outDir`, `cwd`, `write`(기본값 `true`), `clean`(기본값
+`false`), 그리고 `logger`를 받습니다. 파싱된 `Bundle`을 반환합니다.
+
+### serve
+
+번들을 웹뷰에 제공하는 로컬호스트 서버를 시작합니다. 디렉터리 경로는 `index.html`로 해석됩니다.
+
+```ts
+import { serve } from '@wvb/cli/api';
+
+const instance = await serve({
+  file: './.wvb/app.wvb',
+  port: 4312, // 기본값 4312
+  silent: false, // 기본값 false; true로 설정하면 요청 로깅을 끕니다
+});
+
+// ... 나중에
+await instance.shutdown();
+```
+
+`ServeParams`는 `file`(필수), 선택적 `hostname`, `port`(기본값 `4312`), `silent`(기본값 `false`),
+`cwd`, `logger`, `colorEnabled`를 받습니다. 원시 `server`와 `shutdown()` 메서드를 가진 `ServeInstance`를
+반환합니다.
+
+### remoteUpload
+
+패킹된 번들을 원격에 업로드합니다. 파일 경로나 메모리에 있는 `Bundle`을 원격 설정의 `uploader`와 함께
+전달하세요.
+
+```ts
+import { pack, remoteUpload } from '@wvb/cli/api';
+import { loadConfigFile } from '@wvb/cli';
+
+const config = await loadConfigFile();
+const { bundle } = await pack({ srcDir: './dist', outFile: './.wvb/app' });
+
+await remoteUpload({
+  file: bundle,
+  bundleName: 'app',
+  version: '1.2.0',
+  uploader: config.remote.uploader,
+  integrity: true, // 기본값 true
+});
+```
+
+`RemoteUploadParams`는 `file`(경로 또는 `Bundle`), `bundleName`, `version`, `uploader`
+(`BaseRemoteUploader`)를 받습니다. 선택적 필드는 `force`, `integrity`(기본값 `true`; 무결성 설정을
+전달해 커스터마이즈), `signature`, `logger`, `cwd`입니다.
+
+<Callout type="info">
+  무결성은 SHA-2(기본값 `sha256`)를 사용합니다. 서명을 제공하면 무결성 문자열 바이트에 서명합니다.
+  무결성과 서명이 어떻게 함께 동작하는지는 [원격 번들](/docs/guide/core-concepts/over-the-air)을
+  참고하세요.
+</Callout>
+
+### builtin
+
+원격 또는 로컬 대상에서 빌트인 번들을 앱에 설치합니다.
+
+```ts
+import { builtin } from '@wvb/cli/api';
+
+const result = await builtin({
+  target: { type: 'remote' }, // 판별 유니언: 'remote' | 'local'
+  dir: './.wvb/builtin/bundles',
+  clean: true, // 기본값 true
+});
+
+console.log(result.manifest);
+```
+
+`BuiltinParams`는 `target`(`type`으로 구분되는 `BuiltinTarget` 판별 유니언), 선택적 `dir`(기본값
+`'.wvb/builtin/bundles'`), `include`/`exclude` 매치 리스트, `channel`, `clean`(기본값 `true`),
+`cwd`, `write`(기본값 `true`), `logLevel`, `logger`, `progress`, 그리고 모바일 프리셋 `android`와
+`ios`를 받습니다. 설치된 번들을 설명하는 `manifest`를 가진 `BuiltinResult`를 반환합니다.
+
+### localRemote
+
+개발용 로컬 원격 서버를 시작합니다. 이는 `wvb remote local` 명령어를 그대로 반영하며, 선택적 피어 의존성
+`@wvb/remote-local-provider`를 동적으로 임포트합니다. 따라서 해당 패키지가 설치되어 있는지 확인하세요.
+
+```ts
+import { localRemote } from '@wvb/cli/api';
+
+const instance = await localRemote({
+  baseDir: '~/.wvb/local',
+  port: 4313, // 기본값 4313
+  allowOtherVersions: false,
+});
+
+// ... 나중에
+await instance.shutdown();
+```
+
+`LocalRemoteParams`는 선택적 `baseDir`(프로바이더가 기본값으로 `~/.wvb/local`을 해석), `hostname`,
+`port`(기본값 `4313`), `silent`(기본값 `false`), `allowOtherVersions`, `logger`, `colorEnabled`를
+받습니다. 원시 `server`와 `shutdown()`을 가진 `LocalRemoteInstance`를 반환합니다.
+
+<Callout type="warn">
+  `@wvb/remote-local-provider`는 선택적 피어 의존성입니다. 설치되어 있지 않으면 `localRemote`가 이를
+  임포트하려 할 때 예외를 던집니다. 로컬 원격을 사용할 때는 `@wvb/cli`와 함께 설치하세요.
+</Callout>
+
+## 기본 엔트리의 설정 헬퍼
+
+기본 `@wvb/cli` 엔트리(`/api`가 아님)는 설정 도구를 다시 익스포트합니다. [`@wvb/config`](/docs/references/configuration)의
+`defineConfig`, 그리고 `loadConfigFile`과 `resolveConfig`, `InlineConfig`와 `ResolvedConfig` 타입을
+노출합니다.
+
+```ts
+import {
+  defineConfig,
+  loadConfigFile,
+  resolveConfig,
+  type InlineConfig,
+  type ResolvedConfig,
+} from '@wvb/cli';
+
+// 현재 디렉터리에서 wvb.config.*를 찾아 불러옵니다.
+const config: ResolvedConfig = await loadConfigFile();
+
+// 또는 명시적인 파일을 불러오고 인라인 오버라이드를 그 위에 병합합니다.
+const inline: InlineConfig = { root: process.cwd() };
+const merged = await resolveConfig(inline);
+```
+
+`loadConfigFile`은 설정 파일을 찾아 번들링한 다음 해석합니다. `resolveConfig`는 파일 설정을 인라인 설정
+아래에 병합하고, `root`(기본값 `process.cwd()`)를 설정하고, 가장 가까운 `package.json`을 붙인 다음
+읽기 전용 `ResolvedConfig`를 반환합니다. 완전한 타입 추론을 얻으려면 설정 파일 안에서 `defineConfig`를
+사용하세요.
+
+## 설정 파일 탐색
+
+명시적인 경로 없이 `loadConfigFile`을 호출할 때, 그리고 CLI가 `--config` 없이 실행될 때, Webview Bundle은
+작업 디렉터리에서 다음 순서로 처음 일치하는 파일을 찾습니다.
+
+```text
+wvb.config.js
+wvb.config.cjs
+wvb.config.mjs
+wvb.config.ts
+wvb.config.cts
+wvb.config.mts
+webview-bundle.config.js
+webview-bundle.config.cjs
+webview-bundle.config.mjs
+webview-bundle.config.ts
+webview-bundle.config.cts
+webview-bundle.config.mts
+wvb.config.json
+wvb.config.jsonc
+```
+
+두 기본 이름 `wvb.config.*`와 `webview-bundle.config.*`는 모두 `.js`, `.cjs`, `.mjs`, `.ts`, `.cts`,
+`.mts` 확장자를 지원합니다. `.json`과 `.jsonc` 확장자는 `wvb.config` 기본 이름에서만 지원됩니다. 탐색을
+건너뛰려면 `--config`, `-C`를 전달하거나 명시적인 경로로 `loadConfigFile`을 호출하세요.
+
+설정 파일은 실행되기 전에 `rolldown`으로 번들링되므로, 별도의 빌드 단계 없이 TypeScript와 ESM/CJS 파일을
+불러옵니다. 베어 및 `npm:` 지정자와 Node 빌트인은 외부로 유지됩니다.
+
+<Callout type="info">
+  Deno에서는 설정 파일이 항상 ESM으로 취급됩니다. 로더가 Node에서 사용하는 package-type 및 확장자
+  추론을 건너뜁니다. Deno Desktop 지원은 실험적입니다. [Deno 가이드](/docs/guide/native/deno)를
+  참고하세요.
+</Callout>

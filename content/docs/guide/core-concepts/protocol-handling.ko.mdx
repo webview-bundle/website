@@ -1,0 +1,93 @@
+---
+title: 프로토콜 핸들링
+---
+
+웹뷰 번들은 HTTP 요청에 대해 번들 내 적절한 리소스를 응답하는 프로토콜 핸들러 기능을 제공합니다. 각 플랫폼/프레임워크에서 웹뷰 요청에 대한 응답을, 이 프로토콜 핸들러를 이용하면 웹뷰 번들 내 리소스를 표준 HTTP 응답으로 반환할 수 있습니다.
+
+## 번들 프로토콜
+
+번들 프로토콜은 요청 URI에 매핑되는 웹뷰 번들로부터 요청 경로에 해당하는 파일을 불러와 HTTP 응답합니다.
+
+예를들어, `app://app.wvb/index.html` 요청 URI에 대해서 찾을 번들명은 `app`, 번들 내에서 불러올 파일경로는 `/index.html`로 해석하여 HTTP 응답을 프로토콜 핸들러에서 반환하게 됩니다.
+
+```text
+app://app.wvb/index.html        -> bundle "app",   file "/index.html"
+app://myapp.wvb/assets/logo.png -> bundle "myapp", file "/assets/logo.png"
+```
+
+경로 해석은 정적 파일 서버처럼 `index.html`을 채워 넣습니다. 끝에 슬래시가 있거나, 경로의 마지막 세그먼트에 `.`이 없는 경우 `index.html`을 채워 넣어 번들에서 파일을 찾습니다.
+
+```text
+/          -> /index.html       # 끝에 슬래시가 있는 경우
+/about     -> /about/index.html # 마지막 세그먼트에 "."이 없는 경우
+/a.js      -> /a.js             # 마지막 세그먼트에 "."이 있으면 그대로 제공
+```
+
+번들을 못찾은 경우에는 `BundleNotFound` 오류로 핸들러가 실패하고, 500(Internal Server Error)을 응답하게 됩니다.
+
+만약, 번들은 존재하나 번들 내에서 파일을 못찾은 경우 404(Not Found)를 응답합니다.
+
+### 메서드, 헤더, 응답
+
+`GET`과 `HEAD`만 제공하며, 그 외의 메서드는 405(Method Not Allowed)를 반환합니다. `HEAD`는 본문이 비어 있는 헤더를 반환합니다.
+
+파일을 제공할 때 핸들러는 인덱스 엔트리에 기록된 `Content-Type`과 `Content-Length` 헤더값을 기본으로 추가합니다. 그 외, 사용자가 임의로 추가한 헤더값도 응답에 포함됩니다.
+
+```text
+GET app://app.wvb/assets/app.js
+-> 200 OK
+   cache-control: public, max-age=31536000   # 인덱스 엔트리에 사용자 임의로 지정한 값
+   content-type: application/javascript      # 인덱스 엔트리에 기록된 값
+   content-length: 84213                     # 압축 해제된 크기
+```
+
+### 범위 요청
+
+웹뷰는 미디어 탐색과 대용량 다운로드 재개를 위해 범위 요청에 의존합니다. `Range` 헤더가 있으면 `Accept-Ranges: bytes`와 `Content-Range`를 담아 206(Partial Content)를 반환합니다.
+
+```text
+GET app://app.wvb/media/clip.mp4
+Range: bytes=0-1023
+-> 206 Partial Content
+   accept-ranges: bytes
+   content-range: bytes 0-1023/5242880
+   content-length: 1024
+```
+
+- 반환되는 각 범위는 `1000 * 1024` 바이트(약 1 MB)로 제한되며, 이보다 큰 요청 범위는 잘립니다.
+- 여러 범위는 `multipart/byteranges` 응답으로 반환됩니다.
+- 충족할 수 없는 범위는 `Content-Range: bytes */<length>`와 함께 416(Range Not Satisfiable)를 반환합니다.
+
+```text
+Range: bytes=99999999-
+-> 416 Range Not Satisfiable
+   content-range: bytes */5242880
+```
+
+범위는 압축 해제된 콘텐츠를 기준으로 계산됩니다. 따라서 오프셋은 빌드가 생성한 파일과 일치합니다.
+
+## 로컬 프로토콜
+
+웹뷰 번들 파일(`.wvb`)에서 리소스를 가져오는 대신, 로컬 프로토콜을 사용하면 localhost로부터 프록시로 리소스를 불러올 수 있습니다.
+
+이는 개발 단계에서 유용합니다. 예를들어, [Vite](https://vite.dev/) 개발 서버 (예: `http://localhost:5173`)로부터 핫 리로드를 동작시키고 싶다면 Electron에서 아래와 같이 설정할 수 있습니다.
+
+```ts title="main.ts"
+import { localProtocol, wvb } from '@wvb/electron';
+
+const instance = wvb({
+  protocols: [
+    localProtocol('myscheme', {
+      hosts: {
+        'myapp.wvb': 'http://localhost:5173',
+      },
+    }),
+  ],
+});
+```
+
+이후, `myscheme://myapp.wvb` URL로 웹뷰를 로드하여 사용할 수 있습니다.
+
+---
+
+각 플랫폼/프레임워크에서 프로토콜을 사용하는 자세한 방법은 "네이티브" 섹션에서 확인해주세요.

@@ -1,0 +1,109 @@
+---
+title: Over-the-air
+---
+
+Download new webview bundles remotely. Ship updated app code through the Webview Bundle remote server without redeploying the native app.
+
+## Update lifecycle
+
+After you build your app code and package it into the Webview Bundle format, it goes through five steps before it reaches the device.
+
+1. Pack the build output into the `.wvb` format.
+2. Upload the packed webview bundle file to the remote server. You can attach an integrity hash and a signature.
+3. Deploy the uploaded version so clients can fetch its update info.
+4. The client checks for a new version, then downloads it.
+5. Verify the downloaded data, then install it into the remote source.
+
+Steps 1 through 3 run as CLI commands.
+
+```sh
+wvb pack                     # Package the `.wvb` file
+wvb upload --version 1.2.0   # Upload version 1.2.0 to the remote server
+wvb deploy --version 1.2.0   # Deploy 1.2.0 as the current version
+```
+
+Or integrate it in a more convenient way for the platform/framework you use. See the guide in the **Native** section.
+
+## Updating on the client
+
+Control how the client downloads the remote bundle and installs it into the remote [bundle source](/docs/guide/core-concepts/bundle-source). The available APIs are:
+
+- **updater.getUpdate** : Queries the remote's current version info (a HEAD request) and compares it against the installed version. It does not download anything; it returns whether an update is available along with the version info.
+- **updater.download** : Downloads the new version's bundle, verifies it, then stages it on disk. It is not activated at this step yet.
+- **updater.install** : Activates the downloaded version as the current version. That version is served from installation onward.
+
+Because download and install are separate, you can apply a new bundle at whatever timing fits your app's business requirements.
+
+---
+
+Here is how to use the API from the Rust core crate.
+
+```rust
+use std::sync::Arc;
+use wvb::updater::Updater;
+
+let updater = Updater::new(source, remote, None);
+
+let update = updater.get_update("app").await?;
+if update.is_available {
+  let info = updater.download("app", None).await?;
+  updater.install("app", info.version).await?;
+  // The new version bundle is available from here on
+}
+```
+
+See the guide docs for how to use the update API on each platform/framework.
+
+### Integrity
+
+An integrity hash lets the client confirm that the bundle it downloaded matches the data of the bundle deployed on the remote. The supported algorithms (SHA-2) are `sha256` (default), `sha384`, and `sha512`, serialized in the `"<alg>:<base64>"` format.
+
+```text
+sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+```
+
+The client recomputes the hash from the downloaded bundle data and checks that it matches the integrity hash the remote reported. Verification runs before installation, and installation fails if they do not match. There are three verification policies.
+
+- `strict` : An integrity hash must be present; it fails if the hash is missing or does not match.
+- `optional` (default) : Verifies the hash if present, and skips it if absent.
+- `none` : Does not verify integrity.
+
+### Signature
+
+A signature proves that the bundle was deployed by the holder of the private key. An integrity hash only guarantees that the data matches a specific hash, but a signature also confirms the authenticity of the deployer. The signature is generated over the integrity string, so you must enable integrity together to use signatures.
+
+The supported algorithms are:
+
+- ECDSA (P-256, P-384)
+- Ed25519
+- RSA (PKCS#1 v1.5, PSS)
+
+Signature verification is optional. Configure a signature verifier with a public key on the client, and it checks the downloaded bundle's signature against the integrity string, aborting installation if verification fails.
+
+## Remote
+
+The remote is an HTTP server from which clients download bundles and metadata. Configure it with an endpoint URL. It provides listing bundles, querying current version metadata (HEAD), and downloading the current version and specific versions. Version, integrity, and signature values are passed in the response headers.
+
+### Providers
+
+Builtin providers let you skip running a bundle server yourself.
+
+- **AWS** — `@wvb/remote-aws`
+- **Cloudflare** — `@wvb/remote-cloudflare`
+
+You can also build your own provider by implementing the remote HTTP protocol. See the [Remote](/docs/guide/remote) docs for details.
+
+### Channels
+
+A channel is a label that distinguishes deployments (for example, `stable`, `beta`). The client receives the current version of the channel it specifies, and receives the default deployment when it specifies no channel.
+
+In Rust, you specify the channel on `UpdaterConfig`.
+
+```rust
+use wvb::updater::{Updater, UpdaterConfig};
+
+let config = UpdaterConfig::new().channel("beta");
+let updater = Updater::new(source, remote, Some(config));
+```
+
+The channel is passed to the remote request as the `?channel=beta` query parameter.

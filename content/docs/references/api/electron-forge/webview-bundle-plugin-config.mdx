@@ -1,0 +1,50 @@
+---
+title: 'WebviewBundlePluginConfig'
+description: 'WebviewBundlePluginConfig — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/electron-forge/src/config.ts#L3)
+
+**Extends:** `Pick<Config, "root" | "builtin">`
+
+## Properties
+
+<TypeTable
+  type={{
+    builtin: { type: 'BuiltinConfig', required: false },
+    bundlesDir: {
+      type: 'string',
+      description:
+        "Directory name (under the packaged app's resources) that the Electron runtime resolves builtin bundles from.",
+      required: false,
+      default: "'bundles'",
+    },
+    channel: {
+      type: 'string',
+      description: 'Release channel to install builtin bundles from (e.g. "beta", "alpha").',
+      required: false,
+    },
+    configFile: {
+      type: 'string | boolean',
+      description:
+        'Webview bundle config file option. ; true: auto-discover a config file from the project root and merge it with the inline config below. Inline fields take precedence.; string: load the config file at this explicit path (merged with inline).; false: skip config-file loading entirely and use only the inline config.',
+      required: false,
+      default: 'true',
+    },
+    root: {
+      type: 'string',
+      description:
+        'Project root directory. Can be an absolute path, or a path relative from the current file.',
+      required: false,
+      default: 'process.cwd()',
+    },
+    throwWhenBuiltinIsEmpty: {
+      type: 'boolean',
+      description: 'Throw when no builtin bundles end up installed.',
+      required: false,
+      default: 'true',
+    },
+  }}
+/>

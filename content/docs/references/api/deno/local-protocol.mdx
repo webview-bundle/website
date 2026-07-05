@@ -1,0 +1,39 @@
+---
+title: 'LocalProtocol'
+description: 'Proxies requests for custom hosts to localhost URLs (for dev servers with hot reload).'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Proxies requests for custom hosts to localhost URLs (for dev servers with hot reload). Maps a
+custom host to a base URL — e.g. `{ app: 'http://localhost:5173' }` serves `app://app/index.html`
+from the dev server.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/protocol.ts#L62)
+
+## Constructor
+
+```ts
+new LocalProtocol(hosts: Record<string, string>);
+```
+
+<TypeTable type={{ hosts: { type: 'Record<string, string>', required: true } }} />
+
+## Methods
+
+<TypeTable
+  type={{
+    '[dispose]': { type: '() => void', required: true, returns: 'void' },
+    free: { type: '() => void', required: true, returns: 'void' },
+    handle: {
+      type: '(method: HttpMethod, uri: string, headers?: Record<string, string>) => Promise<HttpResponse>',
+      required: true,
+      parameters: [
+        { name: 'method', description: 'HttpMethod' },
+        { name: 'uri', description: 'string' },
+        { name: 'headers?', description: 'Record<string, string>' },
+      ],
+      returns: 'Promise<HttpResponse>',
+    },
+  }}
+/>

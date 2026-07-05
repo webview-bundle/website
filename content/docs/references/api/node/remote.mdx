@@ -1,0 +1,148 @@
+---
+title: 'Remote'
+description: 'HTTP client for downloading bundles from a remote server.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+HTTP client for downloading bundles from a remote server.
+
+The remote client implements the bundle HTTP protocol, allowing you to:
+
+- List available bundles
+- Get bundle metadata
+- Download specific versions
+- Track download progress
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L802)
+
+## Constructor
+
+```ts
+new Remote(endpoint: string, options?: RemoteOptions | null);
+```
+
+<TypeTable
+  type={{
+    endpoint: { type: 'string', description: 'Base URL of the remote server', required: true },
+    options: { type: 'RemoteOptions | null', description: 'Client options', required: false },
+  }}
+/>
+
+## Methods
+
+<TypeTable
+  type={{
+    download: {
+      type: '(bundleName: string, channel?: string | null) => Promise<[RemoteBundleInfo, Bundle, Buffer<ArrayBufferLike>]>',
+      description:
+        'Downloads the current version of a bundle. Returns bundle info, parsed bundle, and raw data.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'channel?', description: 'string | null — Optional channel filter' },
+      ],
+      returns:
+        'Promise<[RemoteBundleInfo, Bundle, Buffer<ArrayBufferLike>]> — Tuple of info, bundle, and data',
+    },
+    downloadVersion: {
+      type: '(bundleName: string, version: string) => Promise<[RemoteBundleInfo, Bundle, Buffer<ArrayBufferLike>]>',
+      description: 'Downloads a specific version of a bundle.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'version', description: 'string — Specific version to download' },
+      ],
+      returns:
+        'Promise<[RemoteBundleInfo, Bundle, Buffer<ArrayBufferLike>]> — Tuple of info, bundle, and data',
+    },
+    getInfo: {
+      type: '(bundleName: string, channel?: string | null) => Promise<RemoteBundleInfo>',
+      description:
+        'Gets bundle metadata for the current version. Fetches metadata without downloading the bundle itself.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'channel?', description: 'string | null — Optional channel filter' },
+      ],
+      returns: 'Promise<RemoteBundleInfo> — Bundle information',
+    },
+    listBundles: {
+      type: '(channel?: string | null) => Promise<ListRemoteBundleInfo[]>',
+      description: 'Lists all available bundles on the server.',
+      required: true,
+      parameters: [{ name: 'channel?', description: 'string | null — Optional channel filter' }],
+      returns: 'Promise<ListRemoteBundleInfo[]> — List of bundles',
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+const remote = new Remote('https://updates.example.com');
+
+// List all bundles
+const bundles = await remote.listBundles();
+
+// Get current version info
+const info = await remote.getInfo('app');
+console.log(`Latest version: ${info.version}`);
+
+// Download bundle
+const [bundleInfo, bundle, data] = await remote.download('app');
+```
+
+### constructor
+
+```typescript
+const remote = new Remote('https://updates.example.com');
+```
+
+```typescript
+// With options
+const remote = new Remote('https://updates.example.com', {
+  http: { timeout: 60000 },
+  onDownload: data => {
+    const percent = (data.downloadedBytes / data.totalBytes) * 100;
+    console.log(`Progress: ${percent.toFixed(1)}%`);
+  },
+});
+```
+
+### download
+
+```typescript
+const [info, bundle, data] = await remote.download('app');
+console.log(`Downloaded ${info.name}@${info.version}`);
+console.log(`Size: ${data.length} bytes`);
+
+// Save to file
+await writeBundle(bundle, 'app.wvb');
+```
+
+### downloadVersion
+
+```typescript
+const [info, bundle, data] = await remote.downloadVersion('app', '1.0.0');
+console.log(`Downloaded specific version: ${info.version}`);
+```
+
+### getInfo
+
+```typescript
+const info = await remote.getInfo('app');
+console.log(`Current version: ${info.version}`);
+if (info.integrity) {
+  console.log(`Integrity: ${info.integrity}`);
+}
+```
+
+### listBundles
+
+```typescript
+const bundles = await remote.listBundles();
+for (const bundle of bundles) {
+  console.log(`${bundle.name}@${bundle.version}`);
+}
+```

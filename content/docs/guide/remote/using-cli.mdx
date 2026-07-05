@@ -1,0 +1,59 @@
+---
+title: Using the CLI
+description: Run a local remote, publish a version, and download it — the whole update loop from the terminal.
+---
+
+The `wvb` CLI drives the entire remote workflow: run a local server, publish bundles, and download them back. This walkthrough exercises the full loop on your machine before you deploy a hosted [provider](/docs/guide/remote/providers/local).
+
+## Configure the remote
+
+Point your config at a remote and give it the local `uploader`/`deployer`:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+import { localRemote } from '@wvb/remote-local';
+
+export default defineConfig({
+  remote: {
+    endpoint: 'http://localhost:4313',
+    integrity: { algorithm: 'sha256' },
+    ...localRemote({ baseDir: '.wvb/local' }),
+  },
+});
+```
+
+`endpoint` is where downloads read from; `uploader` and `deployer` are how `wvb upload` and `wvb deploy` publish. See [Remote configuration](/docs/references/configuration/remote) for every field.
+
+## Run a local remote
+
+Start a server backed by the same directory, and leave it running in its own terminal:
+
+```sh
+wvb remote local --base-dir .wvb/local
+```
+
+It serves `http://localhost:4313`. See [`wvb remote local`](/docs/references/cli/remote) for its flags.
+
+## Publish a version
+
+Pack, upload, and deploy in one command:
+
+```sh
+wvb upload app --version 1.0.0 --deploy
+```
+
+Without `--deploy`, the version is only staged; run [`wvb deploy app --version 1.0.0`](/docs/references/cli/remote-deploy) to make it current. Add `--channel beta` to publish to a channel.
+
+## Inspect and download
+
+Check what the remote serves:
+
+```sh
+wvb remote current app     # current version and its metadata
+wvb remote list            # every bundle on the remote
+wvb download app           # download the current .wvb to disk
+```
+
+## Install in the app
+
+Downloading with the CLI verifies what the remote serves; your app installs updates through the updater, not the CLI. Point its remote at the same endpoint (`http://localhost:4313`) and run the check → download → install flow. See [Over-the-air](/docs/guide/core-concepts/over-the-air) for the client API and your platform's guide in the **Native** section for wiring it up.

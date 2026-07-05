@@ -1,0 +1,79 @@
+---
+title: Download current bundle
+description: Download the current deployed version of a bundle as raw .wvb bytes, optionally selecting a channel.
+---
+
+Download the current deployed version of a bundle. The server streams the `.wvb` archive as the response body and carries the bundle's metadata in `Webview-Bundle-*` headers. This is the call the [updater](/docs/references/api/node/updater) makes to fetch a new version after a check reports one is available.
+
+```http
+GET /bundles/{name}
+```
+
+Pass `?channel=` to download the current version for a specific channel instead of the default deployment.
+
+## Parameters
+
+| Name      | In    | Type   | Required | Description                                                 |
+| --------- | ----- | ------ | -------- | ----------------------------------------------------------- |
+| `name`    | path  | string | yes      | Bundle name to download.                                    |
+| `channel` | query | string | no       | Channel to select. Omit to download the default deployment. |
+
+## Responses
+
+| Status | Description                                           |
+| ------ | ----------------------------------------------------- |
+| `200`  | The bundle was found; the body is the `.wvb` archive. |
+| `404`  | The named bundle is not deployed.                     |
+
+For the `404` shape and how the client maps other non-2xx responses, see [Errors](/docs/guide/remote/http-spec/errors).
+
+### Response headers
+
+A `200` response carries the same bundle metadata headers as [HEAD /bundles/{name}](/docs/guide/remote/http-spec/endpoints/head-current). The client reads them case-insensitively; the canonical casing is shown here.
+
+| Header                     | Required | Description                          |
+| -------------------------- | -------- | ------------------------------------ |
+| `Webview-Bundle-Name`      | yes      | Bundle name.                         |
+| `Webview-Bundle-Version`   | yes      | Bundle version.                      |
+| `Webview-Bundle-Integrity` | no       | Integrity string `"<alg>:<base64>"`. |
+| `Webview-Bundle-Signature` | no       | Base64 signature.                    |
+| `ETag`                     | no       | Standard validator.                  |
+| `Last-Modified`            | no       | Standard validator.                  |
+
+The client rejects a `200` response that omits `Webview-Bundle-Name` or `Webview-Bundle-Version`.
+
+The response body is the raw `.wvb` archive bytes, served with `Content-Type: application/webview-bundle`.
+
+## Example
+
+Download the current version and dump the response headers:
+
+```sh
+curl -s http://localhost:4313/bundles/app -o app.wvb -D -
+```
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/webview-bundle
+Webview-Bundle-Name: app
+Webview-Bundle-Version: 1.2.0
+Webview-Bundle-Integrity: sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+
+<binary .wvb bytes>
+```
+
+Select a channel's current version with `?channel=`:
+
+```sh
+curl -s 'http://localhost:4313/bundles/app?channel=beta' -o app-beta.wvb
+```
+
+A bundle that is not deployed returns `404`:
+
+```sh
+curl -sI http://localhost:4313/bundles/unknown
+```
+
+```http
+HTTP/1.1 404 Not Found
+```

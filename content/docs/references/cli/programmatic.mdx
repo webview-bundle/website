@@ -1,0 +1,270 @@
+---
+title: Programmatically Usage
+description: Embed the wvb CLI in scripts and CI with @wvb/cli/api, and load the wvb config file from your own code.
+---
+
+Every `wvb` command is also a function. The `@wvb/cli` package ships a programmatic API at
+`@wvb/cli/api` that exposes the same packing, extracting, serving, uploading, and local-remote
+logic the CLI runs, so you can drive Webview Bundle from build scripts, test harnesses, or CI
+without shelling out. The main `@wvb/cli` entry separately exposes the config helpers — `defineConfig`,
+`loadConfigFile`, and `resolveConfig` — so your tooling can read and resolve a `wvb.config` file the
+same way the CLI does.
+
+Install `@wvb/cli` as a dependency of the script or workspace that needs it.
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @wvb/cli
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/cli
+```
+
+  </Tab>
+</Tabs>
+
+<Callout type="info">
+  Prefer the API over spawning the `wvb` binary when you need return values (the packed `Bundle`, a
+  running server handle) or want to keep everything inside one Node process. For the command-line
+  surface, see the [CLI reference](/docs/references/cli).
+</Callout>
+
+## The `/api` exports
+
+Import the functions from `@wvb/cli/api`. Each function takes a single options object and returns a
+promise. Failures throw an `ApiError`.
+
+| Function       | Signature                                                              |
+| -------------- | ---------------------------------------------------------------------- |
+| `pack`         | `pack(params: PackParams): Promise<PackResult>`                        |
+| `extract`      | `extract(params: ExtractParams): Promise<Bundle>`                      |
+| `serve`        | `serve(params: ServeParams): Promise<ServeInstance>`                   |
+| `remoteUpload` | `remoteUpload(params: RemoteUploadParams): Promise<void>`              |
+| `builtin`      | `builtin(params: BuiltinParams): Promise<BuiltinResult>`               |
+| `localRemote`  | `localRemote(params: LocalRemoteParams): Promise<LocalRemoteInstance>` |
+
+<Callout type="info">
+  The `/api` surface is intentionally CLI-adjacent, not a full client. There are no `deploy` or
+  `download` functions here — those commands live only on the CLI, which talks to a remote through
+  the `Remote` class from [`@wvb/node`](/docs/references/api/node).
+</Callout>
+
+### pack
+
+Pack a source directory into a `.wvb` archive. The `.wvb` extension is appended to `outFile`
+automatically if you leave it off.
+
+```ts
+import { pack } from '@wvb/cli/api';
+
+const result = await pack({
+  srcDir: './dist',
+  outFile: './.wvb/app', // becomes ./.wvb/app.wvb
+  write: true, // default true; set false to pack in memory only
+  overwrite: true, // default true
+});
+
+console.log(result.outFilePath); // absolute path to the written .wvb
+console.log(result.bundle); // the in-memory Bundle
+```
+
+`PackParams` accepts `srcDir`, `outFile`, optional `ignores` and `headers` (the same shapes as the
+config file), `write` (default `true`), `overwrite` (default `true`), `cwd` (default
+`process.cwd()`), `logLevel` (default `'info'`), and an optional `logger`. The returned `PackResult`
+has `outFilePath` and `bundle` (a `Bundle` from `@wvb/node`).
+
+### extract
+
+Read a `.wvb` file and write its entries to a directory.
+
+```ts
+import { extract } from '@wvb/cli/api';
+
+const bundle = await extract({
+  file: './.wvb/app.wvb',
+  outDir: './extracted', // defaults to .wvb/<basename> when omitted
+  clean: true, // default false; remove outDir first
+});
+```
+
+`ExtractParams` accepts `file` (required), optional `outDir`, `cwd`, `write` (default `true`),
+`clean` (default `false`), and a `logger`. It returns the parsed `Bundle`.
+
+### serve
+
+Start a localhost server that serves a bundle to a webview. Directory paths resolve to `index.html`.
+
+```ts
+import { serve } from '@wvb/cli/api';
+
+const instance = await serve({
+  file: './.wvb/app.wvb',
+  port: 4312, // default 4312
+  silent: false, // default false; true disables request logging
+});
+
+// ... later
+await instance.shutdown();
+```
+
+`ServeParams` accepts `file` (required), optional `hostname`, `port` (default `4312`), `silent`
+(default `false`), `cwd`, `logger`, and `colorEnabled`. It returns a `ServeInstance` with the raw
+`server` and a `shutdown()` method.
+
+### remoteUpload
+
+Upload a packed bundle to a remote. Pass a file path or an in-memory `Bundle`, plus an `uploader`
+from your remote configuration.
+
+```ts
+import { pack, remoteUpload } from '@wvb/cli/api';
+import { loadConfigFile } from '@wvb/cli';
+
+const config = await loadConfigFile();
+const { bundle } = await pack({ srcDir: './dist', outFile: './.wvb/app' });
+
+await remoteUpload({
+  file: bundle,
+  bundleName: 'app',
+  version: '1.2.0',
+  uploader: config.remote.uploader,
+  integrity: true, // default true
+});
+```
+
+`RemoteUploadParams` accepts `file` (a path or `Bundle`), `bundleName`, `version`, and `uploader`
+(a `BaseRemoteUploader`). Optional fields are `force`, `integrity` (default `true`; pass an
+integrity config to customize), `signature`, `logger`, and `cwd`.
+
+<Callout type="info">
+  Integrity uses SHA-2 (`sha256` by default). The signature, when provided, signs the integrity
+  string bytes — see [Remote bundles](/docs/guide/core-concepts/over-the-air) for how integrity and
+  signatures fit together.
+</Callout>
+
+### builtin
+
+Install builtin bundles into your app from a remote or local target.
+
+```ts
+import { builtin } from '@wvb/cli/api';
+
+const result = await builtin({
+  target: { type: 'remote' }, // discriminated union: 'remote' | 'local'
+  dir: './.wvb/builtin/bundles',
+  clean: true, // default true
+});
+
+console.log(result.manifest);
+```
+
+`BuiltinParams` accepts `target` (a `BuiltinTarget` discriminated union keyed by `type`), optional
+`dir` (default `'.wvb/builtin/bundles'`), `include`/`exclude` match lists, `channel`, `clean`
+(default `true`), `cwd`, `write` (default `true`), `logLevel`, `logger`, `progress`, and the
+mobile presets `android` and `ios`. It returns a `BuiltinResult` whose `manifest` describes the
+installed bundles.
+
+### localRemote
+
+Start a local remote server for development. This mirrors the `wvb remote local` command and
+dynamically imports the optional peer dependency `@wvb/remote-local-provider`, so make sure that
+package is installed.
+
+```ts
+import { localRemote } from '@wvb/cli/api';
+
+const instance = await localRemote({
+  baseDir: '~/.wvb/local',
+  port: 4313, // default 4313
+  allowOtherVersions: false,
+});
+
+// ... later
+await instance.shutdown();
+```
+
+`LocalRemoteParams` accepts optional `baseDir` (the provider resolves `~/.wvb/local` by default),
+`hostname`, `port` (default `4313`), `silent` (default `false`), `allowOtherVersions`, `logger`,
+and `colorEnabled`. It returns a `LocalRemoteInstance` with the raw `server` and `shutdown()`.
+
+<Callout type="warn">
+  `@wvb/remote-local-provider` is an optional peer dependency. If it is not installed, `localRemote`
+  throws when it tries to import it. Add it alongside `@wvb/cli` when you use local remotes.
+</Callout>
+
+## Config helpers from the main entry
+
+The default `@wvb/cli` entry (not `/api`) re-exports the config tooling. It surfaces `defineConfig`
+from [`@wvb/config`](/docs/references/configuration), plus `loadConfigFile` and `resolveConfig`, and the
+`InlineConfig` and `ResolvedConfig` types.
+
+```ts
+import {
+  defineConfig,
+  loadConfigFile,
+  resolveConfig,
+  type InlineConfig,
+  type ResolvedConfig,
+} from '@wvb/cli';
+
+// Discover and load wvb.config.* from the current directory.
+const config: ResolvedConfig = await loadConfigFile();
+
+// Or load an explicit file and merge inline overrides on top.
+const inline: InlineConfig = { root: process.cwd() };
+const merged = await resolveConfig(inline);
+```
+
+`loadConfigFile` finds and bundles the config file, then resolves it. `resolveConfig` merges a
+file config under your inline config, sets `root` (default `process.cwd()`), attaches the nearest
+`package.json`, and returns a readonly `ResolvedConfig`. Use `defineConfig` inside the config file
+itself to get full type inference.
+
+## Config discovery
+
+When you call `loadConfigFile` without an explicit path — and when the CLI runs without `--config` —
+Webview Bundle searches the working directory for the first matching file in this order:
+
+```text
+wvb.config.js
+wvb.config.cjs
+wvb.config.mjs
+wvb.config.ts
+wvb.config.cts
+wvb.config.mts
+webview-bundle.config.js
+webview-bundle.config.cjs
+webview-bundle.config.mjs
+webview-bundle.config.ts
+webview-bundle.config.cts
+webview-bundle.config.mts
+wvb.config.json
+wvb.config.jsonc
+```
+
+Both base names — `wvb.config.*` and `webview-bundle.config.*` — support the `.js`, `.cjs`, `.mjs`,
+`.ts`, `.cts`, and `.mts` extensions. The `.json` and `.jsonc` extensions are supported only for
+the `wvb.config` base name. Pass `--config`, `-C` (or call `loadConfigFile` with an explicit path)
+to bypass discovery.
+
+Config files are bundled with `rolldown` before they run, so TypeScript and ESM/CJS files load
+without a separate build step. Bare and `npm:` specifiers and Node builtins stay external.
+
+<Callout type="info">
+  Under Deno, config files are always treated as ESM — the loader skips the package-type and
+  extension sniffing it uses on Node. Deno Desktop support is experimental; see the [Deno
+  guide](/docs/guide/native/deno).
+</Callout>

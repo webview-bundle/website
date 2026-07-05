@@ -1,0 +1,30 @@
+---
+title: 'invoke'
+description: 'Invokes a native bridge command and resolves its result.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Invokes a native bridge command and resolves its result.
+Before using the bridge, make sure native supports webview-bundle.
+
+Throws a [`BridgeError`](/docs/references/api/bridge/bridge-error) on failure.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/bridge/src/invoke.ts#L27)
+
+```ts
+function invoke<T = unknown>(name: string, params?: InvokeParams): Promise<T>;
+```
+
+## Parameters
+
+<TypeTable
+  type={{
+    name: { type: 'string', required: true },
+    params: { type: 'InvokeParams', required: false },
+  }}
+/>
+
+## Returns
+
+`Promise<T>`

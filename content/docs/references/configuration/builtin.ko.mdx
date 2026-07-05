@@ -1,0 +1,83 @@
+---
+title: builtin
+description: 'wvb.config의 builtin 섹션 — 원격이나 로컬 워크스페이스에서 앱 안에 함께 배포할 번들을 설치합니다.'
+---
+
+`builtin`(`BuiltinConfig`)은 [`wvb builtin`](/docs/references/cli/builtin)의 기본값을 설정합니다.
+`wvb builtin`은 앱 안에 함께 배포되는 번들을 설치합니다. 번들은 원격에서 다운로드하거나 로컬
+워크스페이스에서 수집합니다.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  builtin: {
+    outDir: '.wvb/builtin/bundles',
+    target: { type: 'remote' },
+    include: ['app*'],
+    exclude: [/^internal-/],
+    clean: true,
+  },
+});
+```
+
+| Field     | Type                                                                 | Default                |
+| --------- | -------------------------------------------------------------------- | ---------------------- |
+| `outDir`  | `string`                                                             | `.wvb/builtin/bundles` |
+| `target`  | `BuiltinTarget`                                                      | `{ type: 'remote' }`   |
+| `include` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)` | —                      |
+| `exclude` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)` | —                      |
+| `clean`   | `boolean`                                                            | `true`                 |
+
+`include`와 `exclude`는 후보 번들을 필터링합니다. 각 필드는 글로브 문자열, 정규식, 둘 중 하나의
+배열, 또는 프레디킷 `(info: { name: string; version: string }) => boolean`(선택적으로 비동기)을
+받습니다. `clean`을 활성화하면 설치 전에 출력 디렉터리를 비웁니다.
+
+## target
+
+`target`은 `type`을 기준으로 하는 판별 유니온입니다. 서버에서 번들을 다운로드하려면 `remote`를,
+저장소의 워크스페이스에서 번들을 수집하려면 `local`을 선택하세요.
+
+```ts
+// remote 타겟 — 서버에서 다운로드
+target: {
+  type: 'remote',
+  endpoint: 'https://updates.example.com',
+  download: {
+    concurrency: 4,
+    // http: { /* @wvb/node의 HttpOptions */ },
+  },
+}
+
+// local 타겟 — 워크스페이스에서 수집
+target: {
+  type: 'local',
+  workspaces: ['packages/*'],
+  bundleName: { from: 'package.json' },
+  version: { from: 'package.json' },
+  packBeforeInstall: true,
+}
+```
+
+`remote` 타겟에서 `endpoint`와 `download`는 선택 사항입니다. 유일한 동시성 조절 값은
+`download.concurrency`입니다. `download.http`는 [`@wvb/node`](/docs/references/api/node)의
+`HttpOptions` 타입을 받습니다.
+
+| `remote` field         | Type          | Default |
+| ---------------------- | ------------- | ------- |
+| `endpoint`             | `string`      | —       |
+| `download.concurrency` | `number`      | —       |
+| `download.http`        | `HttpOptions` | —       |
+
+`local` 타겟에서 `workspaces`는 필수입니다. 이는 설정 전체에서 유일하게 필수인 필드입니다.
+`integrity`와 `signature` 옵션은 remote 섹션과 동일한 형태를 공유합니다.
+[원격, 무결성 및 서명](/docs/references/configuration/remote)을 참고하세요.
+
+| `local` field       | Type                                                | Default  |
+| ------------------- | --------------------------------------------------- | -------- |
+| `workspaces`        | `string[] \| (() => string[] \| Promise<string[]>)` | required |
+| `bundleName`        | `BundleNameResolver`                                | —        |
+| `version`           | `VersionResolver`                                   | —        |
+| `integrity`         | `boolean \| IntegrityMakeConfig`                    | —        |
+| `signature`         | `SignatureSignConfig`                               | —        |
+| `packBeforeInstall` | `boolean`                                           | `true`   |

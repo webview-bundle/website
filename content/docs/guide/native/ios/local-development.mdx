@@ -1,0 +1,45 @@
+---
+title: Local development
+description: Register a local protocol so WKWebView loads your dev server over the bundle scheme, and switch on #if DEBUG.
+---
+
+In development you want `WKWebView` to load your running dev server, not a packed `.wvb`. Register a `.local` protocol on your bundle scheme so the same `app://app.wvb` URL proxies to the dev server and edits reload live.
+
+## Proxy the dev server
+
+`.local(scheme:hosts:)` forwards each mapped host to a running dev server. The `hosts` key is matched against the **entire** request host, so map `app.wvb` — the full host you load — to the dev server origin.
+
+Build the `protocols` array conditionally on the same scheme: `.local` in `#if DEBUG`, `.bundle` in release. The loaded URL never changes — only the handler behind it does.
+
+```swift title="ContentView.swift"
+import WebKit
+import WebViewBundle
+
+#if DEBUG
+let protocols: [WebViewBundleProtocol] = [
+  // Dev: proxy `app://app.wvb/...` to the Vite dev server for hot reload.
+  .local(scheme: "app", hosts: ["app.wvb": "http://localhost:5173"]),
+]
+#else
+let protocols: [WebViewBundleProtocol] = [
+  // Prod: serve `app://app.wvb/...` from the packed bundle.
+  .bundle(scheme: "app"),
+]
+#endif
+
+let instance = try WebViewBundle.configure(WebViewBundleConfig(protocols: protocols))
+
+let config = WKWebViewConfiguration()
+instance.install(on: config)
+
+let webView = WKWebView(frame: .zero, configuration: config)
+webView.load(URLRequest(url: URL(string: "app://app.wvb")!))
+```
+
+## App Transport Security
+
+<Callout type="warn">
+  If your dev server is plain `http://localhost`, iOS App Transport Security may block the cleartext
+  request. Add an `NSAllowsLocalNetworking` exception under `NSAppTransportSecurity` in your app's
+  `Info.plist` for development builds.
+</Callout>

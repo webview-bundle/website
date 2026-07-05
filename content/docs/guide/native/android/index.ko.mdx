@@ -1,0 +1,318 @@
+---
+title: 설정
+description: webview-bundle-android Kotlin 라이브러리로 Android WebView 안에서 Webview Bundle을 제공하고 업데이트합니다.
+---
+
+`webview-bundle-android` 라이브러리는 Webview Bundle Rust 코어를 Android `WebView`에 연결합니다. `WebView`를 넘겨주면 이 라이브러리가 일반적인 `https://<bundle>.wvb/` URL로 들어오는 요청을 가로챕니다. APK에 함께 배포한 번들의 파일을 제공하고, 앱스토어 출시 없이 원격에서 최신 번들을 무선(OTA)으로 가져옵니다.
+
+## 요구 사항
+
+| 항목                    | 값                                                               |
+| ----------------------- | ---------------------------------------------------------------- |
+| `minSdk`                | 24 (Android 7.0)                                                 |
+| JVM target              | 17 (Java와 Kotlin source/target 17)                              |
+| AndroidX                | 필수 (`android.useAndroidX=true`, `androidx.webkit`에 필요)      |
+| System WebView          | `WEB_MESSAGE_LISTENER`를 지원해야 함 (최신 WebView / Chrome 88+) |
+| 라이브러리 네임스페이스 | `dev.wvb`                                                        |
+
+브리지는 `WebViewCompat.addWebMessageListener`를 통해 연결됩니다. System WebView가 너무 오래되어 `WEB_MESSAGE_LISTENER`를 지원하지 못하는 기기에서는 브리지가 연결되지 않고, 라이브러리는 경고를 기록합니다. 이 경우에도 파일 제공은 정상 동작하며, JavaScript 브리지만 사용할 수 없습니다.
+
+런타임 의존성은 전이적으로 함께 포함됩니다. JNA(`net.java.dev.jna:jna`, 네이티브 `libwvb_ffi.so`를 로드), `kotlinx-coroutines-core`, `androidx.webkit`가 그 대상입니다. 소비자용 R8/ProGuard 규칙이 라이브러리에 함께 제공되므로, FFI를 위한 keep 규칙을 직접 추가할 필요가 없습니다.
+
+의존성을 추가합니다.
+
+```kotlin title="build.gradle.kts"
+dependencies {
+  implementation("dev.wvb:webview-bundle-android:<version>")
+}
+```
+
+<Callout type="info">
+  모든 플랫폼의 지원 현황은 [플랫폼
+  지원](/docs/guide/getting-started/platform-and-framework-support)을 참고하세요.
+</Callout>
+
+## 빠른 시작
+
+`WebViewBundle.getInstance`로 프로세스 전역 `WebViewBundle` 싱글턴을 얻고, 이를 `WebView`에 설치한 다음 번들 URL을 로드합니다. 번들 이름은 호스트의 첫 번째 레이블입니다. 따라서 `https://app.wvb/`는 `app`이라는 이름의 번들을 제공합니다.
+
+```kotlin title="MainActivity.kt"
+import android.os.Bundle
+import android.webkit.WebSettings
+import android.webkit.WebView
+import androidx.appcompat.app.AppCompatActivity
+import dev.wvb.WebViewBundle
+import dev.wvb.WebViewBundleConfig
+import dev.wvb.WebViewBundleProtocol
+
+class MainActivity : AppCompatActivity() {
+  private lateinit var webView: WebView
+  private lateinit var handle: AutoCloseable
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    val wvb = WebViewBundle.getInstance(
+      this,
+      WebViewBundleConfig(
+        protocols = listOf(WebViewBundleProtocol.bundle()),
+      ),
+    )
+
+    webView = WebView(this)
+    webView.settings.apply {
+      javaScriptEnabled = true
+      domStorageEnabled = true
+      mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+      allowFileAccess = false
+      allowContentAccess = false
+    }
+
+    handle = wvb.install(webView) { }
+    webView.loadUrl("https://app.wvb/")
+    setContentView(webView)
+  }
+
+  override fun onDestroy() {
+    handle.close()
+    webView.destroy()
+    super.onDestroy()
+  }
+}
+```
+
+`getInstance`는 프로세스마다 첫 호출에서만 `config`를 반영합니다. 이후 호출은 기존 인스턴스를 반환하고 전달된 config는 무시합니다. `getInstance`에는 짧은 별칭도 있습니다.
+
+```kotlin
+WebViewBundle.getInstance(context, config)   // 정식 형태
+WebViewBundle(context, config)               // invoke 연산자
+webViewBundle(context, config)               // 최상위 함수
+wvb(context, config)                         // 짧은 별칭
+```
+
+매니페스트에는 인터넷 권한이 필요합니다. 평문(cleartext) 개발 서버나 원격을 대상으로 로컬 개발을 할 때는 `usesCleartextTraffic`도 활성화하세요.
+
+```xml title="AndroidManifest.xml"
+<uses-permission android:name="android.permission.INTERNET" />
+
+<application
+  android:usesCleartextTraffic="true">
+  <!-- ... -->
+</application>
+```
+
+<Callout type="warn">
+  `usesCleartextTraffic="true"`는 로컬 개발 전용입니다. 프로덕션 번들은 앱 내부에서 `https://`로
+  제공되고 원격 엔드포인트는 TLS를 사용해야 하므로, 릴리스 빌드에서는 평문 통신을 비활성화한 채로
+  두세요.
+</Callout>
+
+## 파일 제공 동작 방식
+
+커스텀 URL 스킴은 등록되지 않습니다. `install()`은 `WebViewClient`를 설정하며, 이 클라이언트의 `shouldInterceptRequest`가 일반적인 `http`/`https` 요청을 검사해 일치하는 요청을 번들 소스에서 제공합니다. 각 요청마다 핸들러는 호스트를 소문자로 바꾼 뒤 등록된 프로토콜을 순서대로 살펴봅니다. 호스트를 처음으로 받아들이는 매처가 선택됩니다. 번들 프로토콜은 첫 번째 호스트 레이블을 번들 이름으로 삼고, 요청 경로에 해당하는 파일을 반환합니다. 일치하는 것이 없으면 `null`을 반환하고 `WebView`는 네트워크에서 로드합니다.
+
+핸들러가 예외를 던지면 라이브러리는 `500 text/plain` 응답을 만들고 선택적 `onError` 콜백을 호출합니다. 요청 경로가 `.wvb` 안의 파일로 어떻게 매핑되는지는 [프로토콜 처리](/docs/guide/core-concepts/protocol-handling)를 참고하세요.
+
+`install()`은 메인 프레임에 네이티브 브리지를 `window.wvbAndroid`로 함께 연결합니다. install 옵션을 사용하면 추가 네이티브 핸들러를 등록하거나, 직접 만든 `WebViewClient`를 감싸거나, 브리지를 생략할 수 있습니다.
+
+```kotlin
+val handle = wvb.install(webView) {
+  delegate = myWebViewClient        // 여러분의 콜백이 보존됩니다
+  disableBridge = false             // window.wvbAndroid를 생략하려면 true로 설정
+  bridge = {
+    handler("greet") { params -> "hello" }
+  }
+}
+```
+
+브리지 없이 파일 제공 연결부만 원한다면, 저수준 클라이언트를 직접 사용하세요.
+
+```kotlin
+webView.webViewClient = wvb.createWebViewClient(delegate = myWebViewClient)
+```
+
+## 빌트인 번들
+
+앱이 처음 시작할 때 사용하는 번들을 APK의 `assets/bundles/` 아래에 함께 배포하세요. `manifest.json`과 그것이 참조하는 `.wvb` 파일들로 구성됩니다.
+
+```text
+app/src/main/assets/bundles/
+├── manifest.json
+└── app/
+    └── app_0.1.0.wvb
+```
+
+네이티브 소스는 에셋 스트림이 아니라 파일을 읽습니다. 그래서 라이브러리는 `assets/bundles/`를 앱의 `filesDir`로 복사합니다. 이 동작은 `SourceOptions`로 제어합니다.
+
+```kotlin
+import dev.wvb.SourceOptions
+
+WebViewBundleConfig(
+  protocols = listOf(WebViewBundleProtocol.bundle()),
+  source = SourceOptions(
+    builtinAssetsDir = "bundles",   // APK의 assets/<dir>, null이면 추출 비활성화
+    // builtinDir은 기본값이 <filesDir>/wvb/builtin (읽기 전용)
+    // remoteDir은 기본값이 <filesDir>/wvb/remote (쓰기 가능)
+  ),
+)
+```
+
+재추출은 APK를 설치하거나 업데이트할 때마다 일어나며 추가 방식으로 동작합니다. 제거된 에셋은 삭제되지 않습니다. `manifest.json`은 번들 엔트리와 현재 버전을 선언하며, `integrity`와 `signature` 값을 담을 수 있습니다.
+
+```json title="manifest.json"
+{
+  "manifestVersion": 1,
+  "bundles": {
+    "app": {
+      "currentVersion": "0.1.0",
+      "versions": {
+        "0.1.0": {
+          "integrity": "sha256:n4bQgYhMfWWaL...",
+          "signature": "..."
+        }
+      }
+    }
+  }
+}
+```
+
+매니페스트 포맷은 [번들 소스](/docs/guide/core-concepts/bundle-source)를 참고하세요.
+
+## 프로토콜
+
+프로토콜은 `WebView` 요청을 어떤 호스트에서 제공할지 결정합니다. 프로토콜은 `WebViewBundleConfig.protocols`에 등록하며, 순서대로 평가되어 처음 일치하는 것이 선택됩니다. 따라서 `bundle()`은 모든 호스트에 일치하므로 **가장 마지막에 등록하세요**.
+
+<Tabs items={['Bundle', 'Local']}>
+<Tab value="Bundle">
+
+`WebViewBundleProtocol.bundle()`은 모든 호스트에 대해 번들 소스의 엔트리를 제공하며, 첫 번째 호스트 레이블을 번들 이름으로 사용합니다. 특정 이름의 호스트를 대신 네트워크로 보내려면 패스스루 블록을 전달하세요.
+
+```kotlin
+WebViewBundleProtocol.bundle {
+  passthrough("api.example.com")
+  passthroughDomain("analytics.example.com")
+  passthrough { host -> host.endsWith(".cdn.example.com") }
+}
+```
+
+</Tab>
+<Tab value="Local">
+
+`WebViewBundleProtocol.local(hosts)`는 개발용 프록시입니다. 전체 요청 호스트를 로컬 베이스 URL로 매핑하므로, 개발 중에 번들러의 핫 리로드를 그대로 유지할 수 있습니다. Android 에뮬레이터에서 `10.0.2.2`는 호스트 머신의 루프백에 연결됩니다.
+
+```kotlin
+WebViewBundleProtocol.local(
+  mapOf("app.wvb" to "http://10.0.2.2:3000"),
+)
+```
+
+</Tab>
+</Tabs>
+
+일반적인 개발 설정에서는 프록시할 호스트에 `local()`을 등록하고, 폴백으로 `bundle()`을 가장 마지막에 등록합니다.
+
+```kotlin
+WebViewBundleConfig(
+  protocols = listOf(
+    WebViewBundleProtocol.local(mapOf("app.wvb" to "http://10.0.2.2:3000")),
+    WebViewBundleProtocol.bundle(),
+  ),
+)
+```
+
+## OTA 업데이트
+
+`WebViewBundleUpdaterConfig`를 `WebViewBundleConfig.updater`로 전달하세요. 그러면 라이브러리가 원격 클라이언트와 업데이터를 만들어 각각 `wvb.remote`와 `wvb.updater`로 노출합니다(업데이터 config를 제공하지 않으면 둘 다 `null`).
+
+```kotlin title="MainActivity.kt"
+import android.util.Base64
+import dev.wvb.IntegrityPolicy
+import dev.wvb.SignatureAlgorithm
+import dev.wvb.SignatureVerifierOptions
+import dev.wvb.SignatureVerifyingKey
+import dev.wvb.VerifyingKeyFormat
+import dev.wvb.WebViewBundleConfig
+import dev.wvb.WebViewBundleProtocol
+import dev.wvb.WebViewBundleRemoteConfig
+import dev.wvb.WebViewBundleUpdaterConfig
+
+val wvb = WebViewBundle.getInstance(
+  this,
+  WebViewBundleConfig(
+    protocols = listOf(WebViewBundleProtocol.bundle()),
+    updater = WebViewBundleUpdaterConfig(
+      remote = WebViewBundleRemoteConfig(endpoint = "http://10.0.2.2:4313"),
+      channel = "stable",
+      integrityPolicy = IntegrityPolicy.STRICT,
+      signatureVerifier = SignatureVerifierOptions(
+        algorithm = SignatureAlgorithm.ED25519,
+        key = SignatureVerifyingKey(
+          format = VerifyingKeyFormat.SPKI_DER,
+          pem = null,
+          der = Base64.decode("MCowBQYDK2VwAyEA...", Base64.NO_WRAP),
+        ),
+      ),
+    ),
+    onError = { error -> /* 로그 */ },
+  ),
+)
+```
+
+`IntegrityPolicy.STRICT`는 다이제스트가 일치하지 않는 번들을 거부합니다. `OPTIONAL`은 값이 있을 때만 검증하고 없으면 건너뜁니다. `NONE`은 검사를 건너뜁니다. integrity 문자열은 SHA-2(`sha256`, `sha384`, `sha512`)를 사용합니다. 서명 검증기는 누가 번들을 게시했는지 증명합니다. 모든 알고리즘과 키 포맷 조합이 유효한 것은 아닙니다.
+
+| `SignatureAlgorithm`                 | 유효한 `VerifyingKeyFormat`                                  |
+| ------------------------------------ | ------------------------------------------------------------ |
+| `ECDSA_SECP256R1`, `ECDSA_SECP384R1` | `SEC1`, `SPKI_DER`, `SPKI_PEM`                               |
+| `ED25519`                            | `SPKI_DER`, `SPKI_PEM`, `RAW` (`der`로 전달하는 32바이트 키) |
+| `RSA_PKCS1_V15`, `RSA_PSS`           | `PKCS1_DER`, `PKCS1_PEM`, `SPKI_DER`, `SPKI_PEM`             |
+
+지원되지 않는 조합은 업데이터를 만들 때 `Exception.Signature`를 던집니다. `*_PEM` 포맷에서는 `pem`을, DER·`SEC1`·`RAW`에서는 `der`을 읽습니다.
+
+<Callout type="info">
+  Android 에뮬레이터에서는 호스트 머신에서 실행 중인 원격에 `http://10.0.2.2:4313`으로 연결할 수
+  있습니다(로컬 원격의 기본 포트). `channel` 값은 쿼리 파라미터로 원격에 전송되어, 원격이 특정
+  릴리스 채널을 제공할 수 있게 합니다.
+</Callout>
+
+### Kotlin에서 업데이트 구동하기
+
+업데이터는 3단계 주기로 실행됩니다. 각 호출은 `suspend` 함수이므로 코루틴에서 호출하세요.
+
+```kotlin
+import kotlinx.coroutines.launch
+
+lifecycleScope.launch {
+  val update = wvb.updater?.getUpdate("app")          // 원격 확인, 다운로드 없음
+  if (update != null && update.isAvailable) {
+    wvb.updater?.downloadUpdate("app")              // 최신 버전 다운로드, remote 디렉터리에 저장
+    wvb.updater?.install("app", update.version)     // 검증, 활성화, 이전 버전 정리
+  }
+}
+```
+
+`getUpdate`는 다운로드 없이 더 새로운 버전이 있는지 알려줍니다. `downloadUpdate`는 번들을 가져와 저장합니다(버전을 넘기지 않으면 최신 버전). `install`은 준비된 번들의 무결성과 서명을 검증하고, 그것을 현재 버전으로 만들며, 오래된 버전을 정리합니다.
+
+### 웹 JavaScript에서 업데이트 구동하기
+
+동일한 주기를 `window.wvbAndroid` 브리지를 통해 웹 앱에서도 사용할 수 있습니다. 빌트인 업데이터 명령어는 `updaterGetUpdate`, `updaterDownload`, `updaterInstall`입니다. 업데이터 config를 제공하지 않은 경우 이들은 `updater_not_initialized`를 던집니다.
+
+```ts
+declare const wvbAndroid: {
+  postMessage(message: string): void;
+};
+
+// 브리지는 { name, params, success, error }를 전달하고 콜백으로 응답합니다.
+// 명령어마다 Promise를 이행하는 작은 래퍼:
+function invoke(name: string, params?: unknown): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    // ... success/error 콜백을 연결한 다음:
+    wvbAndroid.postMessage(JSON.stringify({ name, params }));
+  });
+}
+
+const update = await invoke('updaterGetUpdate', { name: 'app' });
+await invoke('updaterDownload', { name: 'app' });
+await invoke('updaterInstall', { name: 'app', version: '0.2.0' });
+```
+
+플랫폼 전반의 원격 HTTP 규약, 무결성, 서명에 대해서는 [원격 번들](/docs/guide/core-concepts/over-the-air)과 [원격 구축하기](/docs/guide/remote) 가이드를 참고하세요.

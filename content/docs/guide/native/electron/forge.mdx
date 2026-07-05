@@ -1,0 +1,82 @@
+---
+title: Electron Forge
+description: Ship packed .wvb builtins as an extra resource and unpack the native @wvb/node addon from the ASAR with the @wvb/electron-forge plugin.
+---
+
+`@wvb/electron-forge` is an Electron Forge plugin that wires Webview Bundle into your packaging step. It installs your packed `.wvb` builtins into the packaged app's resources and helps keep the native `@wvb/node` addon available at runtime, so you do not stage bundle files by hand. Use it alongside the main [Electron guide](/docs/guide/native/electron), which covers serving bundles through a custom protocol and updating them over the air.
+
+## What the plugin does
+
+The plugin extends Forge's `PluginBase` and hooks `packageAfterCopy`. At package time it resolves your Webview Bundle config, installs the builtin `.wvb` bundles (downloaded from a `remote` target or packed from local workspaces via `@wvb/cli`), stages them under `<root>/.wvb/builtin/bundles`, and copies them into the packaged app's resources next to the copied app directory. That destination is exactly where `@wvb/electron` reads builtin bundles from at runtime.
+
+See the package source for the exact surface: [`@wvb/electron-forge`](https://github.com/webview-bundle/webview-bundle/tree/main/packages/electron-forge).
+
+## Add it to forge.config.ts
+
+Register the plugin in your Forge config alongside your other plugins. The plugin class is `WebviewBundlePlugin` (also exported as the default export and aliased `WvbPlugin`).
+
+```ts title="forge.config.ts"
+import type { ForgeConfig } from '@electron-forge/shared-types';
+import { WebviewBundlePlugin } from '@wvb/electron-forge';
+
+const config: ForgeConfig = {
+  plugins: [new WebviewBundlePlugin({ bundlesDir: 'bundles', channel: 'beta' })],
+};
+
+export default config;
+```
+
+The plugin reads its options from `WebviewBundlePluginConfig`:
+
+| Option                    | Type                | Default     | Meaning                                                                           |
+| ------------------------- | ------------------- | ----------- | --------------------------------------------------------------------------------- |
+| `bundlesDir`              | `string`            | `'bundles'` | destination dir name under the packaged app's resources                           |
+| `configFile`              | `string \| boolean` | `true`      | `true` auto-discovers and merges; a path loads explicitly; `false` is inline only |
+| `channel`                 | `string`            | —           | release channel to install bundles from                                           |
+| `throwWhenBuiltinIsEmpty` | `boolean`           | `true`      | throw if zero bundles are installed                                               |
+
+It also accepts inline `root` and `builtin` config picked from the shared [Webview Bundle config](/docs/references/configuration). When `builtin.target` is unset, the plugin defaults to a `remote` target using your resolved remote endpoint.
+
+## Native binary and extra resource
+
+Even without the plugin, two things must reach the packaged app: the builtin `bundles` directory and the native `@wvb/node` addon. The plugin handles the bundles; the native addon is unpacked from the ASAR archive with Forge's `AutoUnpackNativesPlugin`.
+
+```ts title="forge.config.ts"
+import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives';
+import { WebviewBundlePlugin } from '@wvb/electron-forge';
+
+const config: ForgeConfig = {
+  packagerConfig: {
+    asar: true,
+    extraResource: ['bundles'], // ship the builtin bundles
+  },
+  plugins: [
+    // …vite plugin…
+    new AutoUnpackNativesPlugin({}), // unpack @wvb/node's .node binary from the ASAR
+    new WebviewBundlePlugin({}),
+  ],
+};
+```
+
+`extraResource: ['bundles']` ships the builtin bundles into the packaged app's resources. `AutoUnpackNativesPlugin` unpacks the `@wvb/node` native `.node` binary out of the ASAR so it can be loaded at runtime. Run [`wvb pack`](/docs/references/cli/pack) to produce the `.wvb` files that land in that `bundles` directory.
+
+## Keep node_modules so the native module is bundled
+
+The Forge Vite plugin can exclude `node_modules` from the package, which drops the native `@wvb/node` module. If you hit a missing `@wvb/node` binary at runtime, override `packagerConfig.ignore` so `node_modules` is kept.
+
+```ts title="forge.config.ts"
+const config: ForgeConfig = {
+  packagerConfig: {
+    asar: true,
+    extraResource: ['bundles'],
+    // Keep node_modules so the native @wvb/node addon is bundled.
+    ignore: [/^\/(?!node_modules|\.vite|package\.json)/],
+  },
+};
+```
+
+<Callout type="info">
+  If your app starts in development but the window is blank when packaged, the `bundles` resource or
+  the native `@wvb/node` binary was most likely left out. Verify `extraResource`,
+  `AutoUnpackNativesPlugin`, and the `packagerConfig.ignore` override above.
+</Callout>

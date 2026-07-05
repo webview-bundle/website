@@ -1,0 +1,27 @@
+{
+  "title": "@wvb/config",
+  "pages": [
+    "---함수---",
+    "define-config",
+    "---인터페이스---",
+    "builtin-config",
+    "builtin-download-config",
+    "builtin-local-target-config",
+    "builtin-remote-target-config",
+    "bundle-info-resolver-params",
+    "config",
+    "pack-config",
+    "serve-config",
+    "---타입---",
+    "builtin-bundle-matches",
+    "builtin-target",
+    "bundle-name-resolver",
+    "config-input",
+    "config-input-fn",
+    "config-input-fn-obj",
+    "config-input-fn-promise",
+    "headers-config",
+    "ignore-config",
+    "version-resolver"
+  ]
+}

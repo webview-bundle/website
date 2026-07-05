@@ -1,0 +1,18 @@
+{
+  "title": "CLI",
+  "pages": [
+    "index",
+    "installation",
+    "programmatic",
+    "environment",
+    "---Commands---",
+    "pack",
+    "unpack",
+    "builtin",
+    "serve",
+    "remote-upload",
+    "remote-deploy",
+    "remote-download",
+    "remote"
+  ]
+}

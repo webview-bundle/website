@@ -1,0 +1,40 @@
+---
+title: Overview
+---
+
+A remote is the HTTP server your app downloads new bundles from over the air. You publish a packed `.wvb` to it, mark a version as current, and clients fetch that version without a native app release.
+
+## Publish and download
+
+Publishing is a two-step model, both run from the [CLI](/docs/guide/remote/using-cli):
+
+1. **Upload** stores a packed version on the remote.
+2. **Deploy** marks which version is current — the one clients receive.
+
+Clients then check for and download the deployed version through the updater. See [Over-the-air](/docs/guide/core-concepts/over-the-air) for the client-side flow, and [Remote configuration](/docs/references/configuration/remote) for the `remote` block that wires it up.
+
+## Run a remote
+
+There are two ways to run a remote.
+
+**Use a provider.** A provider gives you a server to deploy and an `uploader`/`deployer` pair to drop into your config — no HTTP contract to implement.
+
+<Cards>
+  <Card
+    title="Local"
+    href="/docs/guide/remote/providers/local"
+    description="Serve bundles from disk for development and testing."
+  />
+  <Card
+    title="AWS"
+    href="/docs/guide/remote/providers/aws"
+    description="S3 and CloudFront, with optional KMS signing."
+  />
+  <Card
+    title="Cloudflare"
+    href="/docs/guide/remote/providers/cloudflare"
+    description="R2 storage behind a Workers handler."
+  />
+</Cards>
+
+**Build your own.** Any server that implements the remote HTTP contract works. See the [HTTP spec](/docs/guide/remote/http-spec).

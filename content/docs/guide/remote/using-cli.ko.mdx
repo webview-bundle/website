@@ -1,0 +1,59 @@
+---
+title: CLI 사용하기
+description: 로컬 리모트를 실행하고, 버전을 게시하고, 다시 다운로드하는 전체 업데이트 흐름을 터미널에서 실행합니다.
+---
+
+`wvb` CLI는 리모트 작업 전체를 처리합니다. 로컬 서버를 실행하고, 번들을 게시하고, 다시 다운로드할 수 있습니다. 이 가이드는 호스팅형 [프로바이더](/docs/guide/remote/providers/local)를 배포하기 전에 전체 흐름을 로컬에서 실행해 봅니다.
+
+## 리모트 설정
+
+설정에서 리모트를 지정하고 로컬 `uploader`/`deployer`을 넣습니다.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+import { localRemote } from '@wvb/remote-local';
+
+export default defineConfig({
+  remote: {
+    endpoint: 'http://localhost:4313',
+    integrity: { algorithm: 'sha256' },
+    ...localRemote({ baseDir: '.wvb/local' }),
+  },
+});
+```
+
+`endpoint`은 다운로드를 읽어오는 위치이며, `uploader`과 `deployer`은 `wvb upload`·`wvb deploy` 명령이 게시할 때 사용합니다. 모든 필드는 [리모트 설정](/docs/references/configuration/remote)을 참고하세요.
+
+## 로컬 리모트 실행
+
+같은 디렉터리를 사용하는 서버를 실행하고, 별도 터미널에서 켜 둡니다.
+
+```sh
+wvb remote local --base-dir .wvb/local
+```
+
+`http://localhost:4313`에서 제공합니다. 플래그는 [`wvb remote local`](/docs/references/cli/remote)을 참고하세요.
+
+## 버전 게시
+
+패킹, 업로드, 배포를 한 명령으로 실행합니다.
+
+```sh
+wvb upload app --version 1.0.0 --deploy
+```
+
+`--deploy` 없이 실행하면 버전은 스테이징만 됩니다. 현재 버전으로 만들려면 [`wvb deploy app --version 1.0.0`](/docs/references/cli/remote-deploy)을 실행하세요. 채널에 게시하려면 `--channel beta`도 함께 사용합니다.
+
+## 조회와 다운로드
+
+리모트가 제공하는 내용을 확인합니다.
+
+```sh
+wvb remote current app     # 현재 버전과 메타데이터
+wvb remote list            # 리모트의 모든 번들
+wvb download app           # 현재 .wvb을 디스크에 다운로드
+```
+
+## 앱에 설치
+
+CLI 다운로드는 리모트가 제공하는 내용을 확인하는 용도이며, 실제 앱은 CLI가 아니라 업데이터로 업데이트를 설치합니다. 앱의 리모트를 같은 엔드포인트(`http://localhost:4313`)로 지정한 뒤 확인 → 다운로드 → 설치 흐름을 실행하세요. 클라이언트 API는 [Over-The-Air](/docs/guide/core-concepts/over-the-air) 문서를, 연동 방법은 **네이티브** 섹션의 플랫폼별 가이드를 참고하세요.

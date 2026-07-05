@@ -1,0 +1,38 @@
+---
+title: Deploy
+description: Promote an already-uploaded version to current so clients pick it up over the air.
+---
+
+Uploading stores a version on the remote. Deploying makes it the **current** version — the one clients download over the air. Deploy is a separate, fast step: no repack, no re-upload.
+
+Deploy after [uploading](/docs/guide/frontend/upload), or pass `--deploy` to `wvb upload` to do both at once.
+
+## Deploy a version
+
+Point the remote at a version that is already uploaded:
+
+```sh
+wvb deploy app --version 1.2.0
+```
+
+`app` is the bundle name (falls back to your config or `package.json`). The version is the `--version` (`-V`) flag — there is no positional version.
+
+## Channels
+
+Deploy to a named channel to keep separate release tracks (`stable`, `beta`, `internal`, …). Clients on that channel receive the version you deploy there.
+
+```sh
+wvb deploy app --version 1.2.0 --channel beta
+```
+
+Omit `--channel` to deploy to the default channel.
+
+## Rollback
+
+There is no dedicated rollback command. To roll back, deploy a previously uploaded version — it becomes current again:
+
+```sh
+wvb deploy app --version 1.1.0
+```
+
+Any version already on the remote can be re-deployed, so keep known-good versions uploaded.

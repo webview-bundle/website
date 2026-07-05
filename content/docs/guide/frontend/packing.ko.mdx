@@ -1,0 +1,47 @@
+---
+title: '패킹'
+description: wvb pack으로 빌드된 웹 앱을 하나의 .wvb 번들로 패킹합니다.
+---
+
+패킹은 빌드된 웹 앱을 하나의 `.wvb` 파일로 만듭니다. 이 파일은 앱이 웹뷰에 배포하거나 원격 업데이트를 위해 업로드하는 단위입니다.
+
+## 번들 패킹하기
+
+빌드 산출물 디렉터리를 대상으로 `wvb pack`을 실행하세요. 소스 디렉터리 아래의 모든 파일을 읽어 하나의 압축된 `.wvb` 아카이브로 씁니다.
+
+```sh
+wvb pack                                    # uses config defaults
+wvb pack ./dist                             # explicit source directory
+wvb pack ./dist --outfile ./build/app.wvb   # explicit output path
+```
+
+소스 디렉터리의 기본값은 `pack.srcDir`(또는 `./dist`)이고, 출력 경로의 기본값은 `pack.outFile`입니다. `.wvb` 확장자는 생략하면 자동으로 붙습니다. 모든 플래그는 [`wvb pack`](/docs/references/cli/pack)을 참고하세요.
+
+## 이름과 버전
+
+번들 이름은 `package.json`의 `name` 필드에서 스코프 프리픽스를 제거한 값입니다. 이 값이 기본 출력 경로 `.wvb/<name>.wvb`을 결정합니다.
+
+버전은 `package.json`의 `version` 필드에서 가져옵니다. 패킹은 이 값을 파일명에 넣지 않습니다. 버전은 번들을 업로드하거나 빌트인으로 설치할 때 새겨집니다.
+
+## 기본값 설정하기
+
+`wvb.config` 파일에 `pack` 기본값을 설정하면 인자 없이 명령을 실행할 수 있습니다.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+    outFile: '.wvb/app',
+  },
+});
+```
+
+`outFile`은 단일 출력 경로이며, 별도의 `outDir`은 없습니다. 명령줄에서 전달한 플래그는 항상 config 값을 덮어씁니다. 전체 `pack` 스키마는 [Configuration](/docs/references/configuration)을 참고하세요.
+
+## 빌트인으로 배포하기
+
+패킹된 `.wvb`은 네이티브 앱 안에 빌트인 번들로 배포할 수 있으며, 앱이 오프라인 상태이거나 새 번들을 원격으로 가져오기 전에 제공됩니다.
+
+`wvb builtin`은 번들을 출력 디렉터리(기본값 `.wvb/builtin/bundles`)로 모으며, `manifest.json`과 함께 `<name>/<name>_<version>.wvb` 형태로 배치합니다.

@@ -1,0 +1,84 @@
+---
+title: builtin
+description: The builtin section of wvb.config — install bundles that ship inside your app from a remote or local workspaces.
+---
+
+`builtin` (`BuiltinConfig`) sets the defaults for [`wvb builtin`](/docs/references/cli/builtin),
+which installs bundles that ship inside your app — either downloaded from a remote or collected from
+local workspaces.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  builtin: {
+    outDir: '.wvb/builtin/bundles',
+    target: { type: 'remote' },
+    include: ['app*'],
+    exclude: [/^internal-/],
+    clean: true,
+  },
+});
+```
+
+| Field     | Type                                                                 | Default                |
+| --------- | -------------------------------------------------------------------- | ---------------------- |
+| `outDir`  | `string`                                                             | `.wvb/builtin/bundles` |
+| `target`  | `BuiltinTarget`                                                      | `{ type: 'remote' }`   |
+| `include` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)` | —                      |
+| `exclude` | `string \| RegExp \| Array<string \| RegExp> \| ((info) => boolean)` | —                      |
+| `clean`   | `boolean`                                                            | `true`                 |
+
+`include` and `exclude` filter the candidate bundles. Each accepts a glob string, a regular
+expression, an array of either, or a predicate
+`(info: { name: string; version: string }) => boolean` (optionally async). With `clean` enabled, the
+output directory is cleared before install.
+
+## target
+
+`target` is a discriminated union on `type`. Choose `remote` to download bundles from a server, or
+`local` to collect them from workspaces in your repository.
+
+```ts
+// Remote target — download from a server
+target: {
+  type: 'remote',
+  endpoint: 'https://updates.example.com',
+  download: {
+    concurrency: 4,
+    // http: { /* HttpOptions from @wvb/node */ },
+  },
+}
+
+// Local target — collect from workspaces
+target: {
+  type: 'local',
+  workspaces: ['packages/*'],
+  bundleName: { from: 'package.json' },
+  version: { from: 'package.json' },
+  packBeforeInstall: true,
+}
+```
+
+For the `remote` target, `endpoint` and `download` are optional. The only concurrency knob is
+`download.concurrency`; `download.http` accepts the `HttpOptions` type from
+[`@wvb/node`](/docs/references/api/node).
+
+| `remote` field         | Type          | Default |
+| ---------------------- | ------------- | ------- |
+| `endpoint`             | `string`      | —       |
+| `download.concurrency` | `number`      | —       |
+| `download.http`        | `HttpOptions` | —       |
+
+For the `local` target, `workspaces` is required — it is the only required field anywhere in the
+config. The `integrity` and `signature` options share the same shapes as the remote section; see
+[Remote, integrity & signature](/docs/references/configuration/remote).
+
+| `local` field       | Type                                                | Default  |
+| ------------------- | --------------------------------------------------- | -------- |
+| `workspaces`        | `string[] \| (() => string[] \| Promise<string[]>)` | required |
+| `bundleName`        | `BundleNameResolver`                                | —        |
+| `version`           | `VersionResolver`                                   | —        |
+| `integrity`         | `boolean \| IntegrityMakeConfig`                    | —        |
+| `signature`         | `SignatureSignConfig`                               | —        |
+| `packBeforeInstall` | `boolean`                                           | `true`   |

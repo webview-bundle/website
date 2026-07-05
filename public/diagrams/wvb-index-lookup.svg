@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 176" role="img" aria-labelledby="t">
+  <title id="t">A request path is looked up in the index to get an offset and length, then the matching bytes are read from the data section.</title>
+  <style>
+    .box  { fill: #fafafa; stroke: #e4e4e7; stroke-width: 1; }
+    .hd   { font: 600 13px ui-sans-serif, system-ui, sans-serif; fill: #2563eb; }
+    .tx   { font: 13px ui-monospace, "JetBrains Mono", monospace; fill: #18181b; }
+    .mut  { font: 12px ui-monospace, "JetBrains Mono", monospace; fill: #71717a; }
+    .arr  { stroke: #a1a1aa; stroke-width: 1.5; fill: none; }
+    .ah   { fill: #a1a1aa; }
+    @media (prefers-color-scheme: dark) {
+      .box { fill: #18181b; stroke: #27272a; }
+      .hd  { fill: #60a5fa; }
+      .tx  { fill: #f4f4f5; }
+      .mut { fill: #a1a1aa; }
+      .arr { stroke: #52525b; }
+      .ah  { fill: #52525b; }
+    }
+  </style>
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path class="ah" d="M0,0 L6,3 L0,6 Z"/>
+    </marker>
+  </defs>
+
+  <!-- Request -->
+  <rect class="box" x="16"  y="44" width="196" height="88" rx="4"/>
+  <text class="hd" x="32" y="72">Request</text>
+  <text class="tx" x="32" y="100">GET /index.js</text>
+
+  <!-- arrow 1 -->
+  <line class="arr" x1="216" y1="88" x2="272" y2="88" marker-end="url(#a)"/>
+  <text class="mut" x="244" y="78" text-anchor="middle">look up</text>
+
+  <!-- Index -->
+  <rect class="box" x="276" y="44" width="208" height="88" rx="4"/>
+  <text class="hd" x="292" y="72">Index</text>
+  <text class="tx" x="292" y="98">"/index.js"</text>
+  <text class="mut" x="292" y="118">→ offset, len</text>
+
+  <!-- arrow 2 -->
+  <line class="arr" x1="488" y1="88" x2="544" y2="88" marker-end="url(#a)"/>
+  <text class="mut" x="516" y="78" text-anchor="middle">read</text>
+
+  <!-- Data -->
+  <rect class="box" x="548" y="44" width="196" height="88" rx="4"/>
+  <text class="hd" x="564" y="72">Data</text>
+  <text class="tx" x="564" y="98">bytes[offset, len)</text>
+  <text class="mut" x="564" y="118">lz4-decompress</text>
+</svg>

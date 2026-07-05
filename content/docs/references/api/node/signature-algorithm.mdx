@@ -1,0 +1,39 @@
+---
+title: 'SignatureAlgorithm'
+description: 'Digital signature algorithm for bundle verification.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Digital signature algorithm for bundle verification.
+
+Supports multiple signature schemes for cryptographic verification of bundle authenticity.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1430)
+
+## Type
+
+```ts
+type SignatureAlgorithm =
+  | 'ecdsaSecp256R1'
+  | 'ecdsaSecp384R1'
+  | 'ed25519'
+  | 'rsaPkcs1V15'
+  | 'rsaPss';
+```
+
+## Examples
+
+```typescript
+import { Updater } from '@wvb/node';
+
+const updater = new Updater(source, remote, {
+  signatureVerifier: {
+    algorithm: 'ed25519',
+    key: {
+      format: 'spkiPem',
+      data: publicKeyPem,
+    },
+  },
+});
+```

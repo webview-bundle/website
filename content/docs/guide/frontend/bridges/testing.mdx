@@ -1,0 +1,65 @@
+---
+title: Testing
+description: Test web code that calls the bridge without a native host — mock invoke calls and the platform with mockBridge.
+---
+
+Test web code that calls the bridge without a native host. The `@wvb/bridge/testing` subpath mocks bridge calls so your code resolves against fixtures instead of a real platform.
+
+## Mock a bridge
+
+`mockBridge(options?)` creates a disposable bridge you register handlers on. Chain `.mockInvoke(command, handler)` once per dotted command key; the handler receives the method's params positionally and returns the value the call resolves to (or a promise of it).
+
+```ts title="load-version.test.ts"
+import { expect, test } from 'vitest';
+import { source } from '@wvb/bridge';
+import { mockBridge } from '@wvb/bridge/testing';
+
+test('loads the current version', async () => {
+  using bridge = mockBridge({ platform: 'android' });
+  bridge.mockInvoke('source.loadVersion', bundleName => ({
+    type: 'remote',
+    version: '1.0.0',
+  }));
+
+  await expect(source.loadVersion('app')).resolves.toEqual({
+    type: 'remote',
+    version: '1.0.0',
+  });
+});
+```
+
+Pass `{ platform }` to mock the platform at the same time:
+
+```ts
+using bridge = mockBridge({ platform: 'ios' }).mockInvoke('source.loadVersion', () => ({
+  type: 'remote',
+  version: '1.0.0',
+}));
+```
+
+<Callout type="info">
+  `using` disposes the bridge at the end of the block, clearing every mock it registered. Without
+  it, call `bridge.clear()` yourself so the stubs do not leak into the next test.
+</Callout>
+
+## Mock the platform
+
+`mockPlatform(type)` overrides platform detection on its own, for code that branches on `platform.type` (`platform.isIos`, `platform.isElectron`, …). It returns a disposable that restores the previous platform when the scope exits. `type` is one of `'electron'`, `'tauri'`, `'android'`, `'ios'`, or `'deno'`.
+
+```ts
+import { platform } from '@wvb/bridge';
+import { mockPlatform } from '@wvb/bridge/testing';
+
+test('detects the iOS platform', () => {
+  using _platform = mockPlatform('ios');
+  expect(platform.isIos).toBe(true);
+});
+```
+
+## Stub a single command
+
+`mockInvoke(command, handler)` registers one command without a bridge instance — the primitive `mockBridge` builds on. It returns a disposable handle; reset every ambient mock with `clearInvokeMocks()`, for example in `afterEach`.
+
+```ts
+using _mock = mockInvoke('source.loadVersion', () => ({ type: 'remote', version: '1.0.0' }));
+```

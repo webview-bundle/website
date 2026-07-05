@@ -1,0 +1,79 @@
+---
+title: 'UpdaterOptions'
+description: 'Configuration options for the updater.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Configuration options for the updater.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1527)
+
+## Properties
+
+<TypeTable
+  type={{
+    channel: {
+      type: 'string',
+      description: 'Update channel (e.g., "stable", "beta")',
+      required: false,
+    },
+    integrityPolicy: {
+      type: 'IntegrityPolicy',
+      description: 'Policy for integrity verification',
+      required: false,
+    },
+    signatureVerifier: {
+      type: 'SignatureVerifierOptions | ((data: Uint8Array, signature: string) => Promise<boolean>)',
+      description: 'Signature verification config or custom function',
+      required: false,
+    },
+  }}
+/>
+
+## Methods
+
+<TypeTable
+  type={{
+    integrityChecker: {
+      type: '(data: Uint8Array, integrity: string) => Promise<boolean>',
+      description: 'Custom integrity verification function',
+      required: false,
+      parameters: [
+        { name: 'data', description: 'Uint8Array' },
+        { name: 'integrity', description: 'string' },
+      ],
+      returns: 'Promise<boolean>',
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+const updater = new Updater(source, remote, {
+  channel: 'stable',
+  integrityPolicy: 'strict',
+  signatureVerifier: {
+    algorithm: 'ed25519',
+    key: {
+      format: 'spkiPem',
+      data: publicKeyPem,
+    },
+  },
+});
+```
+
+```typescript
+// Custom verification functions
+const updater = new Updater(source, remote, {
+  integrityChecker: async (data, integrity) => {
+    // Custom integrity verification
+    return true;
+  },
+  signatureVerifier: async (data, signature) => {
+    // Custom signature verification
+    return true;
+  },
+});
+```

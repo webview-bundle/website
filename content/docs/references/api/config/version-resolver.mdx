@@ -1,0 +1,27 @@
+---
+title: 'VersionResolver'
+description: 'Version resolver to determine the version of the bundle to be used in remote or builtin.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Version resolver to determine the version of the bundle to be used in remote or builtin.
+
+From "package.json", will use the "version" field from "package.json",
+if not specified, will be throw error.
+
+From "git", will use the "HEAD" commit hash.
+
+Or, specify a custom version string or a function that returns a version string.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/config/src/common.ts#L30)
+
+## Type
+
+```ts
+type VersionResolver =
+  | { from: 'package.json' }
+  | { from: 'git' }
+  | string
+  | ((params: BundleInfoResolverParams) => string | Promise<string>);
+```

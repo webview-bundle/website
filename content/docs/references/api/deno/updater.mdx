@@ -1,0 +1,67 @@
+---
+title: 'Updater'
+description: 'Coordinates updates between a BundleSource and a Remote: check, download to the remote dir, and activate.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Coordinates updates between a [`BundleSource`](/docs/references/api/deno/bundle-source) and a [`Remote`](/docs/references/api/deno/remote): check, download to the
+remote dir, and activate.
+
+Supports `channel`, `integrityPolicy`, and a declarative `signatureVerifier`. The custom-function
+callback options of `@wvb/node` (`integrityChecker`, custom `signatureVerifier`) are not yet
+supported over FFI.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/updater.ts#L83)
+
+## Constructor
+
+```ts
+new Updater(source: BundleSource, remote: Remote, options?: UpdaterOptions);
+```
+
+<TypeTable
+  type={{
+    source: { type: 'BundleSource', required: true },
+    remote: { type: 'Remote', required: true },
+    options: { type: 'UpdaterOptions', required: false },
+  }}
+/>
+
+## Methods
+
+<TypeTable
+  type={{
+    '[dispose]': { type: '() => void', required: true, returns: 'void' },
+    download: {
+      type: '(bundleName: string, version?: string) => Promise<RemoteBundleInfo>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version?', description: 'string' },
+      ],
+      returns: 'Promise<RemoteBundleInfo>',
+    },
+    free: { type: '() => void', required: true, returns: 'void' },
+    getUpdate: {
+      type: '(bundleName: string) => Promise<BundleUpdateInfo>',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string' }],
+      returns: 'Promise<BundleUpdateInfo>',
+    },
+    install: {
+      type: '(bundleName: string, version: string) => Promise<void>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<void>',
+    },
+    listRemotes: {
+      type: '() => Promise<ListRemoteBundleInfo[]>',
+      required: true,
+      returns: 'Promise<ListRemoteBundleInfo[]>',
+    },
+  }}
+/>

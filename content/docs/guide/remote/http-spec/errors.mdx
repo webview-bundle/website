@@ -1,0 +1,31 @@
+---
+title: Errors
+description: The status codes a remote returns for non-2xx responses and how the client maps them.
+---
+
+The remote signals failures with HTTP status codes. The client handles two of them specially and treats the rest as generic HTTP errors.
+
+| Status        | Meaning                                                             | Client error message                   |
+| ------------- | ------------------------------------------------------------------- | -------------------------------------- |
+| `403`         | Other-version downloads are disabled (`allowOtherVersions` is off). | `remote forbidden`                     |
+| `404`         | The requested bundle or version is not deployed.                    | `remote bundle not found`              |
+| other non-2xx | Any other failure.                                                  | `remote http error with status <code>` |
+
+For `403` and `404` the client does not read the response body. For any other non-2xx status it reads a JSON body of the shape below and surfaces `message` on the error.
+
+```json
+{ "message": "why the request failed" }
+```
+
+<Callout type="info">
+  These surface as ordinary JavaScript `Error`s — the message equals the text above, with no typed
+  error class or status field. Tell `403` from `404` by the message string.
+</Callout>
+
+## Invalid responses
+
+A `2xx` response is still rejected when required metadata is missing. If `Webview-Bundle-Name` or `Webview-Bundle-Version` is absent from a bundle download, the client fails with `invalid remote bundle` rather than installing it.
+
+## Upload conflicts
+
+Publishing is separate from the download contract above. Uploading a version that already exists throws `BundleAlreadyUploadedError`; pass `--force` (or `force: true`) to overwrite it. See [Upload to remote](/docs/guide/frontend/upload).

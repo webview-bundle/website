@@ -1,0 +1,18 @@
+---
+title: 'VerifyingKeyFormat'
+description: 'Format of the public key.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Format of the public key. Binary formats (`spkiDer`/`pkcs1Der`/`sec1`/`raw`) take `Uint8Array`
+data; the PEM formats take the PEM text. `pkcs1*` is RSA-only, `sec1` is ECDSA-only, `raw` is
+Ed25519-only (32 bytes).
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/updater.ts#L21)
+
+## Type
+
+```ts
+type VerifyingKeyFormat = 'spkiDer' | 'spkiPem' | 'pkcs1Der' | 'pkcs1Pem' | 'sec1' | 'raw';
+```

@@ -1,0 +1,13 @@
+{
+  "title": "@wvb/remote-cloudflare",
+  "pages": [
+    "---Classes---",
+    "bundle-already-uploaded-error",
+    "---Functions---",
+    "cloudflare-remote",
+    "is-bundle-already-uploaded-error",
+    "---Interfaces---",
+    "cloudflare-remote-interface",
+    "cloudflare-remote-config"
+  ]
+}

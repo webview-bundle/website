@@ -1,0 +1,31 @@
+---
+title: 'AwsRemoteDeployerConfig'
+description: 'AwsRemoteDeployerConfig — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/remote/aws/src/deployer.ts#L16)
+
+**Extends:** `AwsS3ClientConfigLike`, `AwsCloudFrontClientConfigLike`
+
+## Properties
+
+<TypeTable
+  type={{
+    bucket: { type: 'string', required: true },
+    cacheControl: { type: 'string', required: false },
+    cloudFrontClient: { type: 'CloudFrontClient', required: false },
+    cloudFrontClientConfig: { type: 'CloudFrontClientConfig', required: false },
+    invalidation: {
+      type: '{ callerReference?: string | (() => string); distributionId: string }',
+      required: false,
+    },
+    key: {
+      type: 'string | ((bundleName: string, version: string, channel?: string) => string)',
+      required: false,
+    },
+    s3Client: { type: 'S3Client', required: false },
+    s3ClientConfig: { type: 'S3ClientConfig', required: false },
+  }}
+/>

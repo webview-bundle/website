@@ -1,0 +1,31 @@
+---
+title: 오류
+description: 리모트가 non-2xx 응답으로 반환하는 상태 코드와, 클라이언트가 이를 매핑하는 방식입니다.
+---
+
+리모트는 실패를 HTTP 상태 코드로 알립니다. 클라이언트는 그중 두 가지를 특별히 처리하고, 나머지는 일반 HTTP 오류로 취급합니다.
+
+| Status          | Meaning                                                     | Client error message                   |
+| --------------- | ----------------------------------------------------------- | -------------------------------------- |
+| `403`           | 다른 버전 다운로드가 비활성화됨(`allowOtherVersions` 꺼짐). | `remote forbidden`                     |
+| `404`           | 요청한 번들 또는 버전이 배포되지 않음.                      | `remote bundle not found`              |
+| 그 밖의 non-2xx | 그 외의 실패.                                               | `remote http error with status <code>` |
+
+`403`과 `404`에서는 클라이언트가 응답 본문을 읽지 않습니다. 그 밖의 non-2xx 상태에서는 아래 형태의 JSON 본문을 읽어 `message`을 오류에 노출합니다.
+
+```json
+{ "message": "요청이 실패한 이유" }
+```
+
+<Callout type="info">
+  이 오류들은 일반 JavaScript `Error`로 전달됩니다. 메시지는 위 텍스트와 같으며, 별도의 오류
+  클래스나 상태 필드는 없습니다. `403`과 `404`은 메시지 문자열로 구분하세요.
+</Callout>
+
+## 잘못된 응답
+
+필수 메타데이터가 빠지면 `2xx` 응답이라도 거부됩니다. 번들 다운로드에서 `Webview-Bundle-Name` 또는 `Webview-Bundle-Version`이 없으면, 클라이언트는 설치하지 않고 `invalid remote bundle`로 실패합니다.
+
+## 업로드 충돌
+
+게시는 위의 다운로드 규약과 별개입니다. 이미 존재하는 버전을 업로드하면 `BundleAlreadyUploadedError`을 던집니다. 덮어쓰려면 `--force`(또는 `force: true`)을 전달하세요. [리모트에 업로드](/docs/guide/frontend/upload)를 참고하세요.

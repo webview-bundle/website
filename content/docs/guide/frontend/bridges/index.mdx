@@ -1,0 +1,22 @@
+---
+title: 'Overview'
+description: The web-side @wvb/bridge package that calls the native host over an auto-detected transport.
+---
+
+`@wvb/bridge` is the web-side package. JavaScript inside the webview imports it to call the native host that manages your bundle source, remote, and updater. It auto-detects the transport per platform, so the same web code runs on Electron, Tauri, Android, and iOS.
+
+```ts
+import { source, remote, updater } from '@wvb/bridge';
+```
+
+## Three surfaces
+
+- `source` — inspect and manage the native bundle source: list bundles, load and switch versions, resolve files.
+- `remote` — talk to the configured remote through the host: list, inspect, and download bundles.
+- `updater` — drive the over-the-air update flow: check for an update, download it, install it.
+
+Each surface is typed and builds on the low-level `invoke()`. See the [bridge reference](/docs/references/api/bridge) for the full API.
+
+## When to reach for it
+
+Reach for `@wvb/bridge` when your web code needs to know or change which bundle is served — checking the active source, pulling a newer bundle from the remote, or running an OTA update from inside the app.

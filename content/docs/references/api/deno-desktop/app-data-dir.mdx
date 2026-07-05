@@ -1,0 +1,20 @@
+---
+title: 'appDataDir'
+description: 'The OS application-data base directory where downloaded bundles persist: macOS ~/Library/Application Support, Windows %APPDATA%, Linux $XDG_DATA_HOME (or ~/.…'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+The OS application-data base directory where downloaded bundles persist:
+macOS `~/Library/Application Support`, Windows `%APPDATA%`, Linux `$XDG_DATA_HOME` (or
+`~/.local/share`). Override with the `WVB_APP_DATA_DIR` env var.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/source.ts#L48)
+
+```ts
+function appDataDir(): string;
+```
+
+## Returns
+
+`string`

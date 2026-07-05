@@ -1,0 +1,51 @@
+---
+title: Glue to native
+---
+
+Webview Bundle is designed to avoid being tied to any specific native platform or framework. Write your familiar web application code once, and a single core lets you integrate it the same way across multiple platforms and frameworks.
+
+## A core written in Rust
+
+The core crate (`wvb`) is written in Rust and designed to run across multiple platforms.
+
+The core crate provides the following:
+
+- Read and write the `.wvb` bundle format
+- Manage bundle sources (builtin and remote)
+- Download bundles from a remote
+- Remote updater
+- Protocol handling (serve bundles over a custom scheme, with `GET`, `HEAD`, and range request support)
+- Integrity and signature verification
+
+## Multi-platform and multi-environment support
+
+To support multiple platforms and environments, the `wvb` crate ships with bindings. Each binding exposes the API of the `wvb` core crate as-is, so you use the same API across different platforms and environments.
+
+- **Node.js**
+  - Uses a native addon built with [napi.rs](https://napi.rs/) that binds the Rust code to [N-API](https://nodejs.org/api/n-api.html).
+  - The N-API version is 8; for compatible Node.js versions, see the [Node.js docs](https://nodejs.org/api/n-api.html#node-api-version-matrix).
+- **Android/iOS**
+  - Uses [uniffi](https://github.com/mozilla/uniffi-rs) to generate Kotlin/Swift bindings from the Rust code.
+  - The generated bindings are published as part of the [Android](https://github.com/webview-bundle/webview-bundle-android) and [iOS](https://github.com/webview-bundle/webview-bundle-ios) libraries, respectively.
+- **Deno**
+  - Uses the [Deno FFI](https://docs.deno.com/runtime/fundamentals/ffi/) API to load the library dynamically.
+
+See the full API reference [here](/docs/references).
+
+## Glue to native
+
+The core intercepts the webview's network requests, reads resources from the bundle, and responds. On Android, for example, you override `WebViewClient.shouldInterceptRequest` to hand the request to the core's protocol handler.
+
+```kotlin
+class WebViewBundleClient(
+  private val owner: WebViewBundle,
+) : WebViewClient() {
+  override fun shouldInterceptRequest(
+    view: WebView,
+    request: WebResourceRequest,
+  ): WebResourceResponse? =
+    owner.handleRequest(request)
+}
+```
+
+The integration package for each platform and framework handles this glue for you, so in most cases you never write intercept code yourself. See the **Native** section for details.

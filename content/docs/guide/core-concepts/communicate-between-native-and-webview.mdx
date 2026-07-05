@@ -1,0 +1,18 @@
+---
+title: Communicate between native and webview
+---
+
+To use native features from web code in the webview, you communicate with the native side. Webview Bundle provides a bridge for this.
+
+## Call the bridge
+
+In the webview, call native features with `invoke(name, params)` from the unified bridge package `@wvb/bridge`.
+
+A handler registered on the native side processes the call and returns a result. The delivery mechanism per platform and framework is as follows.
+
+- **Electron** — Electron IPC
+- **Tauri** — Tauri command
+- **Android** — WebView message listener (`WebViewCompat.addWebMessageListener`)
+- **iOS** — `WKScriptMessageHandler`
+
+For details on using the bridge API, see the [Bridges](/docs/guide/frontend/bridges) guide.

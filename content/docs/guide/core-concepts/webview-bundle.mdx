@@ -1,0 +1,66 @@
+---
+title: Webview Bundle (.wvb)
+---
+
+A webview bundle packs many web resources into a single `.wvb` file. Packing a web app puts its assets — HTML, JS, CSS, images — into this one file. The native host intercepts the webview's requests and answers them by reading assets from the file. Each asset is stored with a checksum, so the host serves integrity-checked assets with no network.
+
+## Data structure
+
+![A .wvb file has three sections — Header, Index, and Data — and each ends with an xxHash-32 checksum.](/diagrams/wvb-structure.svg)
+
+A `.wvb` file has three sections: a header, an index, and data. Each section ends with an xxHash-32 checksum that verifies its integrity.
+
+### Header
+
+The header is the first 17 bytes of the file and holds the format metadata.
+
+- **Magic number (8 bytes)** — a fixed value that identifies the webview bundle format. It is `0xF09F8C90F09F8E81`, which is "🌐🎁" in UTF-8, written big-endian.
+- **Version (1 byte)** — the format version. The current value is v1 (`0x01`).
+- **Index size (4 bytes)** — the size of the index section in bytes, stored as a big-endian u32.
+- **Checksum (4 bytes)** — an xxHash-32 hash that verifies the preceding 13 bytes.
+
+### Index
+
+The index maps each request path one-to-one to the location of its data. The host looks a request path up in the index to find that asset's byte range, then reads the range to answer the request.
+
+![A request path is looked up in the index to get an offset and length, then those bytes are read from the data section.](/diagrams/wvb-index-lookup.svg)
+
+- The index occupies the size declared in the header and is encoded big-endian.
+- It maps a path (key) to an entry (value), serialized in sorted key order so the output is deterministic.
+- Each entry holds:
+  - **Offset and length** — the byte range to read the file's data from the data section.
+  - **Content type and content length** — the asset's MIME type and its original size before compression.
+  - **HTTP headers** — headers to send when serving the asset over the protocol. (Optional)
+- The last 4 bytes are an xxHash-32 checksum that verifies the index.
+
+### Data
+
+The data section stores each entry's file bytes in order. The host reads a single asset by seeking to the offset and length it got from the index.
+
+![The data section stores each entry's compressed bytes back to back, and the index records the offset and length of each.](/diagrams/wvb-data-layout.svg)
+
+For example, if the `/index.js` entry is recorded with offset `0` and length `768`, the host reads bytes `0` through `768` from the data section.
+
+- Each entry is compressed with the [LZ4 block format](https://github.com/lz4/lz4/blob/dev/doc/lz4_Block_format.md).
+- The last 4 bytes are an xxHash-32 checksum that verifies the data.
+
+## Design decisions
+
+### Why a new format instead of `.zip`
+
+`.zip` keeps its file listing (the central directory) at the end of the file, so finding an asset means reading the end first. It also carries none of the information — like content type or headers — needed to answer an HTTP request.
+
+The webview bundle format is built for one job: serving assets to a webview.
+
+- **The index comes first.** One lookup turns a path into a data location, with no scan of the file.
+- **Every entry stores HTTP metadata.** The host sends the content type and headers straight back as the HTTP response.
+- **The byte layout is fixed.** Reading only the needed range by offset and length makes HTTP range requests and streaming straightforward.
+- **A cheap checksum verifies it.** The header, index, and data are each verified with xxHash-32.
+
+### Why LZ4
+
+Decompression runs every time the host answers the webview, so decompression speed matters more than compression ratio.
+
+- **Decompression is very fast.** It does not delay first paint.
+- **It uses little CPU.** It does not block the UI thread.
+- **Each entry compresses independently.** The [LZ4 block format](https://github.com/lz4/lz4/blob/dev/doc/lz4_Block_format.md) decompresses each asset on its own, so the host reads only the assets it needs by random access.

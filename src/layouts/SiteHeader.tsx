@@ -39,7 +39,7 @@ export function SiteHeader({ className }: { className?: string }) {
             <a
               key={section.href}
               href={section.href}
-              data-active={pathname.startsWith(section.href)}
+              data-active={pathname.startsWith(section.match ?? section.href)}
               className="transition-colors hover:text-zinc-900 data-[active=true]:text-brand dark:hover:text-zinc-100 dark:data-[active=true]:text-brand"
             >
               {section.label}

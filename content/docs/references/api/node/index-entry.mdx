@@ -1,0 +1,41 @@
+---
+title: 'IndexEntry'
+description: 'Metadata for a single file in the bundle.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Metadata for a single file in the bundle.
+
+Contains information about file location, size, MIME type, and HTTP headers.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1238)
+
+## Properties
+
+<TypeTable
+  type={{
+    contentLength: {
+      type: 'number',
+      description: 'Original file size before compression',
+      required: true,
+    },
+    contentType: { type: 'string', description: 'MIME type of the file', required: true },
+    headers: {
+      type: 'Record<string, string>',
+      description: 'HTTP headers for this file',
+      required: true,
+    },
+    isEmpty: {
+      type: 'boolean',
+      description: 'Whether the compressed data is empty',
+      required: true,
+    },
+    len: { type: 'number', description: 'Length of compressed data in bytes', required: true },
+    offset: {
+      type: 'number',
+      description: 'Byte offset in the data section (compressed)',
+      required: true,
+    },
+  }}
+/>

@@ -1,0 +1,124 @@
+---
+title: Configuration
+description: The wvb.config file that the CLI and the programmatic API read for pack, remote, serve, and builtin options.
+---
+
+A single `wvb.config` file drives every Webview Bundle workflow. Both the `wvb` CLI
+and the programmatic API (`@wvb/cli/api`) load it, so one config keeps packing,
+serving, remote publishing, and builtin installs consistent. Author it with
+`defineConfig` from `@wvb/config` to get full type-checking and editor autocompletion.
+
+Each top-level section has its own page:
+
+<Cards>
+  <Card
+    title="pack"
+    href="/docs/references/configuration/pack"
+    description="Source directory, output path, ignore rules, and per-file headers for wvb pack."
+  />
+  <Card
+    title="remote"
+    href="/docs/references/configuration/remote"
+    description="The remote endpoint, uploader/deployer, integrity hashing, and signing."
+  />
+  <Card
+    title="serve"
+    href="/docs/references/configuration/serve"
+    description="The local file, port, and log output for the wvb serve preview server."
+  />
+  <Card
+    title="builtin"
+    href="/docs/references/configuration/builtin"
+    description="Install bundles that ship inside your app from a remote or local workspaces."
+  />
+</Cards>
+
+## The config file
+
+Place the config in your project root. The CLI auto-discovers the first matching
+file in the working directory, in this order:
+
+```text
+wvb.config.js
+wvb.config.cjs
+wvb.config.mjs
+wvb.config.ts
+wvb.config.cts
+wvb.config.mts
+webview-bundle.config.js
+webview-bundle.config.cjs
+webview-bundle.config.mjs
+webview-bundle.config.ts
+webview-bundle.config.cts
+webview-bundle.config.mts
+wvb.config.json
+wvb.config.jsonc
+```
+
+Both base names `wvb.config.*` and `webview-bundle.config.*` are supported with the
+`.js`, `.cjs`, `.mjs`, `.ts`, `.cts`, and `.mts` extensions. The `.json` and `.jsonc`
+forms are only recognized for the `wvb.config` base name. Pass `--config` (alias
+`-C`) to any command to point at a specific file instead of relying on discovery.
+
+```sh
+wvb pack --config ./configs/wvb.prod.ts
+```
+
+### defineConfig
+
+Wrap your config with `defineConfig` from `@wvb/config`. It is an identity function
+at runtime — its only job is to attach types. It accepts an object, a promise that
+resolves to a config, or a synchronous or asynchronous function that returns one, so
+you can compute values at load time.
+
+<Tabs items={['Object', 'Async function']}>
+  <Tab value="Object">
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  root: process.cwd(),
+  pack: {
+    srcDir: './dist',
+  },
+  serve: {
+    port: 4312,
+  },
+});
+```
+  </Tab>
+  <Tab value="Async function">
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig(async () => {
+  const endpoint = process.env.WVB_ENDPOINT;
+  return {
+    remote: {
+      endpoint,
+    },
+  };
+});
+```
+  </Tab>
+</Tabs>
+
+<Callout type="info">
+  Install the package as a dev dependency: `npm install -D @wvb/config`.
+</Callout>
+
+## Top-level fields
+
+The config object has five optional fields. Nothing else is read at the top level.
+
+| Field     | Type                                                      | Default         |
+| --------- | --------------------------------------------------------- | --------------- |
+| `root`    | `string`                                                  | `process.cwd()` |
+| `pack`    | [`PackConfig`](/docs/references/configuration/pack)       | —               |
+| `remote`  | [`RemoteConfig`](/docs/references/configuration/remote)   | —               |
+| `serve`   | [`ServeConfig`](/docs/references/configuration/serve)     | —               |
+| `builtin` | [`BuiltinConfig`](/docs/references/configuration/builtin) | —               |
+
+`root` sets the project root used to resolve relative paths. It may be absolute or
+relative to the config file. Each section field is documented on its own page linked
+above.

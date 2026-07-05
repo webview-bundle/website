@@ -1,0 +1,45 @@
+---
+title: 'VerifyingKeyFormat'
+description: 'Format of the public key used for signature verification.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Format of the public key used for signature verification.
+
+Different algorithms support different key formats.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1565)
+
+## Type
+
+```ts
+type VerifyingKeyFormat = 'spkiDer' | 'spkiPem' | 'pkcs1Der' | 'pkcs1Pem' | 'sec1' | 'raw';
+```
+
+## Examples
+
+```typescript
+import fs from 'fs';
+
+// PEM format (text)
+const pemKey = fs.readFileSync('./public-key.pem', 'utf8');
+const config1 = {
+  format: 'spkiPem',
+  data: pemKey,
+};
+
+// DER format (binary)
+const derKey = fs.readFileSync('./public-key.der');
+const config2 = {
+  format: 'spkiDer',
+  data: derKey,
+};
+
+// Raw bytes (Ed25519 only)
+const rawKey = new Uint8Array(32);
+const config3 = {
+  format: 'raw',
+  data: rawKey,
+};
+```

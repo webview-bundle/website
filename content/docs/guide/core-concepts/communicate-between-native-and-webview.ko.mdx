@@ -1,0 +1,18 @@
+---
+title: 네이티브와 웹뷰 간 통신
+---
+
+웹뷰의 웹 코드에서 네이티브 기능을 사용하려면 네이티브와 통신해야 합니다. 웹뷰 번들은 이를 위해 브릿지를 제공합니다.
+
+## 브릿지 호출하기
+
+웹뷰에서는 통합 브릿지 패키지 `@wvb/bridge`의 `invoke(name, params)`로 네이티브 기능을 호출합니다.
+
+호출은 네이티브 단에 등록된 핸들러가 처리하고 결과를 돌려줍니다. 플랫폼/프레임워크별 전달 방식은 다음과 같습니다.
+
+- **Electron** — Electron IPC
+- **Tauri** — Tauri 커맨드
+- **Android** — WebView 메시지 리스너(`WebViewCompat.addWebMessageListener`)
+- **iOS** — `WKScriptMessageHandler`
+
+브릿지 API를 사용하는 자세한 방법은 [브릿지](/docs/guide/frontend/bridges) 가이드를 참고하세요.

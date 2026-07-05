@@ -1,0 +1,38 @@
+---
+title: 'Update remote bundles'
+description: Drive an over-the-air update from the web app with the updater bridge — check, download, install, and reload.
+---
+
+The `updater` bridge drives an over-the-air update from web code inside the webview: check for a newer bundle, download it, install it, then reload.
+
+## Update flow
+
+`getUpdate` reports whether a newer version is available. `download` stages it (verify and write to the native source store), `install` activates it, and a reload serves it.
+
+```ts title="src/update.ts"
+import { updater } from '@wvb/bridge';
+
+async function checkForUpdate(bundleName: string) {
+  const update = await updater.getUpdate(bundleName);
+  if (!update.isAvailable) {
+    return;
+  }
+
+  await updater.download(bundleName);
+  await updater.install(bundleName, update.version);
+
+  // Reload so the webview serves the newly installed bundle.
+  window.location.reload();
+}
+```
+
+`getUpdate` resolves to a `BundleUpdateInfo`: `version` is what the remote offers, `localVersion` is what is installed. Check `isAvailable` before staging.
+
+## Configure the updater first
+
+The bridge only forwards these calls to the native host — the updater and its remote live on the native side. See your platform's guide to wire them up.
+
+<Callout type="warn">
+  If no updater is configured on the host, `updater` calls reject with a `BridgeError` whose `code`
+  is `BridgeErrorCode.UpdaterNotInitialized`.
+</Callout>

@@ -1,0 +1,81 @@
+---
+title: '특정 버전 다운로드'
+description: 이름이 지정된 번들을 정확한 버전으로 다운로드하며, 서버의 다른 버전 다운로드 정책에 따라 허용 여부가 결정됩니다.
+---
+
+배포된 현재 버전 대신 정확한 버전으로 번들을 다운로드합니다. 다른 다운로드 경로와 달리 이 작업은 채널을 받지 않습니다. 버전을 경로에 직접 지정합니다.
+
+```http
+GET /bundles/{name}/{version}
+```
+
+서버는 다른 버전 다운로드를 허용할 때만 이 경로를 제공합니다. 프로바이더는 이를 `allowOtherVersions` 옵션으로 노출하며, 기본값은 `false`입니다. 이 옵션이 비활성화되어 있으면 버전이 존재하더라도 요청은 `403`을 반환합니다.
+
+## 파라미터
+
+| Name        | In   | Type   | Required | Description             |
+| ----------- | ---- | ------ | -------- | ----------------------- |
+| `{name}`    | path | string | yes      | 다운로드할 번들 이름.   |
+| `{version}` | path | string | yes      | 다운로드할 정확한 버전. |
+
+이 경로는 `channel` 쿼리 파라미터를 받지 않습니다.
+
+## 응답
+
+| Status | Description                                        |
+| ------ | -------------------------------------------------- |
+| `200`  | 번들 바이트와 메타데이터 헤더.                     |
+| `403`  | 서버가 다른 버전 다운로드를 비활성화한 경우.       |
+| `404`  | 이름이 지정된 번들 또는 버전이 배포되지 않은 경우. |
+
+클라이언트는 `403`을 "forbidden" 오류로, `404`를 "bundle not found" 오류로 매핑합니다. 전체 매핑과 JSON 오류 본문 형태는 [오류](/docs/guide/remote/http-spec/errors)를 참고하세요.
+
+### 응답 헤더
+
+| Header                     | Required | Description                       |
+| -------------------------- | -------- | --------------------------------- |
+| `Webview-Bundle-Name`      | yes      | 번들 이름.                        |
+| `Webview-Bundle-Version`   | yes      | 번들 버전.                        |
+| `Webview-Bundle-Integrity` | no       | 무결성 문자열 `"<alg>:<base64>"`. |
+| `Webview-Bundle-Signature` | no       | Base64 서명.                      |
+| `ETag`                     | no       | 표준 검증자.                      |
+| `Last-Modified`            | no       | 표준 검증자.                      |
+
+클라이언트는 `Webview-Bundle-Name` 또는 `Webview-Bundle-Version`이 없는 응답을 거부합니다.
+
+`200` 본문은 원시 `.wvb` 바이트이며 `Content-Type: application/webview-bundle`로 제공됩니다.
+
+<Callout type="info">
+  이 경로는 채널을 선택하지 않습니다. 채널 지정 여부와 관계없이 현재 버전을 다운로드하려면 [GET
+  /bundles/{name}](/docs/guide/remote/http-spec/endpoints/get-current)을 사용하세요.
+</Callout>
+
+## 예제
+
+`app` 번들의 `1.2.0` 버전을 다운로드합니다.
+
+```sh
+$ curl -s http://localhost:4313/bundles/app/1.2.0 -o app-1.2.0.wvb -D -
+```
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/webview-bundle
+Webview-Bundle-Name: app
+Webview-Bundle-Version: 1.2.0
+Webview-Bundle-Integrity: sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=
+```
+
+서버가 다른 버전 다운로드를 비활성화한 경우 동일한 요청은 `403`을 반환합니다.
+
+```sh
+$ curl -sI http://localhost:4313/bundles/app/1.2.0
+HTTP/1.1 403 Forbidden
+```
+
+배포되지 않은 버전은 `404`를 반환합니다.
+
+```sh
+$ curl -sI http://localhost:4313/bundles/app/9.9.9
+HTTP/1.1 404 Not Found
+```

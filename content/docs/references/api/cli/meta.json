@@ -1,0 +1,12 @@
+{
+  "title": "@wvb/cli",
+  "pages": [
+    "---Functions---",
+    "define-config",
+    "load-config-file",
+    "resolve-config",
+    "---Interfaces---",
+    "inline-config",
+    "resolved-config"
+  ]
+}

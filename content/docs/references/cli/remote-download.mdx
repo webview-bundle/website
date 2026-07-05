@@ -1,0 +1,47 @@
+---
+title: wvb download
+description: Download a bundle from a remote server to disk, or fetch and print its metadata.
+---
+
+`wvb download` fetches a bundle from a remote server and, by default, saves it to disk as a `.wvb` file. Pass a bundle name and an optional version; omit it to download the version that is currently deployed. This is the read side of the publishing workflow that `wvb upload` and `wvb deploy` drive, and it is handy for verifying what a remote actually serves.
+
+## Usage
+
+```sh
+wvb download app --endpoint https://updates.example.com
+wvb download app 1.2.0 --out ./bundles/app.wvb --overwrite
+wvb download app --no-write
+```
+
+The first example downloads the current deployed version of `app` to `app.wvb` in the working directory. The second downloads a specific version (`1.2.0`) to an explicit path, overwriting any existing file. The third fetches the bundle and prints its information without writing anything to disk.
+
+The bundle name and the endpoint both fall back to your [`wvb.config`](/docs/references/configuration/remote) file, so inside a configured project you can usually run `wvb download` with no flags to pull the current version.
+
+## Options
+
+| Option        | Aliases | Default             | Description                                                                   |
+| ------------- | ------- | ------------------- | ----------------------------------------------------------------------------- |
+| `BUNDLE`      | —       | from config         | Bundle name (positional). Resolves from config when omitted.                  |
+| `VERSION`     | —       | current deployed    | Specific version (positional). Omit to download the current deployed version. |
+| `--out`       | `-O`    | `<bundle name>.wvb` | Output file path.                                                             |
+| `--endpoint`  | `-E`    | `remote.endpoint`   | Remote endpoint to download from.                                             |
+| `--channel`   | —       | —                   | Release channel.                                                              |
+| `--write`     | —       | `true`              | Write the bundle to disk. Pass `--no-write` to fetch and print info only.     |
+| `--overwrite` | —       | `false`             | Overwrite an existing output file.                                            |
+| `--progress`  | —       | `true`              | Show a download progress bar. Pass `--no-progress` to disable.                |
+| `--config`    | `-C`    | auto-discovery      | Path to the config file.                                                      |
+| `--cwd`       | —       | `process.cwd()`     | Working directory for resolving paths.                                        |
+
+Boolean flags accept `--flag`, `--flag=true|false`, and a `--no-flag` negation. The three global flags (`--color`, `--log-level`, `--log-verbose`) apply here too; see the [CLI overview](/docs/references/cli).
+
+<Callout type="info">
+  With a version positional, `wvb download` requests that exact version; without one, it downloads
+  the current deployed version for the given channel. Serving a non-current version requires the
+  remote to allow other versions.
+</Callout>
+
+<Callout type="info">
+  `--no-write` fetches the bundle and prints its information without saving a file. Use it to
+  inspect what a remote serves without touching disk. To see metadata without downloading the bundle
+  body at all, use [`wvb remote current`](/docs/references/cli/remote) instead.
+</Callout>

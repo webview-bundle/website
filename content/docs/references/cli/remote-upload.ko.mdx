@@ -1,0 +1,55 @@
+---
+title: wvb upload
+description: 번들을 패킹하고 해시와 서명을 붙여 설정된 원격 서버에 업로드하며, 선택적으로 배포 단계까지 실행합니다.
+---
+
+`wvb upload`는 번들을 원격 서버에 게시합니다. 기본적으로 전체 파이프라인을 순서대로 실행합니다. 먼저 패킹하고, 무결성 해시를 계산하고, 서명한 뒤 업로드합니다. 따라서 명령어 하나로 빌드 산출물이 서명과 무결성 검증을 거친 번들이 되어 원격에 올라갑니다. 업로드 단계에는 [설정](/docs/references/configuration/remote)의 `remote.uploader`가 필요합니다. 마지막의 선택적 배포 단계에는 `remote.deployer`도 필요합니다.
+
+```sh
+wvb upload                                       # 설정 기본값을 사용합니다
+wvb upload app --version 1.2.0
+wvb upload app --version 1.2.0 --deploy --channel beta
+wvb upload --no-pack --file ./build/app.wvb --force
+```
+
+## 옵션
+
+| 옵션               | 별칭 | 기본값                          | 설명                                                                         |
+| ------------------ | ---- | ------------------------------- | ---------------------------------------------------------------------------- |
+| `BUNDLE`           | —    | 설정값 / `--file` 이름          | 번들 이름. 위치 인수입니다.                                                  |
+| `--version`        | `-V` | 설정값 또는 `package.json` 버전 | 게시할 버전.                                                                 |
+| `--file`           | `-F` | 확인된 출력 경로                | 업로드할 `.wvb` 파일 경로.                                                   |
+| `--force`          | —    | `false`                         | 원격에 해당 버전이 이미 있으면 덮어씁니다.                                   |
+| `--deploy`         | —    | `false`                         | 업로드 후 해당 버전을 배포합니다.                                            |
+| `--channel`        | —    | —                               | 배포할 채널. `--deploy`와 함께 사용합니다.                                   |
+| `--pack`           | `-P` | `true`                          | 업로드 전에 `pack.srcDir`을 패킹합니다. 건너뛰려면 `--no-pack`을 전달하세요. |
+| `--skip-integrity` | —    | `false`                         | 무결성 해시 계산을 건너뜁니다.                                               |
+| `--skip-signature` | —    | `false`                         | 번들 서명을 건너뜁니다.                                                      |
+| `--config`         | `-C` | 설정 자동 탐색                  | 설정 파일 경로.                                                              |
+| `--cwd`            | —    | `process.cwd()`                 | 경로를 확인할 작업 디렉터리.                                                 |
+
+<Callout type="info">
+  버전은 위치 인수가 아니라 `--version`(`-V`) 플래그로 지정합니다. 첫 번째 위치 인수는 번들
+  이름입니다. `--deploy`의 기본값은 `false`이므로, 업로드만 하면 버전이 게시되기는 하지만 현재
+  버전으로 설정되지는 않습니다. 이 버전을 배포하기 전까지 클라이언트는 이전에 배포된 버전을 계속
+  받습니다.
+</Callout>
+
+## 파이프라인
+
+`wvb upload`는 다음 단계를 순서대로 실행합니다.
+
+1. **패킹** — `pack.srcDir`을 `.wvb` 아카이브로 패킹합니다. `--no-pack`으로 건너뛰고 기존 번들을 `--file`로 전달하세요.
+2. **무결성** — 무결성 해시를 계산합니다. `--skip-integrity`로 건너뜁니다.
+3. **서명** — 번들에 서명합니다. `--skip-signature`로 건너뜁니다.
+4. **업로드** — `remote.uploader`를 통해 번들을 원격으로 전송합니다.
+5. **배포**(선택) — `--deploy`를 전달할 때만 실행되며, `remote.deployer`를 통해 업로드된 버전을 현재 버전으로 표시합니다.
+
+성공하면 명령어가 번들 엔드포인트를 출력합니다.
+
+## 요구 사항
+
+- 업로드 단계에는 `remote.uploader`가 설정되어 있어야 합니다. [원격, 무결성 및 서명 설정](/docs/references/configuration/remote)을 참고하세요.
+- `--deploy`를 전달하면 `remote.deployer`도 추가로 필요합니다. 버전을 나중에 별도로 배포하려면 [`wvb deploy`](/docs/references/cli/remote-deploy)를 사용하세요.
+
+게시 모델과 로컬 테스트 과정은 [원격 서버 구축하기](/docs/guide/remote)를 참고하세요.

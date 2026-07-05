@@ -5,8 +5,11 @@ export const Route = createFileRoute('/ko/docs/$')({
   component: Page,
   loader: async ({ params }) => {
     const slugs = params._splat?.split('/').filter(Boolean) ?? [];
-    if (slugs.length === 0) {
-      throw redirect({ to: '/ko/docs/$', params: { _splat: 'guide' } });
+    if (slugs.length === 0 || (slugs.length === 1 && slugs[0] === 'guide')) {
+      throw redirect({
+        to: '/ko/docs/$',
+        params: { _splat: 'guide/getting-started' },
+      });
     }
     const data = await docsServerLoader({ data: { slugs, locale: 'ko' } });
     await docsClientLoader.preload(data.path);

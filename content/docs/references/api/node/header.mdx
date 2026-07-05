@@ -1,0 +1,58 @@
+---
+title: 'Header'
+description: 'Bundle header containing format metadata.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Bundle header containing format metadata.
+
+The header is the first 17 bytes of a `.wvb` file and includes:
+
+- Magic number (🌐🎁)
+- Format version
+- Index size
+- Header checksum
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L576)
+
+## Constructor
+
+```ts
+new Header();
+```
+
+## Methods
+
+<TypeTable
+  type={{
+    indexEndOffset: {
+      type: '() => bigint',
+      description:
+        'Returns the byte offset where the index section ends. This marks the start of the data section.',
+      required: true,
+      returns: 'bigint — Byte offset',
+    },
+    indexSize: {
+      type: '() => number',
+      description: 'Returns the size of the index section in bytes.',
+      required: true,
+      returns: 'number — Index size in bytes',
+    },
+    version: {
+      type: '() => "v1"',
+      description: 'Returns the bundle format version.',
+      required: true,
+      returns: '"v1" — The format version (e.g., V1)',
+    },
+  }}
+/>
+
+## Examples
+
+### version
+
+```typescript
+const header = bundle.descriptor().header();
+console.log(header.version()); // 'v1'
+```

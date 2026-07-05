@@ -1,0 +1,121 @@
+---
+title: 설정
+description: CLI와 프로그래밍 API가 pack, remote, serve, builtin 옵션을 읽어 오는 wvb.config 파일입니다.
+---
+
+단 하나의 `wvb.config` 파일이 모든 Webview Bundle 워크플로를 이끕니다. `wvb` CLI와
+프로그래밍 API(`@wvb/cli/api`)가 모두 이 파일을 불러옵니다. 따라서 설정 하나로
+패킹, 제공, 원격 배포, 빌트인 설치를 일관되게 유지합니다. `@wvb/config`의
+`defineConfig`로 작성하면 완전한 타입 체크와 에디터 자동 완성을 얻습니다.
+
+각 최상위 섹션에는 전용 페이지가 있습니다.
+
+<Cards>
+  <Card
+    title="pack"
+    href="/docs/references/configuration/pack"
+    description="wvb pack의 소스 디렉터리, 출력 경로, ignore 규칙, 파일별 헤더입니다."
+  />
+  <Card
+    title="remote"
+    href="/docs/references/configuration/remote"
+    description="원격 엔드포인트, 업로더/배포자, 무결성 해싱, 서명입니다."
+  />
+  <Card
+    title="serve"
+    href="/docs/references/configuration/serve"
+    description="wvb serve 미리보기 서버의 로컬 파일, 포트, 로그 출력입니다."
+  />
+  <Card
+    title="builtin"
+    href="/docs/references/configuration/builtin"
+    description="원격이나 로컬 워크스페이스에서 앱 안에 함께 배포할 번들을 설치합니다."
+  />
+</Cards>
+
+## 설정 파일
+
+설정 파일을 프로젝트 루트에 두세요. CLI는 작업 디렉터리에서 다음 순서로 처음 일치하는
+파일을 자동으로 찾습니다.
+
+```text
+wvb.config.js
+wvb.config.cjs
+wvb.config.mjs
+wvb.config.ts
+wvb.config.cts
+wvb.config.mts
+webview-bundle.config.js
+webview-bundle.config.cjs
+webview-bundle.config.mjs
+webview-bundle.config.ts
+webview-bundle.config.cts
+webview-bundle.config.mts
+wvb.config.json
+wvb.config.jsonc
+```
+
+`wvb.config.*`와 `webview-bundle.config.*` 두 기본 이름 모두 `.js`, `.cjs`, `.mjs`,
+`.ts`, `.cts`, `.mts` 확장자를 지원합니다. `.json`과 `.jsonc` 형식은 `wvb.config`
+기본 이름에서만 인식됩니다. 자동 탐색에 의존하는 대신 특정 파일을 지정하려면 어떤
+명령어에든 `--config`(별칭 `-C`)를 전달하세요.
+
+```sh
+wvb pack --config ./configs/wvb.prod.ts
+```
+
+### defineConfig
+
+설정을 `@wvb/config`의 `defineConfig`로 감싸세요. 이 함수는 런타임에서는 항등 함수이며,
+타입을 붙이는 것이 유일한 역할입니다. 객체, 설정으로 이행되는 프로미스, 또는 설정을
+반환하는 동기 혹은 비동기 함수를 받습니다. 따라서 불러오는 시점에 값을 계산할 수 있습니다.
+
+<Tabs items={['Object', 'Async function']}>
+  <Tab value="Object">
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  root: process.cwd(),
+  pack: {
+    srcDir: './dist',
+  },
+  serve: {
+    port: 4312,
+  },
+});
+```
+  </Tab>
+  <Tab value="Async function">
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig(async () => {
+  const endpoint = process.env.WVB_ENDPOINT;
+  return {
+    remote: {
+      endpoint,
+    },
+  };
+});
+```
+  </Tab>
+</Tabs>
+
+<Callout type="info">이 패키지를 개발 의존성으로 설치하세요: `npm install -D @wvb/config`.</Callout>
+
+## 최상위 필드
+
+설정 객체는 다섯 개의 선택 필드를 가집니다. 최상위에서는 그 외에 아무것도 읽지 않습니다.
+
+| Field     | Type                                                      | Default         |
+| --------- | --------------------------------------------------------- | --------------- |
+| `root`    | `string`                                                  | `process.cwd()` |
+| `pack`    | [`PackConfig`](/docs/references/configuration/pack)       | —               |
+| `remote`  | [`RemoteConfig`](/docs/references/configuration/remote)   | —               |
+| `serve`   | [`ServeConfig`](/docs/references/configuration/serve)     | —               |
+| `builtin` | [`BuiltinConfig`](/docs/references/configuration/builtin) | —               |
+
+`root`는 상대 경로를 해석하는 데 사용하는 프로젝트 루트를 설정합니다. 절대 경로일 수도
+있고 설정 파일 기준 상대 경로일 수도 있습니다. 각 섹션 필드는 위에 링크된 전용 페이지에서
+설명합니다.

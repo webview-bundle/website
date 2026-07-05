@@ -1,0 +1,39 @@
+---
+title: 'WebviewBundleRemoteProvider'
+description: 'WebviewBundleRemoteProvider — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/remote/aws-provider-pulumi/src/provider.ts#L47)
+
+**Extends:** `ComponentResource`
+
+## Constructor
+
+```ts
+new WebviewBundleRemoteProvider(name: string, config: WebviewBundleRemoteProviderConfig = {}, opts?: ComponentResourceOptions);
+```
+
+<TypeTable
+  type={{
+    name: { type: 'string', required: true },
+    config: { type: 'WebviewBundleRemoteProviderConfig', required: false, default: '{}' },
+    opts: { type: 'ComponentResourceOptions', required: false },
+  }}
+/>
+
+## Properties
+
+<TypeTable
+  type={{
+    bucketDomainName: { type: 'readonly Output<string>', required: true },
+    bucketId: { type: 'readonly Output<string>', required: true },
+    bucketName: { type: 'readonly Output<string>', required: true },
+    cloudfrontDistributionArn: { type: 'readonly Output<string>', required: true },
+    cloudfrontDistributionDomainName: { type: 'readonly Output<string>', required: true },
+    cloudfrontDistributionId: { type: 'readonly Output<string>', required: true },
+    lambdaOriginRequestArn: { type: 'readonly Output<string>', required: true },
+    lambdaOriginResponseArn: { type: 'readonly Output<string>', required: true },
+  }}
+/>

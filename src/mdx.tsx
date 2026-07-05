@@ -2,6 +2,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 import { Card, Cards } from 'fumadocs-ui/components/card';
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import * as TabsComponents from 'fumadocs-ui/components/tabs';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentProps, ReactNode } from 'react';
@@ -60,6 +61,7 @@ export function getMDXComponents(components?: MDXComponents) {
     Card: LocalizedCard,
     Cards,
     Badge,
+    TypeTable,
     ...TabsComponents,
     ...components,
   } satisfies MDXComponents;

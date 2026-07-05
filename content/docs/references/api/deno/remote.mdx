@@ -1,0 +1,69 @@
+---
+title: 'Remote'
+description: 'HTTP client for a remote bundle server — list, get metadata, and download bundles.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+HTTP client for a remote bundle server — list, get metadata, and download bundles.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/remote.ts#L46)
+
+## Constructor
+
+```ts
+new Remote(endpoint: string, options?: RemoteOptions);
+```
+
+<TypeTable
+  type={{
+    endpoint: { type: 'string', required: true },
+    options: { type: 'RemoteOptions', required: false },
+  }}
+/>
+
+## Properties
+
+<TypeTable type={{ pointer: { type: 'PointerValue', required: true } }} />
+
+## Methods
+
+<TypeTable
+  type={{
+    '[dispose]': { type: '() => void', required: true, returns: 'void' },
+    download: {
+      type: '(bundleName: string, channel?: string) => Promise<RemoteDownload>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'channel?', description: 'string' },
+      ],
+      returns: 'Promise<RemoteDownload>',
+    },
+    downloadVersion: {
+      type: '(bundleName: string, version: string) => Promise<RemoteDownload>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<RemoteDownload>',
+    },
+    free: { type: '() => void', required: true, returns: 'void' },
+    getInfo: {
+      type: '(bundleName: string, channel?: string) => Promise<RemoteBundleInfo>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'channel?', description: 'string' },
+      ],
+      returns: 'Promise<RemoteBundleInfo>',
+    },
+    listBundles: {
+      type: '(channel?: string) => Promise<ListRemoteBundleInfo[]>',
+      required: true,
+      parameters: [{ name: 'channel?', description: 'string' }],
+      returns: 'Promise<ListRemoteBundleInfo[]>',
+    },
+  }}
+/>

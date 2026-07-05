@@ -1,0 +1,30 @@
+---
+title: 'writeBundleIntoBuffer'
+description: 'Writes a bundle to a buffer synchronously.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Writes a bundle to a buffer synchronously.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1611)
+
+```ts
+function writeBundleIntoBuffer(bundle: Bundle): Buffer;
+```
+
+## Parameters
+
+<TypeTable type={{ bundle: { type: 'Bundle', description: 'Bundle to write', required: true } }} />
+
+## Returns
+
+`Buffer` — Bundle data as a buffer
+
+## Examples
+
+```typescript
+const bundle = builder.build();
+const buffer = writeBundleIntoBuffer(bundle);
+console.log(`Bundle size: ${buffer.length} bytes`);
+```

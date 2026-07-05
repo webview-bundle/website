@@ -1,0 +1,38 @@
+---
+title: '리모트 번들 업데이트'
+description: updater 브리지로 웹 앱에서 원격 업데이트를 진행합니다 — 확인, 다운로드, 설치, 리로드까지.
+---
+
+`updater` 브리지는 웹뷰 안의 웹 코드에서 원격 업데이트를 진행합니다. 새 번들이 있는지 확인하고, 다운로드하고, 설치한 뒤 리로드합니다.
+
+## 업데이트 흐름
+
+`getUpdate`은 새 버전이 있는지 알려줍니다. `download`은 새 버전을 준비하고(검증한 뒤 네이티브 소스 저장소에 기록), `install`은 활성화하며, 리로드하면 해당 번들이 제공됩니다.
+
+```ts title="src/update.ts"
+import { updater } from '@wvb/bridge';
+
+async function checkForUpdate(bundleName: string) {
+  const update = await updater.getUpdate(bundleName);
+  if (!update.isAvailable) {
+    return;
+  }
+
+  await updater.download(bundleName);
+  await updater.install(bundleName, update.version);
+
+  // 리로드하면 웹뷰가 새로 설치된 번들을 제공합니다.
+  window.location.reload();
+}
+```
+
+`getUpdate`은 `BundleUpdateInfo`로 resolve됩니다. `version`은 리모트가 제공하는 버전이고, `localVersion`은 설치되어 있는 버전입니다. 준비 전에 `isAvailable`을 확인하세요.
+
+## 먼저 updater를 구성하세요
+
+브리지는 이 호출들을 네이티브 호스트로 전달할 뿐입니다. updater와 그 리모트는 네이티브 쪽에 있습니다. 연동 방법은 플랫폼별 가이드를 참고하세요.
+
+<Callout type="warn">
+  호스트에 updater가 구성되어 있지 않으면 `updater` 호출은 `code`가
+  `BridgeErrorCode.UpdaterNotInitialized`인 `BridgeError`로 reject됩니다.
+</Callout>

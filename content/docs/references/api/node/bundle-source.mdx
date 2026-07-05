@@ -1,0 +1,290 @@
+---
+title: 'BundleSource'
+description: 'Bundle source for managing multiple bundle versions.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Bundle source for managing multiple bundle versions.
+
+A source manages bundles in two directories:
+
+- **builtin**: Bundles shipped with the app (read-only, fallback)
+- **remote**: Downloaded bundles (takes priority)
+
+The source automatically handles version selection, with remote bundles
+taking priority over builtin ones.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L337)
+
+## Constructor
+
+```ts
+new BundleSource(config: BundleSourceConfig);
+```
+
+<TypeTable
+  type={{
+    config: { type: 'BundleSourceConfig', description: 'Source configuration', required: true },
+  }}
+/>
+
+## Methods
+
+<TypeTable
+  type={{
+    fetchBuiltinBundle: {
+      type: '(bundleName: string, version: string) => Promise<Bundle>',
+      description: 'Fetches a builtin bundle.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'version', description: 'string — Version of the bundle' },
+      ],
+      returns: 'Promise<Bundle> — Fetched bundle',
+    },
+    fetchBundle: {
+      type: '(bundleName: string) => Promise<Bundle>',
+      description: 'Fetches a bundle.',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string — Name of the bundle' }],
+      returns: 'Promise<Bundle> — Fetched bundle',
+    },
+    fetchDescriptor: {
+      type: '(bundleName: string) => Promise<BundleDescriptor>',
+      description: 'Fetches only the bundle descriptor.',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string — Name of the bundle' }],
+      returns: 'Promise<BundleDescriptor> — Bundle descriptor',
+    },
+    fetchRemoteBundle: {
+      type: '(bundleName: string, version: string) => Promise<Bundle>',
+      description: 'Fetches a remote bundle.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'version', description: 'string — Version of the bundle' },
+      ],
+      returns: 'Promise<Bundle> — Fetched bundle',
+    },
+    getBuiltinBundleFilepath: {
+      type: '(bundleName: string, version: string) => string',
+      description: 'Get the file path for a builtin bundle.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'version', description: 'string — Version of the bundle' },
+      ],
+      returns: 'string — Absolute file path',
+    },
+    getRemoteBundleFilepath: {
+      type: '(bundleName: string, version: string) => string',
+      description: 'Get the file path for a remote bundle.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'version', description: 'string — Version of the bundle' },
+      ],
+      returns: 'string — Absolute file path',
+    },
+    listBundles: {
+      type: '() => Promise<ListBundleItem[]>',
+      description:
+        'Lists all available bundles from both sources. Returns bundles from both builtin and remote directories, including all versions and metadata.',
+      required: true,
+      returns: 'Promise<ListBundleItem[]> — List of bundle items',
+    },
+    loadBuiltinMetadata: {
+      type: '(bundleName: string, version: string) => Promise<BundleManifestMetadata | null>',
+      description: 'Load builtin bundle metadata.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'version', description: 'string — Version of the bundle' },
+      ],
+      returns: 'Promise<BundleManifestMetadata | null> — Loaded metadata',
+    },
+    loadDescriptor: {
+      type: '(bundleName: string) => Promise<LoadedDescriptor>',
+      description:
+        'Loads (and caches) the descriptor for the current version of a bundle. The descriptor reads entry data lazily from disk via LoadedDescriptor.getData, avoiding loading the full bundle into memory. Concurrent calls for the same bundle share a single load (single-flight) and return the cached descriptor until the active version changes or BundleSource.unloadDescriptor is called.',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string — Name of the bundle' }],
+      returns: 'Promise<LoadedDescriptor> — Loaded descriptor',
+    },
+    loadRemoteMetadata: {
+      type: '(bundleName: string, version: string) => Promise<BundleManifestMetadata | null>',
+      description: 'Load remote bundle metadata.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'version', description: 'string — Version of the bundle' },
+      ],
+      returns: 'Promise<BundleManifestMetadata | null> — Loaded metadata',
+    },
+    loadVersion: {
+      type: '(bundleName: string) => Promise<BundleSourceVersion | null>',
+      description:
+        'Loads the current version for a bundle. Returns the version from remote if available, otherwise from builtin.',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string — Name of the bundle' }],
+      returns: 'Promise<BundleSourceVersion | null> — Version info or null if not found',
+    },
+    pruneRemoteBundles: {
+      type: '(bundleName: string) => Promise<string[]>',
+      description:
+        'Removes every staged remote version except the retained set (current and previous).',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string — Name of the bundle' }],
+      returns: 'Promise<string[]> — Versions that were removed',
+    },
+    remoteRetainedVersions: {
+      type: '(bundleName: string) => Promise<string[]>',
+      description:
+        'Returns the remote versions that pruning retains (the current and previous versions).',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string — Name of the bundle' }],
+      returns: 'Promise<string[]> — Retained version strings',
+    },
+    removeRemoteBundle: {
+      type: '(bundleName: string, version: string) => Promise<boolean>',
+      description:
+        'Removes a single staged remote bundle version. Drops its manifest entry and deletes its file from disk.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'version', description: 'string — Version to remove' },
+      ],
+      returns: 'Promise<boolean> — True if the entry existed and was removed',
+    },
+    resolveFilepath: {
+      type: '(bundleName: string) => Promise<string>',
+      description:
+        'Gets the file path for a bundle. Returns the path to the .wvb file for the current version, preferring remote over builtin.',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string — Name of the bundle' }],
+      returns: 'Promise<string> — Absolute file path',
+    },
+    unloadDescriptor: {
+      type: '(bundleName: string) => boolean',
+      description:
+        'Drops the cached descriptor for a bundle, if present. Already-returned LoadedDescriptor handles keep working; they hold their own reference and are unaffected. The next BundleSource.loadDescriptor reloads from disk.',
+      required: true,
+      parameters: [{ name: 'bundleName', description: 'string — Name of the bundle' }],
+      returns: 'boolean — True if a cached descriptor was removed',
+    },
+    updateRemoteVersion: {
+      type: '(bundleName: string, version: string) => Promise<void>',
+      description:
+        'Updates the current version for a remote bundle. Changes which version is considered "current" in the manifest.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'version', description: 'string — Version to set as current' },
+      ],
+      returns: 'Promise<void>',
+    },
+    writeRemoteBundle: {
+      type: '(bundleName: string, version: string, bundle: Bundle, metadata: BundleManifestMetadata) => Promise<void>',
+      description:
+        'Writes a bundle to the remote directory. Installs a new bundle version to the remote directory and updates the manifest.',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string — Name of the bundle' },
+        { name: 'version', description: 'string — Version string' },
+        { name: 'bundle', description: 'Bundle — Bundle to write' },
+        { name: 'metadata', description: 'BundleManifestMetadata — Bundle metadata' },
+      ],
+      returns: 'Promise<void>',
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+const source = new BundleSource({
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+
+// List all bundles
+const bundles = await source.listBundles();
+
+// Load current version
+const version = await source.loadVersion('app');
+
+// Fetch bundle
+const bundle = await source.fetch('app');
+```
+
+### constructor
+
+```typescript
+const source = new BundleSource({
+  builtinDir: './builtin',
+  remoteDir: './remote',
+});
+```
+
+### fetchBundle
+
+```typescript
+const bundle = await source.fetchBundle('app');
+const html = bundle.getData('/index.html');
+```
+
+### fetchDescriptor
+
+```typescript
+const descriptor = await source.fetchDescriptor('app');
+const index = descriptor.index();
+console.log(`Files: ${Object.keys(index.entries()).length}`);
+```
+
+### listBundles
+
+```typescript
+const bundles = await source.listBundles();
+for (const bundle of bundles) {
+  console.log(`${bundle.name}@${bundle.version} (${bundle.type})`);
+}
+```
+
+### loadDescriptor
+
+```typescript
+const loaded = await source.loadDescriptor('app');
+const html = await loaded.getData('/index.html');
+```
+
+### loadVersion
+
+```typescript
+const version = await source.loadVersion('app');
+if (version) {
+  console.log(`Current version: ${version.version} (${version.type})`);
+}
+```
+
+### resolveFilepath
+
+```typescript
+const path = await source.resolveFilepath('app');
+console.log(`Bundle at: ${path}`);
+```
+
+### updateRemoteVersion
+
+```typescript
+await source.updateRemoteVersion('app', '1.2.0');
+```
+
+### writeRemoteBundle
+
+```typescript
+await source.writeRemoteBundle('app', '1.2.0', bundle, {
+  integrity: 'sha3-384-...',
+  etag: 'abc123',
+});
+```

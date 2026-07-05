@@ -1,0 +1,30 @@
+---
+title: Builtin bundles
+description: Install builtin .wvb bundles into an iOS app's resources with wvb builtin so the Source serves them offline.
+---
+
+The iOS Source reads builtin bundles from `<app resources>/bundles` — the app bundle's read-only `bundles` folder. Install them there with `wvb builtin`, then ship the folder as a folder reference.
+
+## Install
+
+`wvb builtin` pulls bundles from the target set in your config (`builtin.target`, remote by default) and writes a `manifest.json` plus one `<name>/<name>_<version>.wvb` file per bundle.
+
+```sh
+# Tuist project: auto-detect the project and wire the folder reference
+wvb builtin --ios
+
+# Otherwise: install into a folder you add to the app target
+wvb builtin --out path/to/App/bundles
+```
+
+The folder reference must land at `bundles/` in the app's resources, so name the output folder `bundles`.
+
+## Ship it as a folder reference
+
+The Source loads the directory as-is, so add it to the app target as a **folder reference** (blue folder in Xcode) — a group would flatten the `<name>/<name>_<version>.wvb` layout the manifest points at. The `--ios` preset does this for you by adding a `folderReference` to `Project.swift` (Tuist projects).
+
+To read from a different location, set `builtinDir` on `WebViewBundleConfig.source`. See the [Sources section](/docs/guide/native/ios#sources) of the iOS setup guide.
+
+## Remote or local
+
+The install source is config-driven, not a flag: `builtin.target` is a discriminated union of `remote` (the default) and `local`. `--endpoint`, `--channel`, `--concurrency`, and `--progress` apply to the remote target only. See [wvb builtin](/docs/references/cli/builtin) for every option.

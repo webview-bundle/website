@@ -1,0 +1,17 @@
+{
+  "title": "@wvb/electron-builder",
+  "pages": [
+    "---Functions---",
+    "resolve-resources-path",
+    "webview-bundle-after-pack",
+    "with-webview-bundle",
+    "---Interfaces---",
+    "after-pack-context",
+    "webview-bundle-options",
+    "---Type Aliases---",
+    "after-pack-hook",
+    "---Variables---",
+    "with-wvb",
+    "wvb-after-pack"
+  ]
+}

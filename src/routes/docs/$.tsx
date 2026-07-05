@@ -5,9 +5,10 @@ export const Route = createFileRoute('/docs/$')({
   component: Page,
   loader: async ({ params }) => {
     const slugs = params._splat?.split('/').filter(Boolean) ?? [];
-    // `/docs` has no tab context; send readers to the Guide tab.
-    if (slugs.length === 0) {
-      throw redirect({ to: '/docs/$', params: { _splat: 'guide' } });
+    // Neither `/docs` nor `/docs/guide` has a page of its own (the Guide tab has
+    // no index) — land readers on the Guide's first page.
+    if (slugs.length === 0 || (slugs.length === 1 && slugs[0] === 'guide')) {
+      throw redirect({ to: '/docs/$', params: { _splat: 'guide/getting-started' } });
     }
     const data = await docsServerLoader({ data: { slugs, locale: 'en' } });
     await docsClientLoader.preload(data.path);

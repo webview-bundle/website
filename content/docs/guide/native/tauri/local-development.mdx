@@ -1,0 +1,41 @@
+---
+title: Local development
+description: Proxy the wvb custom scheme to your Tauri/Vite dev server so the webview loads live, and switch between dev and packed bundles.
+---
+
+In development you want the webview to load from your running dev server, not from a packed `.wvb`. Register a `local` protocol so the custom scheme proxies to Tauri's Vite dev server and keeps hot reload.
+
+## Proxy the dev server
+
+Register `Protocol::local` next to `Protocol::bundle`, mapping a scheme host to Tauri's Vite dev server (default `http://localhost:1420`):
+
+```rust title="src-tauri/src/lib.rs"
+use wvb_tauri::{Config, Protocol, Source};
+
+Config::new()
+  .source(Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles"))))
+  // Production: serve files from the packed bundle.
+  .protocol(Protocol::bundle("bundle"))
+  // Development: proxy the same host to the running dev server.
+  .protocol(Protocol::local("local").host("example.com", "http://localhost:1420"));
+```
+
+`Protocol::local(scheme)` forwards `local://example.com/...` to the dev server, so edits reload live. Map several hosts with more `.host(...)` calls or a single `.hosts(...)`.
+
+## Switch dev and prod
+
+Point the window at the `local` scheme while developing and at the `bundle` scheme when you ship:
+
+```json title="src-tauri/tauri.conf.json"
+{
+  "app": {
+    "windows": [
+      {
+        "url": "local://example.com"
+      }
+    ]
+  }
+}
+```
+
+Swap the window `url` to `bundle://app.wvb` for production builds, or pick it at runtime with `cfg!(debug_assertions)` so the switch is automatic.

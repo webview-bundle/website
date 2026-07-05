@@ -1,0 +1,34 @@
+---
+title: 'readBundleFromBuffer'
+description: 'Reads a bundle from a buffer synchronously.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Reads a bundle from a buffer synchronously.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1352)
+
+```ts
+function readBundleFromBuffer(buffer: Buffer): Bundle;
+```
+
+## Parameters
+
+<TypeTable
+  type={{
+    buffer: { type: 'Buffer', description: 'Buffer containing bundle data', required: true },
+  }}
+/>
+
+## Returns
+
+`Bundle` — Parsed bundle
+
+## Examples
+
+```typescript
+import { readFileSync } from 'fs';
+const buffer = readFileSync('app.wvb');
+const bundle = readBundleFromBuffer(buffer);
+```
