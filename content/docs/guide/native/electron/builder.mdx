@@ -82,28 +82,3 @@ The plugin handles installing the builtin bundles, so you do not need `extraReso
   If the app works in development but throws a missing-module error for `@wvb/node` once packaged,
   the native addon was packed into the ASAR. Add the `asarUnpack` glob above and repackage.
 </Callout>
-
-## Next steps
-
-<Cards>
-  <Card
-    title="Electron guide"
-    href="/docs/guide/native/electron"
-    description="Serve a .wvb bundle through a custom protocol and update over the air."
-  />
-  <Card
-    title="Electron Forge"
-    href="/docs/guide/native/electron/forge"
-    description="The same builtin-install logic as an Electron Forge plugin."
-  />
-  <Card
-    title="Configuration"
-    href="/docs/references/configuration"
-    description="The builtin and remote config the plugin resolves."
-  />
-  <Card
-    title="Building a remote"
-    href="/docs/guide/remote"
-    description="Stand up an update server the plugin can install bundles from."
-  />
-</Cards>

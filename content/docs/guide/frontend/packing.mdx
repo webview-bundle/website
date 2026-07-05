@@ -45,28 +45,3 @@ export default defineConfig({
 A packed `.wvb` can ship inside your native app as a builtin bundle, served when the app is offline or before it fetches a newer bundle over the air.
 
 `wvb builtin` collects bundles into an output directory (default `.wvb/builtin/bundles`), laid out as `<name>/<name>_<version>.wvb` alongside a `manifest.json`.
-
-## Next steps
-
-<Cards>
-  <Card
-    title="wvb pack"
-    href="/docs/references/cli/pack"
-    description="The pack command, its flags, and defaults."
-  />
-  <Card
-    title="Configuration"
-    href="/docs/references/configuration"
-    description="The wvb.config file that supplies pack defaults."
-  />
-  <Card
-    title="Upload to remote"
-    href="/docs/guide/frontend/upload"
-    description="Publish a packed bundle for over-the-air updates."
-  />
-  <Card
-    title="wvb builtin"
-    href="/docs/references/cli/builtin"
-    description="Install bundles so your app can ship them as builtin."
-  />
-</Cards>

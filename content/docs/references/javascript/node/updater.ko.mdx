@@ -11,7 +11,7 @@ import { BundleSource, Remote, Updater } from '@wvb/node';
 const updater = new Updater(source, remote, options);
 ```
 
-## Constructor
+## 생성자
 
 `new Updater(source: BundleSource, remote: Remote, options?: UpdaterOptions)`
 
@@ -23,7 +23,7 @@ const updater = new Updater(source, remote, options);
 
 다운로드와 설치는 번들 단위로 직렬화됩니다. 따라서 같은 번들 이름에 대한 동시 호출은 한 번에 하나씩 실행됩니다.
 
-## Methods
+## 메서드
 
 | Method        | Signature                                           | Behavior                                                                                                                   |
 | ------------- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
@@ -66,7 +66,7 @@ type SignatureVerifierOptions = {
 | `integrityChecker`  | `(data, integrity) => Promise<boolean>`                               | 내장 SHA-2 비교를 대체하는 커스텀 무결성 검사입니다.         |
 | `signatureVerifier` | `SignatureVerifierOptions` or `(data, signature) => Promise<boolean>` | 선언적인 알고리즘·키 검증기 또는 커스텀 콜백입니다.          |
 
-### Integrity policy
+### 무결성 정책
 
 `integrityPolicy`는 스테이징된 번들의 무결성 해시를 `download` 중에 어떻게 검사하고 `install` 중에 어떻게 다시 검사할지 결정합니다.
 
@@ -78,7 +78,7 @@ type SignatureVerifierOptions = {
 
 무결성은 SHA-2(`sha256`, `sha384`, `sha512`)를 사용하며, `"<alg>:<base64>"` 형식으로 직렬화됩니다. 예를 들면 `sha256:n4bQ…`입니다. 자체 로직을 연결하려면, 내장 검사에 의존하는 대신 `integrityChecker` 콜백을 제공하세요.
 
-### Signature verification
+### 서명 검증
 
 신뢰하는 키로 업데이트가 서명되도록 요구하려면 `signatureVerifier`를 설정하세요. 알고리즘과 공개 키로 선언적으로 제공하거나, 커스텀 콜백을 제공하세요.
 
@@ -103,7 +103,7 @@ type VerifyingKeyFormat = 'spkiDer' | 'spkiPem' | 'pkcs1Der' | 'pkcs1Pem' | 'sec
 
 전체 타입 목록은 [열거형, 옵션, 결과 타입](/docs/references/javascript/node/types)을, 배포 측 설정은 [Remote, 무결성 및 서명 설정](/docs/references/configuration/remote)을 참고하세요.
 
-## Update with integrity and signature checks
+## 무결성 및 서명 검사와 함께 업데이트하기
 
 엄격한 무결성 정책과 선언적 Ed25519 서명 검증기로 `Updater`를 구성한 뒤, 확인·다운로드·설치 단계를 순서대로 실행하세요.
 
@@ -136,7 +136,7 @@ if (update.isAvailable) {
 }
 ```
 
-## Related
+## 관련 항목
 
 <Cards>
   <Card

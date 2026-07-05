@@ -5,7 +5,7 @@ description: wvb builtin으로 내장 .wvb 번들을 iOS 앱 리소스에 설치
 
 iOS Source는 내장 번들을 `<app resources>/bundles`에서 읽습니다. 앱 번들의 읽기 전용 `bundles` 폴더입니다. `wvb builtin`으로 그 위치에 설치한 뒤, 폴더를 폴더 레퍼런스로 배포하세요.
 
-## Install
+## 설치
 
 `wvb builtin`은 설정에 지정된 타깃(`builtin.target`, 기본값은 리모트)에서 번들을 받아와 `manifest.json`과 함께 번들마다 `<name>/<name>_<version>.wvb` 파일을 하나씩 씁니다.
 
@@ -19,17 +19,17 @@ wvb builtin --out path/to/App/bundles
 
 폴더 레퍼런스는 앱 리소스의 `bundles/`에 놓여야 하므로, 산출물 폴더 이름을 `bundles`로 지정하세요.
 
-## Ship it as a folder reference
+## 폴더 레퍼런스로 배포하기
 
 Source는 디렉터리를 있는 그대로 로드하므로, 앱 타깃에 **폴더 레퍼런스**(Xcode의 파란색 폴더)로 추가하세요. 그룹으로 추가하면 매니페스트가 가리키는 `<name>/<name>_<version>.wvb` 구조가 평탄화됩니다. `--ios` 프리셋은 `Project.swift`에 `folderReference`를 추가해 이를 대신 처리합니다(Tuist 프로젝트).
 
 다른 위치에서 읽으려면 `WebViewBundleConfig.source`에 `builtinDir`을 설정하세요. iOS 설정 가이드의 [Sources 섹션](/docs/guide/native/ios#sources)을 참고하세요.
 
-## Remote or local
+## 리모트 또는 로컬
 
 설치 소스는 플래그가 아니라 설정으로 정해집니다. `builtin.target`은 `remote`(기본값)와 `local`의 구별 합집합입니다. `--endpoint`, `--channel`, `--concurrency`, `--progress`는 리모트 타깃에만 적용됩니다. 모든 옵션은 [wvb builtin](/docs/references/cli/builtin)을 참고하세요.
 
-## See also
+## 함께 보기
 
 <Cards>
   <Card

@@ -14,7 +14,7 @@ const bundles = await source.listBundles();
 const path = await source.resolveFilepath('app');
 ```
 
-## Methods
+## 메서드
 
 | Method                                          | Purpose                                         |
 | ----------------------------------------------- | ----------------------------------------------- |
@@ -35,7 +35,7 @@ const path = await source.resolveFilepath('app');
 bridge의 `ListBundleItem`은 `{ type, item }` 형태로 중첩되어 있어, `@wvb/node`의 평면적인 `ListBundleItem`과 다릅니다. 웹 측에서 작업할 때는 bridge 타입을 사용하세요.
 </Callout>
 
-## Managing remote bundles
+## 리모트 번들 관리하기
 
 무선(OTA) 업데이트가 적용되면, 호스트는 현재 원격 버전과 이전 버전들을 함께 보관합니다. 보관 중인 항목을 확인한 다음, 더 이상 필요하지 않은 것을 정리하세요.
 
@@ -52,7 +52,7 @@ async function tidyRemoteBundles(bundleName: string) {
 
 다운로드한 특정 버전을 삭제하려면 `removeRemoteBundle(bundleName, version)`을 호출하세요.
 
-## See also
+## 함께 보기
 
 <Cards>
   <Card

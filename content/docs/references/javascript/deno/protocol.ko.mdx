@@ -7,7 +7,7 @@ Deno 바인딩은 두 가지 프로토콜 핸들러를 제공합니다. `BundleP
 
 기본 개념은 [프로토콜 처리](/docs/guide/core-concepts/protocol-handling)를 참고하세요. Deno가 제공하는 전체 API와 네이티브 라이브러리를 로드하는 방법은 [Deno API 개요](/docs/references/javascript/deno)를 참고하세요.
 
-## Handlers
+## 핸들러
 
 `BundleProtocol`은 로드된 `lib`과 [`BundleSource`](/docs/references/javascript/deno/source)를 받습니다. 들어오는 각 요청을 해석된 번들 안의 파일로 매핑합니다.
 
@@ -23,7 +23,7 @@ Deno 바인딩은 두 가지 프로토콜 핸들러를 제공합니다. `BundleP
 
 `HttpMethod`는 허용되는 요청 메서드의 유니온 타입입니다. 예를 들어 `'get'`과 `'head'`가 있습니다.
 
-## Serving a bundle
+## 번들 제공하기
 
 `BundleSource`를 생성하고 `BundleProtocol`에 전달한 뒤, `Deno.serve` 콜백에서 `handle`을 호출하세요. 결과를 반환하기 전에 `toResponse`로 변환하세요.
 
@@ -45,7 +45,7 @@ Deno.serve(async req => {
 });
 ```
 
-## Disposing handlers
+## 핸들러 해제하기
 
 프로토콜 클래스는 네이티브 핸들을 소유하므로 `Disposable`입니다. `using`으로 바인딩하면 스코프를 벗어날 때 해제되며, 작업이 끝나면 `free()`를 호출해 해제할 수도 있습니다.
 

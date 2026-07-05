@@ -11,7 +11,7 @@ description: 웹뷰 내부에서 무선(OTA) 업데이트 흐름을 구동하는
 import { updater } from '@wvb/bridge';
 ```
 
-## Methods
+## 메서드
 
 | Method                         | Purpose                                |
 | ------------------------------ | -------------------------------------- |
@@ -39,7 +39,7 @@ type BundleUpdateInfo = {
 
 업데이트를 스테이징하기 전에 `isAvailable`을 확인하세요. `version` 필드는 원격 서버가 제공하는 버전이고, `localVersion`은 호스트에 현재 설치된 버전입니다(있는 경우).
 
-## Update flow
+## 업데이트 흐름
 
 일반적인 OTA 확인은 더 새로운 번들을 스테이징하고 설치한 뒤, 웹뷰를 다시 로드하여 해당 번들을 제공합니다.
 
@@ -66,7 +66,7 @@ async function checkForUpdate(bundleName: string) {
   개요](/docs/references/javascript/bridge)를 참고하세요.
 </Callout>
 
-## See also
+## 함께 보기
 
 <Cards>
   <Card

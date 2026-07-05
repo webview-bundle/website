@@ -5,7 +5,7 @@ description: .wvb 아카이브의 파일을 디스크로 다시 풀어 번들에
 
 `wvb extract`는 `.wvb` 아카이브를 읽어 그 안의 파일을 디스크로 다시 씁니다. 번들이 무엇을 담고 있는지 확인하거나, 두 번들을 비교하거나, 번들에 들어간 자산을 복원할 때 사용하세요.
 
-## Usage
+## 사용법
 
 추출할 번들 파일을 전달하세요. 이 명령어는 풀어낸 파일을 출력 디렉터리에 쓰며, 기본값은 `.wvb/<basename without .wvb>`입니다.
 
@@ -21,7 +21,7 @@ wvb extract ./build/app.wvb --outdir ./unpacked --clean
 wvb extract ./build/app.wvb --no-write
 ```
 
-## Options
+## 옵션
 
 | Option     | Aliases | Default                        | Description                                                       |
 | ---------- | ------- | ------------------------------ | ----------------------------------------------------------------- |
@@ -38,7 +38,7 @@ wvb extract ./build/app.wvb --no-write
 
 전역 플래그인 `--color`, `--log-level`, `--log-verbose`는 다른 모든 명령어에서와 마찬가지로 여기서도 적용됩니다. 불리언 플래그는 `--flag`, `--flag=true|false`, 그리고 `--no-flag` 부정 형태를 받습니다. 따라서 `--no-write`는 기본 동작인 `--write`를 끕니다.
 
-## See also
+## 함께 보기
 
 <Cards>
   <Card
