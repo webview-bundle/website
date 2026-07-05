@@ -72,7 +72,9 @@ export function CallToAction() {
             <span className="size-2.5 rounded-[2px] bg-brand/80" />
             <span className="size-2.5 rounded-[2px] bg-zinc-300 dark:bg-zinc-700" />
             <span className="size-2.5 rounded-[2px] bg-zinc-300 dark:bg-zinc-700" />
-            <span className="ml-2 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">~/my-app</span>
+            <span className="ml-2 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+              ~/my-app
+            </span>
           </div>
           <pre className="overflow-x-auto px-5 py-4 font-mono text-[12px] leading-relaxed sm:text-[13px]">
             {INSTALL_COMMANDS.map(command => {

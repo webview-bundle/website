@@ -1,5 +1,99 @@
 ---
-title: '설치'
+title: 설치
+description: '@wvb/cli 패키지를 설치하고 wvb 명령줄 도구를 실행합니다.'
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+명령줄 도구는 [`@wvb/cli`](/docs/references/api/cli) 패키지로 제공됩니다. 동일하게 동작하는 두
+바이너리 `wvb`와 `webview-bundle`을 노출하므로, 스크립트에서 읽기 좋은 쪽을 사용하세요.
+
+## 요구 사항
+
+- **Node.js 18.14.1 이상.** Node 19는 19.7.0부터 지원하며, Node 20 이상은 제한 없이 동작합니다.
+- 이 패키지는 ESM 전용입니다. 프로젝트 코드가 ESM이든 CommonJS든 관계없이 실행됩니다.
+
+## 설치
+
+`@wvb/cli`를 개발 의존성으로 추가하세요. 이 도구는 앱의 런타임 의존성이 아니라 빌드 시점
+도구입니다.
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/cli
+```
+
+  </Tab>
+</Tabs>
+
+## 실행
+
+바이너리를 패키지 매니저를 통해 실행하면 `node_modules`에서 해석됩니다.
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npx wvb --help
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm wvb --help
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn wvb --help
+```
+
+  </Tab>
+</Tabs>
+
+반복 가능한 빌드를 위해 `package.json`의 scripts에 명령어를 추가하세요.
+
+```json title="package.json"
+{
+  "scripts": {
+    "bundle": "wvb pack",
+    "bundle:deploy": "wvb upload && wvb deploy"
+  }
+}
+```
+
+<Callout type="info">
+  전역 설치보다 프로젝트 로컬 설치를 권장합니다. CLI 버전이 다른 개발 의존성과 함께 고정되므로, 모든
+  머신과 CI 실행이 동일한 버전을 사용합니다.
+</Callout>
+
+## 확인
+
+설치된 버전을 출력해 바이너리가 해석되는지 확인하세요.
+
+```sh
+npx wvb --version
+```
+
+## 다음 단계
+
+- [`wvb.config`](/docs/references/configuration) 파일을 만들어 명령어를 인자 없이 실행하세요.
+- [CLI 개요](/docs/references/cli)에서 모든 명령어를 살펴보세요.
+- [프로그래밍 방식 API](/docs/references/cli/programmatic)로 동일한 로직을 JavaScript에서 호출하세요.

@@ -1,0 +1,26 @@
+---
+title: 'loadLibViaPlug'
+description: 'Download the platform cdylib from a release via @denosaurs/plug, verify it, cache it, and load it.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Download the platform cdylib from a release via `@denosaurs/plug`, verify it, cache it, and load
+it. For `deno run` / library use where the dylib isn't bundled. NOT for self-contained
+`deno desktop` builds — there, vendor + `--include` the dylib and use [`loadLib`](/docs/references/api/deno/load-lib).
+
+Requires `--allow-net --allow-read --allow-write --allow-env --allow-ffi`.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/ffi.ts#L178)
+
+```ts
+function loadLibViaPlug(options: LoadLibViaPlugOptions = {}): Promise<DynamicLibrary<{ … }>>;
+```
+
+## Parameters
+
+<TypeTable type={{ options: { type: 'LoadLibViaPlugOptions', required: false, default: '{}' } }} />
+
+## Returns
+
+`Promise<DynamicLibrary<{ … }>>`

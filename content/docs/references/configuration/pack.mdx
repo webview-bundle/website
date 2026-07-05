@@ -1,0 +1,60 @@
+---
+title: pack
+description: The pack section of wvb.config — source directory, output path, ignore rules, and per-file headers.
+---
+
+`pack` (`PackConfig`) sets the defaults for [`wvb pack`](/docs/references/cli/pack). CLI flags
+override these per invocation.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+    outFile: '.wvb/app',
+    overwrite: true,
+    ignore: ['*.map', /\.DS_Store$/],
+    headers: {
+      '*.html': { 'cache-control': 'max-age=0' },
+      '*.js': { 'cache-control': 'max-age=31536000' },
+    },
+  },
+});
+```
+
+| Field       | Type                                                                                 | Default       |
+| ----------- | ------------------------------------------------------------------------------------ | ------------- |
+| `srcDir`    | `string`                                                                             | `./dist`      |
+| `outFile`   | `string`                                                                             | `.wvb/<name>` |
+| `overwrite` | `boolean`                                                                            | `true`        |
+| `ignore`    | `Array<string \| RegExp> \| ((file: string) => boolean \| Promise<boolean>)`         | —             |
+| `headers`   | `Record<glob, HeadersInit> \| Array<[glob, HeadersInit]> \| ((file) => HeadersInit)` | —             |
+
+`outFile` is a single output path. The `.wvb` extension is appended automatically when you omit it,
+and the path resolves relative to `root` unless it is absolute. The default `.wvb/<name>` derives
+`<name>` from your `package.json` name with any scope prefix stripped.
+
+<Callout type="warn">
+  The field is `outFile`, a complete path. There is no `outFileName` or `outDir` on `pack` — write
+  the full output path, including any subdirectory, in `outFile`.
+</Callout>
+
+`ignore` accepts an array of globs and regular expressions, or a predicate that returns a boolean
+(optionally async). `headers` attaches HTTP headers to matching files and accepts three shapes:
+
+```ts
+// 1. Record keyed by glob
+headers: {
+  '*.html': { 'cache-control': 'max-age=3600' },
+}
+
+// 2. Array of [glob, HeadersInit] tuples
+headers: [
+  ['*.html', { 'cache-control': 'max-age=3600' }],
+  ['*.png', [['cache-control', 'max-age=0']]], // HeadersInit also accepts [name, value] pairs
+]
+
+// 3. Function returning headers per file
+headers: (file) => (file.endsWith('.html') ? { 'cache-control': 'max-age=0' } : undefined)
+```

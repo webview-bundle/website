@@ -62,7 +62,7 @@ export default defineConfig({
 });
 ```
 
-The uploader writes to R2 over the S3-compatible API, so pass R2 access keys through its `s3ClientConfig.credentials`; the deployer updates KV with a Cloudflare API token. See the [Cloudflare client reference](/docs/references/javascript/remotes/remote-cloudflare) for the full config.
+The uploader writes to R2 over the S3-compatible API, so pass R2 access keys through its `s3ClientConfig.credentials`; the deployer updates KV with a Cloudflare API token. See the [Cloudflare client reference](/docs/references/api/remotes/remote-cloudflare) for the full config.
 
 <Callout type="info">
   The Worker reads an R2 binding named `BUCKET` and a KV binding named `KV`. Match those names in

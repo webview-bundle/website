@@ -1,0 +1,28 @@
+---
+title: 'IntegrityAlgorithm'
+description: 'Hash algorithm for bundle integrity verification.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Hash algorithm for bundle integrity verification.
+
+Supports SHA-2 family hash algorithms for cryptographic verification
+following the Subresource Integrity specification.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1261)
+
+## Type
+
+```ts
+type IntegrityAlgorithm = 'sha256' | 'sha384' | 'sha512';
+```
+
+## Examples
+
+```typescript
+// Integrity strings use these algorithms:
+// "sha256-abc123..." - SHA-256
+// "sha384-def456..." - SHA-384 (recommended)
+// "sha512-ghi789..." - SHA-512
+```

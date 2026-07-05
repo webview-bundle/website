@@ -1,0 +1,88 @@
+---
+title: 'BundleDescriptor'
+description: 'Bundle metadata including header and index information.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Bundle metadata including header and index information.
+
+A descriptor contains only the metadata without loading the actual file data,
+making it efficient for inspecting bundle contents.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L195)
+
+## Constructor
+
+```ts
+new BundleDescriptor();
+```
+
+## Methods
+
+<TypeTable
+  type={{
+    asyncGetData: {
+      type: '(filepath: string, path: string) => Promise<Buffer<ArrayBufferLike> | null>',
+      description: 'Asynchronously read data from the bundle.',
+      required: true,
+      parameters: [
+        { name: 'filepath', description: 'string — File path for the bundle' },
+        { name: 'path', description: 'string — Path to the bundle data' },
+      ],
+      returns:
+        'Promise<Buffer<ArrayBufferLike> | null> — Data from the bundle or null if not found',
+    },
+    asyncGetDataChecksum: {
+      type: '(filepath: string, path: string) => Promise<number | null>',
+      description: 'Asynchronously read checksum from the bundle.',
+      required: true,
+      parameters: [
+        { name: 'filepath', description: 'string — File path for the bundle' },
+        { name: 'path', description: 'string — Path to the bundle data' },
+      ],
+      returns: 'Promise<number | null> — Checksum for the bundle data or null if not found',
+    },
+    getData: {
+      type: '(filepath: string, path: string) => Buffer<ArrayBufferLike> | null',
+      description: 'Read data from the bundle.',
+      required: true,
+      parameters: [
+        { name: 'filepath', description: 'string — File path for the bundle' },
+        { name: 'path', description: 'string — Path to the bundle data' },
+      ],
+      returns: 'Buffer<ArrayBufferLike> | null — Data from the bundle or null if not found',
+    },
+    getDataChecksum: {
+      type: '(filepath: string, path: string) => number | null',
+      description: 'Read checksum from the bundle.',
+      required: true,
+      parameters: [
+        { name: 'filepath', description: 'string — File path for the bundle' },
+        { name: 'path', description: 'string — Path to the bundle data' },
+      ],
+      returns: 'number | null — Checksum for the bundle data or null if not found',
+    },
+    header: {
+      type: '() => Header',
+      description: 'Returns the bundle header.',
+      required: true,
+      returns: 'Header — Bundle header with format metadata',
+    },
+    index: {
+      type: '() => Index',
+      description: 'Returns the bundle index.',
+      required: true,
+      returns: 'Index — Bundle index with file metadata',
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+const bundle = await readBundle('app.wvb');
+const descriptor = bundle.descriptor();
+const header = descriptor.header();
+const index = descriptor.index();
+```

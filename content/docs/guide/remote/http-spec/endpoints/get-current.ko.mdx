@@ -3,7 +3,7 @@ title: 현재 번들 다운로드
 description: 배포된 번들의 현재 버전을 원본 .wvb 바이트로 다운로드합니다. 채널을 선택할 수도 있습니다.
 ---
 
-배포된 번들의 현재 버전을 다운로드합니다. 서버는 `.wvb` 아카이브를 응답 본문으로 스트리밍하고, 번들의 메타데이터를 `Webview-Bundle-*` 헤더에 담아 전달합니다. [업데이터](/docs/references/javascript/node/updater)는 검사 결과 새 버전이 있다고 확인되면 이 호출로 새 버전을 가져옵니다.
+배포된 번들의 현재 버전을 다운로드합니다. 서버는 `.wvb` 아카이브를 응답 본문으로 스트리밍하고, 번들의 메타데이터를 `Webview-Bundle-*` 헤더에 담아 전달합니다. [업데이터](/docs/references/api/node/updater)는 검사 결과 새 버전이 있다고 확인되면 이 호출로 새 버전을 가져옵니다.
 
 ```http
 GET /bundles/{name}

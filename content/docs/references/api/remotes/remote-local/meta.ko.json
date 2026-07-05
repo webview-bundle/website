@@ -1,0 +1,10 @@
+{
+  "title": "@wvb/remote-local",
+  "pages": [
+    "---함수---",
+    "local-remote",
+    "---인터페이스---",
+    "local-remote-interface",
+    "local-remote-config"
+  ]
+}

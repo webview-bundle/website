@@ -1,0 +1,19 @@
+{
+  "title": "@wvb/remote-aws",
+  "pages": [
+    "---Classes---",
+    "bundle-already-uploaded-error",
+    "---Functions---",
+    "aws-kms-signature-signer",
+    "aws-remote",
+    "aws-remote-deployer",
+    "aws-s3-remote-uploader",
+    "is-bundle-already-uploaded-error",
+    "---Interfaces---",
+    "aws-kms-signature-signer-config",
+    "aws-remote-interface",
+    "aws-remote-config",
+    "aws-remote-deployer-config",
+    "aws-s3-remote-uploader-config"
+  ]
+}

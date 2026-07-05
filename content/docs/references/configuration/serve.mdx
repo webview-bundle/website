@@ -1,0 +1,33 @@
+---
+title: serve
+description: The serve section of wvb.config — the local file, port, and log output for the preview server.
+---
+
+`serve` (`ServeConfig`) sets the defaults for [`wvb serve`](/docs/references/cli/serve), the local
+server that serves a packed bundle for development.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  serve: {
+    file: './.wvb/app.wvb',
+    port: 4312,
+    silent: false,
+  },
+});
+```
+
+| Field    | Type      | Default                 |
+| -------- | --------- | ----------------------- |
+| `file`   | `string`  | the `pack.outFile` path |
+| `port`   | `number`  | `4312`                  |
+| `silent` | `boolean` | —                       |
+
+`file` falls back to the resolved `pack.outFile` path when omitted. Set `silent` to disable
+request-log output.
+
+<Callout type="info">
+  `serve` has no `hostname` field. To bind a different host, pass `--hostname` (alias `-H`) to `wvb
+  serve` on the command line.
+</Callout>

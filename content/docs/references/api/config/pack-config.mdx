@@ -1,0 +1,59 @@
+---
+title: 'PackConfig'
+description: 'Webview Bundle pack config.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Webview Bundle pack config.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/config/src/pack.ts#L10)
+
+## Properties
+
+<TypeTable
+  type={{
+    headers: {
+      type: 'HeadersConfig',
+      description: 'Headers to set for each file in the Webview Bundle.',
+      required: false,
+    },
+    ignore: {
+      type: 'IgnoreConfig',
+      description: 'Ignore patterns which exclude files from the bundle.',
+      required: false,
+    },
+    outFile: {
+      type: 'string',
+      description:
+        'Output path for the Webview Bundle archive. Resolved relative to the config root (or used as-is when absolute). The ".wvb" extension is appended automatically when omitted. If not provided, defaults to ".wvb/<name>", where <name> is derived from the "name" field in "package.json" (scope stripped).',
+      required: false,
+    },
+    overwrite: {
+      type: 'boolean',
+      description: 'Overwrite out-file if file is already exists',
+      required: false,
+      default: 'true',
+    },
+    srcDir: {
+      type: 'string',
+      description:
+        'Path to the source directory. All files under this directory will be included in the Webview Bundle. Use "ignore" to exclude files you don\'t want to pack.',
+      required: false,
+      default: '"./dist"',
+    },
+  }}
+/>
+
+## Examples
+
+### headers
+
+```ts
+{
+   *   "*.html": {
+   *     "cache-control": "max-age=3600",
+   *   },
+   *   "*.js": ["cache-control", "max-age=0"]
+   * }
+```

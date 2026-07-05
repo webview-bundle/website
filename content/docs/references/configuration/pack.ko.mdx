@@ -1,0 +1,60 @@
+---
+title: pack
+description: 'wvb.config의 pack 섹션 — 소스 디렉터리, 출력 경로, ignore 규칙, 파일별 헤더입니다.'
+---
+
+`pack`(`PackConfig`)은 [`wvb pack`](/docs/references/cli/pack)의 기본값을 설정합니다. CLI
+플래그는 호출할 때마다 이 값을 재정의합니다.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+    outFile: '.wvb/app',
+    overwrite: true,
+    ignore: ['*.map', /\.DS_Store$/],
+    headers: {
+      '*.html': { 'cache-control': 'max-age=0' },
+      '*.js': { 'cache-control': 'max-age=31536000' },
+    },
+  },
+});
+```
+
+| Field       | Type                                                                                 | Default       |
+| ----------- | ------------------------------------------------------------------------------------ | ------------- |
+| `srcDir`    | `string`                                                                             | `./dist`      |
+| `outFile`   | `string`                                                                             | `.wvb/<name>` |
+| `overwrite` | `boolean`                                                                            | `true`        |
+| `ignore`    | `Array<string \| RegExp> \| ((file: string) => boolean \| Promise<boolean>)`         | —             |
+| `headers`   | `Record<glob, HeadersInit> \| Array<[glob, HeadersInit]> \| ((file) => HeadersInit)` | —             |
+
+`outFile`은 단일 출력 경로입니다. 확장자를 생략하면 `.wvb` 확장자가 자동으로 붙습니다. 경로가
+절대 경로가 아니면 `root` 기준 상대 경로로 해석됩니다. 기본값 `.wvb/<name>`은 `package.json`의
+name에서 스코프 접두사를 제거하여 `<name>`을 도출합니다.
+
+<Callout type="warn">
+  이 필드는 완전한 경로인 `outFile`입니다. `pack`에는 `outFileName`이나 `outDir`가 없습니다. 하위
+  디렉터리를 포함한 전체 출력 경로를 `outFile`에 작성하세요.
+</Callout>
+
+`ignore`는 글로브와 정규식의 배열, 또는 불리언을 반환하는 프레디킷(선택적으로 비동기)을
+받습니다. `headers`는 일치하는 파일에 HTTP 헤더를 붙이며 세 가지 형태를 받습니다.
+
+```ts
+// 1. 글로브를 키로 갖는 Record
+headers: {
+  '*.html': { 'cache-control': 'max-age=3600' },
+}
+
+// 2. [glob, HeadersInit] 튜플의 배열
+headers: [
+  ['*.html', { 'cache-control': 'max-age=3600' }],
+  ['*.png', [['cache-control', 'max-age=0']]], // HeadersInit는 [name, value] 쌍도 받습니다
+]
+
+// 3. 파일별로 헤더를 반환하는 함수
+headers: (file) => (file.endsWith('.html') ? { 'cache-control': 'max-age=0' } : undefined)
+```

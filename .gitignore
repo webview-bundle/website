@@ -33,3 +33,4 @@ dist/
 # AI
 .claude/
 .env
+.webview-bundle/

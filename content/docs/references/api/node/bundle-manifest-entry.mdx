@@ -1,0 +1,25 @@
+---
+title: 'BundleManifestEntry'
+description: 'Entry for a single bundle in the manifest.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Entry for a single bundle in the manifest.
+
+Contains all versions and the current active version.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1087)
+
+## Properties
+
+<TypeTable
+  type={{
+    currentVersion: { type: 'string', description: 'Currently active version', required: true },
+    versions: {
+      type: 'Record<string, BundleManifestMetadata>',
+      description: 'Available versions',
+      required: true,
+    },
+  }}
+/>

@@ -1,0 +1,28 @@
+---
+title: 'dispatch'
+description: 'Run one @wvb/bridge command and return its JSON-serializable result envelope (never throws).'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Run one `@wvb/bridge` command and return its JSON-serializable result envelope (never throws).
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/bindings.ts#L110)
+
+```ts
+function dispatch(wvb: WebviewBundle, name: string, params?: Params): Promise<InvokeResult>;
+```
+
+## Parameters
+
+<TypeTable
+  type={{
+    wvb: { type: 'WebviewBundle', required: true },
+    name: { type: 'string', required: true },
+    params: { type: 'Params', required: false },
+  }}
+/>
+
+## Returns
+
+`Promise<InvokeResult>`

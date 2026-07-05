@@ -1,5 +1,5 @@
 ---
-title: 원격, 무결성 및 서명 설정
+title: remote
 description: wvb.config의 remote 블록과 배포 측 무결성 및 서명 옵션을 설정합니다.
 ---
 
@@ -163,7 +163,7 @@ signature: async ({ message }) => myExternalSigner(message),
   클라이언트는 대응하는 **공개** 키로 검증하며, 검증 측은 서명 측과 다른 키 포맷을 받습니다. SPKI,
   PKCS#1(RSA 전용), SEC1(ECDSA 전용), raw 32바이트(Ed25519 전용)를 받지만 JWK는 받지 않습니다. 검증
   방법은 [원격 번들](/docs/guide/core-concepts/over-the-air)을, 클라이언트 측 헬퍼는 [Node API
-  레퍼런스](/docs/references/javascript/node)를 참고하세요.
+  레퍼런스](/docs/references/api/node)를 참고하세요.
 </Callout>
 
 ## 전체 예시

@@ -1,0 +1,42 @@
+---
+title: 'SourceOptions'
+description: 'SourceOptions — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/source.ts#L10)
+
+**Extends:** `Omit<HttpResponse, "builtinDir" | "remoteDir">`
+
+## Properties
+
+<TypeTable
+  type={{
+    appName: {
+      type: 'string',
+      description: 'App name used in the default remote dir. Defaults to the executable name.',
+      required: false,
+    },
+    builtinDir: {
+      type: 'string',
+      description:
+        "Read-only builtin bundles directory. Defaults to bundles next to the app's entry module (Deno.mainModule) — i.e. the deno desktop --included, self-extracted dir inside the app.",
+      required: false,
+    },
+    remoteDir: {
+      type: 'string',
+      description:
+        'Writable directory for downloaded (remote) bundles. Defaults to <app-data>/<appName>/bundles (see appDataDir) so updates persist across runs.',
+      required: false,
+    },
+  }}
+/>
+
+## Index Signature
+
+```ts
+[key: string]: BundleSourceConfig;
+[key: number]: BundleSourceConfig;
+[key: symbol]: BundleSourceConfig;
+```

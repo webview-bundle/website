@@ -1,0 +1,27 @@
+---
+title: 'bundleProtocol'
+description: 'Serve a builtin bundle (named scheme) at the HTTP root.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Serve a builtin bundle (named `scheme`) at the HTTP root.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/protocol.ts#L63)
+
+```ts
+function bundleProtocol(scheme: string, config: BundleProtocolConfig = {}): Protocol;
+```
+
+## Parameters
+
+<TypeTable
+  type={{
+    scheme: { type: 'string', required: true },
+    config: { type: 'BundleProtocolConfig', required: false, default: '{}' },
+  }}
+/>
+
+## Returns
+
+`Protocol`

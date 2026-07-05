@@ -24,7 +24,7 @@ const remote = new WebviewBundleRemoteProvider('wvb', {
 export const endpoint = remote.cloudfrontDistributionDomainName;
 ```
 
-The request handler itself is `@wvb/remote-aws-provider` (`webviewBundleRemote`), which the component deploys for you. To wire the edge functions manually, see the [package reference](/docs/references/javascript/remotes/remote-aws-provider).
+The request handler itself is `@wvb/remote-aws-provider` (`webviewBundleRemote`), which the component deploys for you. To wire the edge functions manually, see the [package reference](/docs/references/api/remotes/remote-aws-provider).
 
 ## Publish to it
 
@@ -51,7 +51,7 @@ export default defineConfig({
 });
 ```
 
-`awsRemote()` returns `{ uploader, deployer, signature? }`. Credentials and region come from the standard AWS SDK chain; override them with the `aws` option. See the [AWS client reference](/docs/references/javascript/remotes/remote-aws) for every option.
+`awsRemote()` returns `{ uploader, deployer, signature? }`. Credentials and region come from the standard AWS SDK chain; override them with the `aws` option. See the [AWS client reference](/docs/references/api/remotes/remote-aws) for every option.
 
 <Callout type="info">
   The server option is `bucketName`; the client option is `bucket`. Both must point at the same

@@ -1,0 +1,13 @@
+{
+  "title": "@wvb/remote-local-provider",
+  "pages": [
+    "---Functions---",
+    "webview-bundle-remote",
+    "---Interfaces---",
+    "webview-bundle-remote-config",
+    "---Type Aliases---",
+    "webview-bundle-remote-type-alias",
+    "---Variables---",
+    "wvb-remote"
+  ]
+}

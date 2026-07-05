@@ -3,7 +3,7 @@ title: Download current bundle
 description: Download the current deployed version of a bundle as raw .wvb bytes, optionally selecting a channel.
 ---
 
-Download the current deployed version of a bundle. The server streams the `.wvb` archive as the response body and carries the bundle's metadata in `Webview-Bundle-*` headers. This is the call the [updater](/docs/references/javascript/node/updater) makes to fetch a new version after a check reports one is available.
+Download the current deployed version of a bundle. The server streams the `.wvb` archive as the response body and carries the bundle's metadata in `Webview-Bundle-*` headers. This is the call the [updater](/docs/references/api/node/updater) makes to fetch a new version after a check reports one is available.
 
 ```http
 GET /bundles/{name}

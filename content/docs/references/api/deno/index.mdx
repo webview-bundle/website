@@ -1,0 +1,155 @@
+---
+title: '@wvb/deno'
+description: 'API reference for @wvb/deno.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+## Classes
+
+<Cards>
+  <Card
+    title="BundleProtocol"
+    href="/docs/references/api/deno/bundle-protocol"
+    description="Serves files from a BundleSource as HTTP responses — GET/HEAD, content-type, HTTP Range (206), and index.html directory-index fallback."
+  />
+  <Card
+    title="BundleSource"
+    href="/docs/references/api/deno/bundle-source"
+    description="A bundle source over a builtinDir (read-only) and remoteDir (writable)."
+  />
+  <Card
+    title="LocalProtocol"
+    href="/docs/references/api/deno/local-protocol"
+    description="Proxies requests for custom hosts to localhost URLs (for dev servers with hot reload)."
+  />
+  <Card
+    title="Remote"
+    href="/docs/references/api/deno/remote"
+    description="HTTP client for a remote bundle server — list, get metadata, and download bundles."
+  />
+  <Card
+    title="Updater"
+    href="/docs/references/api/deno/updater"
+    description="Coordinates updates between a BundleSource and a Remote: check, download to the remote dir, and activate."
+  />
+</Cards>
+
+## Functions
+
+<Cards>
+  <Card
+    title="loadLib"
+    href="/docs/references/api/deno/load-lib"
+    description="Load the native library from an explicit path and cache it"
+  />
+  <Card
+    title="loadLibViaPlug"
+    href="/docs/references/api/deno/load-lib-via-plug"
+    description="Download the platform cdylib from a release via @denosaurs/plug, verify it, cache it, and load it."
+  />
+  <Card
+    title="platformLibFileName"
+    href="/docs/references/api/deno/platform-lib-file-name"
+    description="Platform cdylib filename: libwvb_deno.dylib (macOS) / libwvb_deno.so (Linux) / wvb_deno.dll (Windows)."
+  />
+  <Card
+    title="toResponse"
+    href="/docs/references/api/deno/to-response"
+    description="Convert an HttpResponse to a web Response (for use inside a Deno.serve handler)."
+  />
+</Cards>
+
+## Interfaces
+
+<Cards>
+  <Card
+    title="BundleManifestMetadata"
+    href="/docs/references/api/deno/bundle-manifest-metadata"
+    description="Cache-validation / integrity metadata for a bundle version."
+  />
+  <Card title="BundleSourceConfig" href="/docs/references/api/deno/bundle-source-config" />
+  <Card
+    title="BundleSourceVersion"
+    href="/docs/references/api/deno/bundle-source-version"
+    description="The current version of a bundle and which source provides it."
+  />
+  <Card
+    title="BundleUpdateInfo"
+    href="/docs/references/api/deno/bundle-update-info"
+    description="Information about an available update."
+  />
+  <Card
+    title="HttpOptions"
+    href="/docs/references/api/deno/http-options"
+    description="HTTP client options (mirrors @wvb/node's HttpOptions; defaultHeaders not yet supported)."
+  />
+  <Card
+    title="HttpResponse"
+    href="/docs/references/api/deno/http-response"
+    description="A served HTTP response (mirrors @wvb/node's HttpResponse, with Uint8Array for the body)."
+  />
+  <Card
+    title="ListBundleItem"
+    href="/docs/references/api/deno/list-bundle-item"
+    description="A bundle version from BundleSource.listBundles (flat shape, matching @wvb/node)."
+  />
+  <Card
+    title="ListRemoteBundleInfo"
+    href="/docs/references/api/deno/list-remote-bundle-info"
+    description="Bundle info from list operations."
+  />
+  <Card title="LoadLibViaPlugOptions" href="/docs/references/api/deno/load-lib-via-plug-options" />
+  <Card
+    title="RemoteBundleInfo"
+    href="/docs/references/api/deno/remote-bundle-info"
+    description="Complete bundle info from the remote server."
+  />
+  <Card
+    title="RemoteDownload"
+    href="/docs/references/api/deno/remote-download"
+    description="Result of a remote bundle download: info + raw .wvb bytes."
+  />
+  <Card title="RemoteOptions" href="/docs/references/api/deno/remote-options" />
+  <Card
+    title="SignatureVerifierOptions"
+    href="/docs/references/api/deno/signature-verifier-options"
+    description="Declarative signature verifier: an algorithm + the public key to verify bundle signatures with."
+  />
+  <Card
+    title="SignatureVerifyingKeyOptions"
+    href="/docs/references/api/deno/signature-verifying-key-options"
+    description="Public key configuration: data is the PEM text for PEM formats, or the key bytes otherwise."
+  />
+  <Card title="UpdaterOptions" href="/docs/references/api/deno/updater-options" />
+</Cards>
+
+## Type Aliases
+
+<Cards>
+  <Card
+    title="BundleSourceType"
+    href="/docs/references/api/deno/bundle-source-type"
+    description="Which source a bundle version comes from."
+  />
+  <Card
+    title="HttpMethod"
+    href="/docs/references/api/deno/http-method"
+    description="HTTP method accepted by a protocol handler (case-insensitive on the wire)."
+  />
+  <Card
+    title="IntegrityPolicy"
+    href="/docs/references/api/deno/integrity-policy"
+    description="Integrity verification policy."
+  />
+  <Card
+    title="SignatureAlgorithm"
+    href="/docs/references/api/deno/signature-algorithm"
+    description="Digital signature algorithm for bundle verification (mirrors @wvb/node)."
+  />
+  <Card
+    title="VerifyingKeyFormat"
+    href="/docs/references/api/deno/verifying-key-format"
+    description="Format of the public key."
+  />
+</Cards>

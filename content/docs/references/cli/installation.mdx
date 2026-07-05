@@ -1,5 +1,100 @@
 ---
-title: 'Installation'
+title: Installation
+description: Install the @wvb/cli package and run the wvb command-line tool.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+The command-line tool ships in the [`@wvb/cli`](/docs/references/api/cli) package. It exposes two
+equivalent binaries, `wvb` and `webview-bundle` — use whichever reads better in your scripts.
+
+## Requirements
+
+- **Node.js 18.14.1 or later.** Node 19 is supported from 19.7.0; Node 20 and newer work without
+  restriction.
+- The package is ESM-only. It runs from any project regardless of whether your own code is ESM or
+  CommonJS.
+
+## Install
+
+Add `@wvb/cli` as a dev dependency — it is a build-time tool, not a runtime dependency of your app.
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/cli
+```
+
+  </Tab>
+</Tabs>
+
+## Run
+
+Invoke the binary through your package manager so it resolves from `node_modules`:
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npx wvb --help
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm wvb --help
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn wvb --help
+```
+
+  </Tab>
+</Tabs>
+
+Add commands to your `package.json` scripts for repeatable builds:
+
+```json title="package.json"
+{
+  "scripts": {
+    "bundle": "wvb pack",
+    "bundle:deploy": "wvb upload && wvb deploy"
+  }
+}
+```
+
+<Callout type="info">
+  Prefer a project-local install over a global one. It pins the CLI version alongside your other dev
+  dependencies, so every machine and CI run uses the same version.
+</Callout>
+
+## Verify
+
+Print the installed version to confirm the binary resolves:
+
+```sh
+npx wvb --version
+```
+
+## Next steps
+
+- Create a [`wvb.config`](/docs/references/configuration) file so commands run with no arguments.
+- Browse every command on the [CLI overview](/docs/references/cli).
+- Call the same logic from JavaScript with the [programmatic API](/docs/references/cli/programmatic).

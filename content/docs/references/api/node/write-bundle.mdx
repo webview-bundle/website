@@ -1,0 +1,36 @@
+---
+title: 'writeBundle'
+description: 'Writes a bundle to a file asynchronously.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Writes a bundle to a file asynchronously.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1596)
+
+```ts
+function writeBundle(bundle: Bundle, filepath: string): Promise<bigint>;
+```
+
+## Parameters
+
+<TypeTable
+  type={{
+    bundle: { type: 'Bundle', description: 'Bundle to write', required: true },
+    filepath: { type: 'string', description: 'Destination file path', required: true },
+  }}
+/>
+
+## Returns
+
+`Promise<bigint>` — Number of bytes written
+
+## Examples
+
+```typescript
+const builder = new BundleBuilder();
+builder.insertEntry('/index.html', Buffer.from('<html></html>'));
+const bundle = builder.build();
+await writeBundle(bundle, 'output.wvb');
+```

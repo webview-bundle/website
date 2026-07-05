@@ -1,5 +1,5 @@
 ---
-title: Remote, integrity & signature config
+title: remote
 description: Configure the remote block of wvb.config, plus the publish-side integrity and signature options.
 ---
 
@@ -164,7 +164,7 @@ signature: async ({ message }) => myExternalSigner(message),
   Clients verify with the matching **public** key, and the verify side accepts different key formats
   than the sign side — SPKI, PKCS#1 (RSA only), SEC1 (ECDSA only), and raw 32-byte (Ed25519 only),
   but not JWK. See [Remote bundles](/docs/guide/core-concepts/over-the-air) for verification and the
-  [Node API reference](/docs/references/javascript/node) for the client-side helpers.
+  [Node API reference](/docs/references/api/node) for the client-side helpers.
 </Callout>
 
 ## Complete example

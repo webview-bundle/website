@@ -1,0 +1,31 @@
+---
+title: 'readBundle'
+description: 'Reads a bundle from a file asynchronously.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Reads a bundle from a file asynchronously.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1336)
+
+```ts
+function readBundle(filepath: string): Promise<Bundle>;
+```
+
+## Parameters
+
+<TypeTable
+  type={{ filepath: { type: 'string', description: 'Path to the .wvb file', required: true } }}
+/>
+
+## Returns
+
+`Promise<Bundle>` — Parsed bundle
+
+## Examples
+
+```typescript
+const bundle = await readBundle('app.wvb');
+const html = bundle.getData('/index.html');
+```

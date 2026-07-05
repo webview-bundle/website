@@ -70,11 +70,8 @@ export function Showcase() {
       <div className="relative mx-auto max-w-[1500px] px-4 pt-8 pb-16 sm:px-6 sm:pb-24">
         {/* Mobile/Desktop toggle — only below lg, where a single cut is shown at a time. */}
         <div className="mb-5 flex justify-center lg:hidden">
-          <div
-            role="group"
-            aria-label={t.showcase.chooseView}
-            className="inline-flex gap-0.5 rounded-md border border-white/10 bg-white/[0.03] p-0.5 font-mono text-[12px]"
-          >
+          <fieldset className="inline-flex gap-0.5 rounded-md border border-white/10 bg-white/[0.03] p-0.5 font-mono text-[12px]">
+            <legend className="sr-only">{t.showcase.chooseView}</legend>
             {VIEWS.map(v => (
               <button
                 key={v.id}
@@ -89,7 +86,7 @@ export function Showcase() {
                 {v.id === 'mobile' ? t.showcase.mobile : t.showcase.desktop}
               </button>
             ))}
-          </div>
+          </fieldset>
         </div>
 
         <div

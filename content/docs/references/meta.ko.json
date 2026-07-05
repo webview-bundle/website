@@ -9,16 +9,9 @@
     "[wvb (docs.rs)](https://docs.rs/wvb)",
     "[wvb-tauri (docs.rs)](https://docs.rs/wvb-tauri)",
     "---JavaScript---",
-    "javascript/bridge",
-    "javascript/node",
-    "javascript/electron",
-    "javascript/electron-builder",
-    "javascript/electron-forge",
-    "javascript/deno",
-    "javascript/deno-desktop",
-    "javascript/remotes",
+    "...api",
     "---네이티브---",
-    "android",
-    "ios"
+    "[Android (javadoc.io)](https://javadoc.io/doc/dev.wvb/webview-bundle-android)",
+    "[iOS (Swift Package Index)](https://swiftpackageindex.com/webview-bundle/webview-bundle-ios)"
   ]
 }

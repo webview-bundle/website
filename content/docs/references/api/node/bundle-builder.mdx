@@ -1,0 +1,152 @@
+---
+title: 'BundleBuilder'
+description: 'Builder for creating bundle files.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Builder for creating bundle files.
+
+Allows you to add files, set options, and generate a complete bundle.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L80)
+
+## Constructor
+
+```ts
+new BundleBuilder(version?: "v1" | null);
+```
+
+<TypeTable
+  type={{
+    version: {
+      type: '"v1" | null',
+      description: 'Bundle format version (defaults to V1)',
+      required: false,
+    },
+  }}
+/>
+
+## Properties
+
+<TypeTable
+  type={{
+    version: { type: '"v1"', description: 'Gets the bundle format version.', required: true },
+  }}
+/>
+
+## Methods
+
+<TypeTable
+  type={{
+    build: {
+      type: '(options?: BuildOptions | null) => Bundle',
+      description:
+        "Builds the bundle with all added files. This consumes the builder's entries and creates a complete bundle with compressed data.",
+      required: true,
+      parameters: [{ name: 'options?', description: 'BuildOptions | null — Build options' }],
+      returns: 'Bundle — The built bundle',
+    },
+    containsEntry: {
+      type: '(path: string) => boolean',
+      description: 'Checks if a file path exists in the builder.',
+      required: true,
+      parameters: [{ name: 'path', description: 'string — File path to check' }],
+      returns: 'boolean — True if the path exists',
+    },
+    entryPaths: {
+      type: '() => string[]',
+      description: 'Returns all entry paths currently in the builder.',
+      required: true,
+      returns: 'string[] — Array of file paths',
+    },
+    insertEntry: {
+      type: '(path: string, data: Buffer, contentType?: string | null, headers?: Record<string, string> | null) => boolean',
+      description:
+        'Adds or updates a file in the bundle. If contentType is not provided, it will be auto-detected from the file extension and content.',
+      required: true,
+      parameters: [
+        { name: 'path', description: 'string — File path (must start with "/")' },
+        { name: 'data', description: 'Buffer — File contents' },
+        {
+          name: 'contentType?',
+          description: 'string | null — MIME type (auto-detected if not provided)',
+        },
+        { name: 'headers?', description: 'Record<string, string> | null — Optional HTTP headers' },
+      ],
+      returns: 'boolean — True if a file was replaced, false if newly added',
+    },
+    removeEntry: {
+      type: '(path: string) => boolean',
+      description: 'Removes a file from the bundle.',
+      required: true,
+      parameters: [{ name: 'path', description: 'string — File path to remove' }],
+      returns: 'boolean — True if the file was removed, false if not found',
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+const builder = new BundleBuilder();
+
+// Add files
+builder.insertEntry('/index.html', Buffer.from('<html>...</html>'));
+builder.insertEntry('/app.js', Buffer.from("console.log('hello');"));
+
+// Build the bundle
+const bundle = builder.build();
+
+// Write to file
+await writeBundle(bundle, 'app.wvb');
+```
+
+### constructor
+
+```typescript
+const builder = new BundleBuilder();
+```
+
+### build
+
+```typescript
+const bundle = builder.build();
+await writeBundle(bundle, 'output.wvb');
+```
+
+### containsEntry
+
+```typescript
+if (builder.containsEntry('/index.html')) {
+  console.log('index.html already added');
+}
+```
+
+### entryPaths
+
+```typescript
+const paths = builder.entryPaths();
+console.log(paths); // ["/index.html", "/app.js"]
+```
+
+### insertEntry
+
+```typescript
+// Auto-detect MIME type
+builder.insertEntry('/index.html', Buffer.from('<html></html>'));
+
+// Specify MIME type
+builder.insertEntry('/data.bin', buffer, 'application/octet-stream');
+
+// With custom headers
+builder.insertEntry('/style.css', cssBuffer, 'text/css', {
+  'Cache-Control': 'max-age=3600',
+});
+```
+
+### removeEntry
+
+```typescript
+builder.removeEntry('/old-file.js');
+```

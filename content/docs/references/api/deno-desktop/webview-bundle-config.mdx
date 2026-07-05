@@ -1,0 +1,24 @@
+---
+title: 'WebviewBundleConfig'
+description: 'WebviewBundleConfig — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/webview-bundle.ts#L14)
+
+## Properties
+
+<TypeTable
+  type={{
+    lib: {
+      type: 'string | URL',
+      description:
+        "Deno-specific: the native cdylib path (e.g. a deno desktop --included dir resolved from the app's import.meta.url). Omit if you already loaded it via loadLib/loadLibViaPlug.",
+      required: false,
+    },
+    protocols: { type: 'Protocol[]', required: true },
+    source: { type: 'SourceOptions', required: false },
+    updater: { type: 'WebviewBundleUpdaterConfig', required: false },
+  }}
+/>

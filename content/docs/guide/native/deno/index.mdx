@@ -19,7 +19,7 @@ const win = new Deno.BrowserWindow({ url: `http://localhost:${server.addr.port}`
 await win.closed;
 ```
 
-`@wvb/deno-desktop` is the integration layer; `@wvb/deno` is the FFI peer of [`@wvb/node`](/docs/references/javascript/node) that drives the shared Rust core.
+`@wvb/deno-desktop` is the integration layer; `@wvb/deno` is the FFI peer of [`@wvb/node`](/docs/references/api/node) that drives the shared Rust core.
 
 ## How it fits together
 
@@ -85,7 +85,7 @@ if (update.isAvailable) {
 
 ## @wvb/deno
 
-`@wvb/deno` is the FFI peer of [`@wvb/node`](/docs/references/javascript/node). It loads a prebuilt Rust `cdylib` through `Deno.dlopen` and exposes the same core classes: `BundleProtocol`, `LocalProtocol`, `Remote`, `BundleSource`, and `Updater`.
+`@wvb/deno` is the FFI peer of [`@wvb/node`](/docs/references/api/node). It loads a prebuilt Rust `cdylib` through `Deno.dlopen` and exposes the same core classes: `BundleProtocol`, `LocalProtocol`, `Remote`, `BundleSource`, and `Updater`.
 
 Each class is `Disposable` — free it explicitly with `free()`, or let a `using` declaration call `[Symbol.dispose]` at scope exit:
 
@@ -147,7 +147,7 @@ Vendor a specific target with `--target`:
 deno run -A jsr:@wvb/deno/install --out vendor/wvb --target x86_64-unknown-linux-gnu
 ```
 
-For the full class and method reference, see the [Deno API reference](/docs/references/javascript/deno).
+For the full class and method reference, see the [Deno API reference](/docs/references/api/deno).
 
 ## Limitations
 

@@ -62,7 +62,7 @@ export default defineConfig({
 });
 ```
 
-업로더는 S3 호환 API로 R2에 기록하므로 R2 액세스 키를 `s3ClientConfig.credentials`로 전달하고, 디플로이어는 Cloudflare API 토큰으로 KV를 갱신합니다. 전체 설정은 [Cloudflare 클라이언트 레퍼런스](/docs/references/javascript/remotes/remote-cloudflare)를 참고하세요.
+업로더는 S3 호환 API로 R2에 기록하므로 R2 액세스 키를 `s3ClientConfig.credentials`로 전달하고, 디플로이어는 Cloudflare API 토큰으로 KV를 갱신합니다. 전체 설정은 [Cloudflare 클라이언트 레퍼런스](/docs/references/api/remotes/remote-cloudflare)를 참고하세요.
 
 <Callout type="info">
   Worker는 `BUCKET`이라는 R2 바인딩과 `KV`라는 KV 바인딩을 읽습니다. `wrangler.jsonc`에서 이 이름을

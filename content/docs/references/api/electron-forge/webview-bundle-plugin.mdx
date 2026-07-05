@@ -1,0 +1,44 @@
+---
+title: 'WebviewBundlePlugin'
+description: 'WebviewBundlePlugin — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/electron-forge/src/plugin.ts#L27)
+
+**Extends:** `default<WebviewBundlePluginConfig>`
+
+## Constructor
+
+```ts
+new WebviewBundlePlugin(config: WebviewBundlePluginConfig = {});
+```
+
+<TypeTable
+  type={{ config: { type: 'WebviewBundlePluginConfig', required: false, default: '{}' } }}
+/>
+
+## Properties
+
+<TypeTable type={{ name: { type: 'readonly "WebviewBundlePlugin"', required: true } }} />
+
+## Methods
+
+<TypeTable
+  type={{
+    getHooks: { type: '() => ForgeMultiHookMap', required: true, returns: 'ForgeMultiHookMap' },
+    packageAfterCopy: {
+      type: '(_forgeConfig: ResolvedForgeConfig, buildPath: string, _electronVersion: string, _platform: string, _arch: string) => Promise<void>',
+      required: true,
+      parameters: [
+        { name: '_forgeConfig', description: 'ResolvedForgeConfig' },
+        { name: 'buildPath', description: 'string' },
+        { name: '_electronVersion', description: 'string' },
+        { name: '_platform', description: 'string' },
+        { name: '_arch', description: 'string' },
+      ],
+      returns: 'Promise<void>',
+    },
+  }}
+/>

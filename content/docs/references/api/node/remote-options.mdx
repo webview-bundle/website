@@ -1,0 +1,44 @@
+---
+title: 'RemoteOptions'
+description: 'Options for creating a remote client.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Options for creating a remote client.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1405)
+
+## Properties
+
+<TypeTable
+  type={{
+    http: { type: 'HttpOptions', description: 'HTTP client configuration', required: false },
+  }}
+/>
+
+## Methods
+
+<TypeTable
+  type={{
+    onDownload: {
+      type: '(data: RemoteOnDownloadData) => void',
+      description: 'Download progress callback',
+      required: false,
+      parameters: [{ name: 'data', description: 'RemoteOnDownloadData' }],
+      returns: 'void',
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+const options = {
+  http: { timeout: 30000 },
+  onDownload: data => {
+    console.log(`Downloaded ${data.downloadedBytes}/${data.totalBytes}`);
+  },
+};
+const remote = new Remote('https://updates.example.com', options);
+```

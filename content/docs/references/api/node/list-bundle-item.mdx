@@ -1,0 +1,30 @@
+---
+title: 'ListBundleItem'
+description: 'Information about a bundle from list operations.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Information about a bundle from list operations.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1304)
+
+## Properties
+
+<TypeTable
+  type={{
+    current: {
+      type: 'boolean',
+      description: 'Whether this is the current active version',
+      required: true,
+    },
+    metadata: { type: 'BundleManifestMetadata', description: 'Bundle metadata', required: true },
+    name: { type: 'string', description: 'Bundle name', required: true },
+    type: {
+      type: 'BundleSourceKind',
+      description: 'Source kind (builtin or remote)',
+      required: true,
+    },
+    version: { type: 'string', description: 'Version string', required: true },
+  }}
+/>

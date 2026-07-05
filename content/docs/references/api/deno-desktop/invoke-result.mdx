@@ -1,0 +1,18 @@
+---
+title: 'InvokeResult'
+description: 'Result envelope.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Result envelope. Deno desktop delivers a thrown handler error as `{ name, message, stack }`
+(dropping our `code`), so handlers never throw across the binding — they return this instead and
+`@wvb/bridge` unwraps it (mirrors @wvb/electron's preload).
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/bindings.ts#L22)
+
+## Type
+
+```ts
+type InvokeResult = { ok: true; value: unknown } | { error: BridgeErrorData; ok: false };
+```

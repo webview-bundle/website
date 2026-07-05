@@ -1,0 +1,20 @@
+{
+  "title": "@wvb/electron",
+  "pages": [
+    "---Functions---",
+    "bundle-protocol",
+    "local-protocol",
+    "webview-bundle",
+    "---Interfaces---",
+    "protocol",
+    "protocol-handler",
+    "protocol-options",
+    "remote-options",
+    "source-options",
+    "webview-bundle-interface",
+    "webview-bundle-config",
+    "webview-bundle-remote-config",
+    "---Variables---",
+    "wvb"
+  ]
+}

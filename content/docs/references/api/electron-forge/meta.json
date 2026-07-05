@@ -1,0 +1,11 @@
+{
+  "title": "@wvb/electron-forge",
+  "pages": [
+    "---Classes---",
+    "webview-bundle-plugin",
+    "---Interfaces---",
+    "webview-bundle-plugin-config",
+    "---Variables---",
+    "wvb-plugin"
+  ]
+}

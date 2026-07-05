@@ -1,0 +1,27 @@
+---
+title: 'webviewBundleAfterPack'
+description: 'Build an electron-builder afterPack hook that installs builtin Webview Bundles — downloaded from the remote and/or packed from local workspaces as configured…'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Build an electron-builder `afterPack` hook that installs builtin Webview Bundles — downloaded from
+the remote and/or packed from local workspaces as configured in your webview-bundle config — and
+embeds them into the packaged app's `Resources/<bundlesDir>`, where `@wvb/electron` looks for them
+at runtime.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/electron-builder/src/setup.ts#L38)
+
+```ts
+function webviewBundleAfterPack(
+  options: WebviewBundleOptions = {}
+): (context: AfterPackContext) => Promise<void>;
+```
+
+## Parameters
+
+<TypeTable type={{ options: { type: 'WebviewBundleOptions', required: false, default: '{}' } }} />
+
+## Returns
+
+`(context: AfterPackContext) => Promise<void>`

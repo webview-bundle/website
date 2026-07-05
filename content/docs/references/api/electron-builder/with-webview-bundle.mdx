@@ -1,0 +1,38 @@
+---
+title: 'withWebviewBundle'
+description: 'Wrap an electron-builder configuration so it installs builtin Webview Bundles at package time.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Wrap an electron-builder configuration so it installs builtin Webview Bundles at package time.
+
+```ts
+// electron-builder.config.ts
+import { withWebViewBundle } from '@wvb/electron-builder';
+
+export default withWebViewBundle({
+  appId: 'com.example.app',
+  asar: true,
+  mac: { target: 'dmg' },
+});
+```
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/electron-builder/src/setup.ts#L125)
+
+```ts
+function withWebviewBundle<C extends object>(config: C, options: WebviewBundleOptions = {}): C;
+```
+
+## Parameters
+
+<TypeTable
+  type={{
+    config: { type: 'C', required: true },
+    options: { type: 'WebviewBundleOptions', required: false, default: '{}' },
+  }}
+/>
+
+## Returns
+
+`C`

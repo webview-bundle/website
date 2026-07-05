@@ -1,1 +1,1 @@
-{ "title": "Configuration", "pages": ["index", "remote"] }
+{ "title": "Configuration", "pages": ["pack", "remote", "serve", "builtin"] }

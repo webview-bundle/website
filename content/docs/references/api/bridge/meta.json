@@ -1,0 +1,33 @@
+{
+  "title": "@wvb/bridge",
+  "pages": [
+    "---Classes---",
+    "bridge-error",
+    "---Functions---",
+    "invoke",
+    "is-bridge-error",
+    "is-bridge-error-data",
+    "---Interfaces---",
+    "bridge-error-data",
+    "bundle-manifest-metadata",
+    "bundle-source-version",
+    "bundle-update-info",
+    "invoke-params",
+    "list-bundle-item",
+    "list-bundle-manifest-item",
+    "list-remote-bundle-info",
+    "remote-api",
+    "remote-bundle-info",
+    "source-api",
+    "updater-api",
+    "---Type Aliases---",
+    "bridge-error-code",
+    "bundle-source-type",
+    "platform-type",
+    "---Variables---",
+    "platform",
+    "remote",
+    "source",
+    "updater"
+  ]
+}

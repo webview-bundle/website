@@ -1,0 +1,26 @@
+---
+title: 'AwsS3RemoteUploaderConfig'
+description: 'AwsS3RemoteUploaderConfig — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/remote/aws/src/uploader.ts#L12)
+
+**Extends:** `AwsS3ClientConfigLike`
+
+## Properties
+
+<TypeTable
+  type={{
+    bucket: { type: 'string', required: true },
+    cacheControl: { type: 'string', required: false },
+    contentDisposition: { type: 'string', required: false },
+    contentType: { type: 'string', required: false },
+    key: { type: 'string | ((bundleName: string, version: string) => string)', required: false },
+    metadata: { type: 'Record<string, string | null | undefined>', required: false },
+    s3Client: { type: 'S3Client', required: false },
+    s3ClientConfig: { type: 'S3ClientConfig', required: false },
+    upload: { type: 'Configuration', required: false },
+  }}
+/>

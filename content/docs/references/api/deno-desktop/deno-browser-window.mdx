@@ -1,0 +1,32 @@
+---
+title: 'DenoBrowserWindow'
+description: 'A Deno.BrowserWindow (only the binding methods we use; the full type ships with Deno desktop).'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A `Deno.BrowserWindow` (only the binding methods we use; the full type ships with Deno desktop).
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/bindings.ts#L134)
+
+## Methods
+
+<TypeTable
+  type={{
+    bind: {
+      type: '(name: string, handler: (args: any[]) => unknown) => void',
+      required: true,
+      parameters: [
+        { name: 'name', description: 'string' },
+        { name: 'handler', description: '(args: any[]) => unknown' },
+      ],
+      returns: 'void',
+    },
+    unbind: {
+      type: '(name: string) => void',
+      required: false,
+      parameters: [{ name: 'name', description: 'string' }],
+      returns: 'void',
+    },
+  }}
+/>

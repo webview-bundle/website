@@ -60,8 +60,7 @@ export function Hero() {
               the sentence — keep it a solid, legible muted tone (clears the
               large-text contrast floor in both themes) rather than a gradient
               that fades sub-2:1 at the glyph edges. */}
-          <span className="text-zinc-500 dark:text-zinc-400">{t.hero.titleB}</span>{' '}
-          {t.hero.titleC}
+          <span className="text-zinc-500 dark:text-zinc-400">{t.hero.titleB}</span> {t.hero.titleC}
         </h1>
 
         <p

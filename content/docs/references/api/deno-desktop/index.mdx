@@ -1,0 +1,116 @@
+---
+title: '@wvb/deno-desktop'
+description: 'API reference for @wvb/deno-desktop.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+## Functions
+
+<Cards>
+  <Card
+    title="appDataDir"
+    href="/docs/references/api/deno-desktop/app-data-dir"
+    description="The OS application-data base directory where downloaded bundles persist: macOS ~/Library/Application Support, Windows %APPDATA%, Linux $XDG_DATA_HOME (or ~/.…"
+  />
+  <Card
+    title="bundleProtocol"
+    href="/docs/references/api/deno-desktop/bundle-protocol"
+    description="Serve a builtin bundle (named scheme) at the HTTP root."
+  />
+  <Card title="bundleSource" href="/docs/references/api/deno-desktop/bundle-source" />
+  <Card
+    title="dispatch"
+    href="/docs/references/api/deno-desktop/dispatch"
+    description="Run one @wvb/bridge command and return its JSON-serializable result envelope (never throws)."
+  />
+  <Card
+    title="localProtocol"
+    href="/docs/references/api/deno-desktop/local-protocol"
+    description="Proxy to a local dev server (hot reload), mapping scheme host → URL."
+  />
+  <Card
+    title="registerBindings"
+    href="/docs/references/api/deno-desktop/register-bindings"
+    description="Register the @wvb/bridge transport on a Deno desktop window: a single wvbInvoke(name, params) binding that dispatches to wvb."
+  />
+  <Card title="remote" href="/docs/references/api/deno-desktop/remote" />
+  <Card title="webviewBundle" href="/docs/references/api/deno-desktop/webview-bundle" />
+</Cards>
+
+## Interfaces
+
+<Cards>
+  <Card
+    title="BridgeErrorData"
+    href="/docs/references/api/deno-desktop/bridge-error-data"
+    description="Error payload returned to @wvb/bridge (becomes a BridgeError there, preserving code)."
+  />
+  <Card
+    title="BundleProtocolConfig"
+    href="/docs/references/api/deno-desktop/bundle-protocol-config"
+  />
+  <Card
+    title="DenoBrowserWindow"
+    href="/docs/references/api/deno-desktop/deno-browser-window"
+    description="A Deno.BrowserWindow (only the binding methods we use; the full type ships with Deno desktop)."
+  />
+  <Card
+    title="LocalProtocolConfig"
+    href="/docs/references/api/deno-desktop/local-protocol-config"
+  />
+  <Card title="Protocol" href="/docs/references/api/deno-desktop/protocol" />
+  <Card title="ProtocolHandler" href="/docs/references/api/deno-desktop/protocol-handler" />
+  <Card
+    title="ProtocolHandlerBuildContext"
+    href="/docs/references/api/deno-desktop/protocol-handler-build-context"
+  />
+  <Card title="ProtocolOptions" href="/docs/references/api/deno-desktop/protocol-options" />
+  <Card title="RemoteOptions" href="/docs/references/api/deno-desktop/remote-options" />
+  <Card title="SourceOptions" href="/docs/references/api/deno-desktop/source-options" />
+  <Card title="WebviewBundle" href="/docs/references/api/deno-desktop/webview-bundle-interface" />
+  <Card
+    title="WebviewBundleConfig"
+    href="/docs/references/api/deno-desktop/webview-bundle-config"
+  />
+  <Card
+    title="WebviewBundleRemoteConfig"
+    href="/docs/references/api/deno-desktop/webview-bundle-remote-config"
+  />
+  <Card
+    title="WebviewBundleUpdaterConfig"
+    href="/docs/references/api/deno-desktop/webview-bundle-updater-config"
+  />
+</Cards>
+
+## Type Aliases
+
+<Cards>
+  <Card title="HttpResponse" href="/docs/references/api/deno-desktop/http-response" />
+  <Card
+    title="InvokeResult"
+    href="/docs/references/api/deno-desktop/invoke-result"
+    description="Result envelope."
+  />
+  <Card
+    title="ProtocolHandlerBuild"
+    href="/docs/references/api/deno-desktop/protocol-handler-build"
+  />
+</Cards>
+
+## Variables
+
+<Cards>
+  <Card title="BridgeErrorCode" href="/docs/references/api/deno-desktop/bridge-error-code" />
+  <Card
+    title="handlerNames"
+    href="/docs/references/api/deno-desktop/handler-names"
+    description="Names of every command this host can serve."
+  />
+  <Card
+    title="INVOKE_BINDING"
+    href="/docs/references/api/deno-desktop/invoke-binding"
+    description="The single binding name the @wvb/bridge deno transport calls."
+  />
+  <Card title="wvb" href="/docs/references/api/deno-desktop/wvb" />
+</Cards>

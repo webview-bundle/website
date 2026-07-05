@@ -23,24 +23,24 @@ Most app developers never touch these APIs directly. To ship Webview Bundle in a
   />
   <Card
     title="Node API"
-    href="/docs/references/javascript/node"
+    href="/docs/references/api/node"
     description="@wvb/node — N-API bindings for reading and writing bundles, serving them over a protocol, and running the updater from Node.js."
   />
   <Card
     title="Deno API"
-    href="/docs/references/javascript/deno"
+    href="/docs/references/api/deno"
     description="@wvb/deno — the Deno peer of @wvb/node. Experimental."
   />
   <Card
     title="Bridge"
-    href="/docs/references/javascript/bridge"
+    href="/docs/references/api/bridge"
     description="@wvb/bridge — call the native host from inside the webview with one invoke() API across every platform."
   />
 </Cards>
 
 ## Web-side bridge
 
-The bridge (`@wvb/bridge`) runs inside the webview and lets your web app call the native host. It exposes a single `invoke()` function plus typed `source`, `remote`, and `updater` helpers, so the same code works across Electron, Tauri, Android, and iOS — the per-platform transport is abstracted away. See the [Bridge reference](/docs/references/javascript/bridge) for the full API.
+The bridge (`@wvb/bridge`) runs inside the webview and lets your web app call the native host. It exposes a single `invoke()` function plus typed `source`, `remote`, and `updater` helpers, so the same code works across Electron, Tauri, Android, and iOS — the per-platform transport is abstracted away. See the [Bridge reference](/docs/references/api/bridge) for the full API.
 
 ```ts
 import { invoke, updater } from '@wvb/bridge';

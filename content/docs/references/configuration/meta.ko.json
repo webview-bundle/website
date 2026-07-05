@@ -1,1 +1,1 @@
-{ "title": "설정", "pages": ["index", "remote"] }
+{ "title": "설정", "pages": ["pack", "remote", "serve", "builtin"] }

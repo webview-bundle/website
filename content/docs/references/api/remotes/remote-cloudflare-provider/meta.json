@@ -1,0 +1,14 @@
+{
+  "title": "@wvb/remote-cloudflare-provider",
+  "pages": [
+    "---Functions---",
+    "webview-bundle-remote",
+    "---Interfaces---",
+    "context",
+    "webview-bundle-remote-options",
+    "---Type Aliases---",
+    "webview-bundle-remote-type-alias",
+    "---Variables---",
+    "wvb-remote"
+  ]
+}

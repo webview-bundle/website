@@ -1,0 +1,39 @@
+---
+title: 'SignatureVerifierOptions'
+description: 'Configuration for signature verification.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Configuration for signature verification.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1458)
+
+## Properties
+
+<TypeTable
+  type={{
+    algorithm: {
+      type: 'SignatureAlgorithm',
+      description: 'The signature algorithm to use',
+      required: true,
+    },
+    key: {
+      type: 'SignatureVerifyingKeyOptions',
+      description: 'The public key configuration',
+      required: true,
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+const verifierOptions = {
+  algorithm: 'ed25519',
+  key: {
+    format: 'spkiPem',
+    data: publicKeyPem,
+  },
+};
+```

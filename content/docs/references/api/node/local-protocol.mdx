@@ -1,0 +1,87 @@
+---
+title: 'LocalProtocol'
+description: 'Protocol handler that proxies requests to localhost servers.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Protocol handler that proxies requests to localhost servers.
+
+Forwards requests to local development servers for hot-reloading workflows.
+Features response caching and 304 Not Modified support.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L735)
+
+## Constructor
+
+```ts
+new LocalProtocol(hosts: Record<string, string>);
+```
+
+<TypeTable
+  type={{
+    hosts: {
+      type: 'Record<string, string>',
+      description: 'Map of custom hosts to localhost URLs',
+      required: true,
+    },
+  }}
+/>
+
+## Methods
+
+<TypeTable
+  type={{
+    handle: {
+      type: '(method: HttpMethod, uri: string, headers?: Record<string, string> | null) => Promise<HttpResponse>',
+      description:
+        'Handles an HTTP request by proxying to localhost. Maps custom protocol URIs to localhost URLs and forwards the request.',
+      required: true,
+      parameters: [
+        { name: 'method', description: 'HttpMethod — HTTP method' },
+        { name: 'uri', description: 'string — Request URI (e.g., "app://myapp/api/data")' },
+        {
+          name: 'headers?',
+          description: 'Record<string, string> | null — Optional request headers',
+        },
+      ],
+      returns: 'Promise<HttpResponse> — HTTP response from localhost',
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+const protocol = new LocalProtocol({
+  myapp: 'http://localhost:3000',
+  api: 'http://localhost:8080',
+});
+
+// This proxies to http://localhost:3000/index.html
+const response = await protocol.handle('get', 'app://myapp/index.html');
+```
+
+### constructor
+
+```typescript
+const protocol = new LocalProtocol({
+  myapp: 'http://localhost:3000',
+  api: 'http://localhost:8080',
+});
+```
+
+### handle
+
+```typescript
+// Proxies to http://localhost:3000/api/data?foo=bar
+const response = await protocol.handle('get', 'app://myapp/api/data?foo=bar');
+console.log(response.status);
+```
+
+```typescript
+// POST with headers
+const response = await protocol.handle('post', 'app://api/submit', {
+  'Content-Type': 'application/json',
+});
+```

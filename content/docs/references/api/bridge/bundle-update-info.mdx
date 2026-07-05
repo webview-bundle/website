@@ -1,0 +1,49 @@
+---
+title: 'BundleUpdateInfo'
+description: 'Information of an available bundle update.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Information of an available bundle update.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/bridge/src/updater.ts#L9)
+
+## Properties
+
+<TypeTable
+  type={{
+    etag: { type: 'string', description: '"ETag" header value.', required: false },
+    integrity: {
+      type: 'string',
+      description: 'Integrity value to verify the bundle.',
+      required: false,
+    },
+    isAvailable: {
+      type: 'boolean',
+      description: 'Whether a new update is available.',
+      required: true,
+    },
+    lastModified: {
+      type: 'string',
+      description: 'Last modified timestamp. (uses GMT)',
+      required: false,
+    },
+    localVersion: {
+      type: 'string',
+      description: 'The version of the bundle currently installed locally.',
+      required: false,
+    },
+    name: { type: 'string', description: 'The name of the bundle.', required: true },
+    signature: {
+      type: 'string',
+      description: 'Signature value to verify the bundle.',
+      required: false,
+    },
+    version: {
+      type: 'string',
+      description: 'The latest version available from the remote.',
+      required: true,
+    },
+  }}
+/>

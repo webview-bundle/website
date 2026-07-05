@@ -1,0 +1,48 @@
+---
+title: 'RemoteApi'
+description: 'RemoteApi — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/bridge/src/remote.ts#L43)
+
+## Methods
+
+<TypeTable
+  type={{
+    download: {
+      type: '(bundleName: string, channel?: string) => Promise<RemoteBundleInfo>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'channel?', description: 'string' },
+      ],
+      returns: 'Promise<RemoteBundleInfo>',
+    },
+    downloadVersion: {
+      type: '(bundleName: string, version: string) => Promise<RemoteBundleInfo>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'version', description: 'string' },
+      ],
+      returns: 'Promise<RemoteBundleInfo>',
+    },
+    getInfo: {
+      type: '(bundleName: string, channel?: string) => Promise<RemoteBundleInfo>',
+      required: true,
+      parameters: [
+        { name: 'bundleName', description: 'string' },
+        { name: 'channel?', description: 'string' },
+      ],
+      returns: 'Promise<RemoteBundleInfo>',
+    },
+    listBundles: {
+      type: '(channel?: string) => Promise<ListRemoteBundleInfo[]>',
+      required: true,
+      parameters: [{ name: 'channel?', description: 'string' }],
+      returns: 'Promise<ListRemoteBundleInfo[]>',
+    },
+  }}
+/>

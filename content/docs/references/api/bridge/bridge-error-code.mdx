@@ -1,0 +1,48 @@
+---
+title: 'BridgeErrorCode'
+description: 'BridgeErrorCode — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/bridge/src/error.ts#L9)
+
+## Properties
+
+<TypeTable
+  type={{
+    HandlerNotFound: {
+      type: 'readonly "handler_not_found"',
+      description: 'No handler is registered for the requested command name.',
+      required: true,
+    },
+    InvalidParams: {
+      type: 'readonly "invalid_params"',
+      description: 'params was missing or had the wrong shape/type.',
+      required: true,
+    },
+    RemoteNotInitialized: {
+      type: 'readonly "remote_not_initialized"',
+      description: 'A remote.* command was invoked but no remote is configured.',
+      required: true,
+    },
+    UnencodableResult: {
+      type: 'readonly "unencodable_result"',
+      description: 'The handler returned a value that is not JSON-encodable.',
+      required: true,
+    },
+    UpdaterNotInitialized: {
+      type: 'readonly "updater_not_initialized"',
+      description: 'An updater.* command was invoked but no updater is configured.',
+      required: true,
+    },
+  }}
+/>
+
+---
+
+## Type
+
+```ts
+type BridgeErrorCode = (typeof BridgeErrorCode)[keyof typeof BridgeErrorCode];
+```

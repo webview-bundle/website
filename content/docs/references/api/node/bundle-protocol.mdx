@@ -1,0 +1,96 @@
+---
+title: 'BundleProtocol'
+description: 'Protocol handler for serving files from bundle sources.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Protocol handler for serving files from bundle sources.
+
+Serves web resources from `.wvb` bundle files, supporting:
+
+- GET and HEAD HTTP methods
+- HTTP Range requests for streaming
+- Content-Type and custom HTTP headers
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L265)
+
+## Constructor
+
+```ts
+new BundleProtocol(source: BundleSource);
+```
+
+<TypeTable
+  type={{
+    source: {
+      type: 'BundleSource',
+      description: 'Bundle source to serve files from',
+      required: true,
+    },
+  }}
+/>
+
+## Methods
+
+<TypeTable
+  type={{
+    handle: {
+      type: '(method: HttpMethod, uri: string, headers?: Record<string, string> | null) => Promise<HttpResponse>',
+      description:
+        'Handles an HTTP request and returns a response. Processes requests in the format scheme://bundle_name/path/to/file.',
+      required: true,
+      parameters: [
+        { name: 'method', description: 'HttpMethod — HTTP method (GET or HEAD)' },
+        { name: 'uri', description: 'string — Request URI (e.g., "bundle://app/index.html")' },
+        {
+          name: 'headers?',
+          description: 'Record<string, string> | null — Optional request headers',
+        },
+      ],
+      returns: 'Promise<HttpResponse> — HTTP response',
+    },
+  }}
+/>
+
+## Examples
+
+```typescript
+const source = new BundleSource({
+  builtinDir: './bundles/builtin',
+  remoteDir: './bundles/remote',
+});
+
+const protocol = new BundleProtocol(source);
+
+// Handle a request
+const response = await protocol.handle('get', 'bundle://app/index.html');
+console.log(`Status: ${response.status}`);
+console.log(`Content-Type: ${response.headers['content-type']}`);
+```
+
+### constructor
+
+```typescript
+const source = new BundleSource({
+  builtinDir: './bundles',
+  remoteDir: './remote',
+});
+const protocol = new BundleProtocol(source);
+```
+
+### handle
+
+```typescript
+// GET request
+const response = await protocol.handle('get', 'bundle://app/index.html');
+if (response.status === 200) {
+  console.log(response.body.toString('utf-8'));
+}
+```
+
+```typescript
+// Range request for streaming
+const response = await protocol.handle('get', 'bundle://app/video.mp4', { Range: 'bytes=0-1023' });
+console.log(`Status: ${response.status}`); // 206 Partial Content
+```
