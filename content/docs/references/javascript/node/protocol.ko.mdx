@@ -3,7 +3,7 @@ title: 프로토콜
 description: '@wvb/node 프로토콜 핸들러 레퍼런스 — BundleProtocol은 번들 자산을 제공하고, LocalProtocol은 localhost로 프록시합니다.'
 ---
 
-`@wvb/node`는 웹뷰의 요청을 HTTP 방식의 응답으로 바꾸는 두 가지 프로토콜 핸들러를 제공합니다. `BundleProtocol`은 `BundleSource`에서 자산을 제공하고, `LocalProtocol`은 개발 중에 요청을 localhost 서버로 프록시합니다. 두 핸들러 모두 HTTP 메서드, URI, 선택적 헤더를 받아 `HttpResponse`를 반환합니다. 이 스킴들이 웹뷰 플랫폼에 어떻게 들어맞는지는 [프로토콜 처리](/docs/guide/protocol-handling)를 참고하세요.
+`@wvb/node`는 웹뷰의 요청을 HTTP 방식의 응답으로 바꾸는 두 가지 프로토콜 핸들러를 제공합니다. `BundleProtocol`은 `BundleSource`에서 자산을 제공하고, `LocalProtocol`은 개발 중에 요청을 localhost 서버로 프록시합니다. 두 핸들러 모두 HTTP 메서드, URI, 선택적 헤더를 받아 `HttpResponse`를 반환합니다. 이 스킴들이 웹뷰 플랫폼에 어떻게 들어맞는지는 [프로토콜 처리](/docs/guide/core-concepts/protocol-handling)를 참고하세요.
 
 두 핸들러는 동일한 호출 형태를 공유합니다.
 
@@ -42,7 +42,7 @@ handle(
 <Callout type="info">
   프로덕션에서 패킹된 번들을 제공할 때는 `BundleProtocol`을 사용하고, 개발 중에 개발 서버로 프록시할
   때는 `LocalProtocol`을 사용하세요. 두 스킴 중 하나를 플랫폼에 연결하는 방법은 [프로토콜
-  처리](/docs/guide/protocol-handling)를 참고하세요.
+  처리](/docs/guide/core-concepts/protocol-handling)를 참고하세요.
 </Callout>
 
 ## 프로토콜로 요청 처리하기
@@ -70,7 +70,7 @@ res.body; // Buffer
 <Cards>
   <Card
     title="프로토콜 처리"
-    href="/docs/guide/protocol-handling"
+    href="/docs/guide/core-concepts/protocol-handling"
     description="번들 스킴과 로컬 스킴이 각 웹뷰 플랫폼에 도달하는 방식."
   />
   <Card

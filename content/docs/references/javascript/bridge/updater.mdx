@@ -5,7 +5,7 @@ description: The bridge updater.* command group that drives the over-the-air upd
 
 The `updater` command group drives the over-the-air (OTA) update flow from web code running inside the webview. Use it to check whether a newer bundle is available, stage it, and activate it on the native host. Each method is a typed `invoke()` call that routes to the matching native updater handler, so you rarely touch `invoke()` directly.
 
-For the OTA concepts behind these commands, see [Remote bundles](/docs/guide/over-the-air). For the native updater the bridge calls into, see the [Node updater API](/docs/references/javascript/node/updater). For the bridge as a whole, see the [Bridge overview](/docs/references/javascript/bridge).
+For the OTA concepts behind these commands, see [Remote bundles](/docs/guide/core-concepts/over-the-air). For the native updater the bridge calls into, see the [Node updater API](/docs/references/javascript/node/updater). For the bridge as a whole, see the [Bridge overview](/docs/references/javascript/bridge).
 
 ```ts
 import { updater } from '@wvb/bridge';
@@ -71,7 +71,7 @@ async function checkForUpdate(bundleName: string) {
 <Cards>
   <Card
     title="Remote bundles"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="How OTA updates, integrity, and signatures work."
   />
   <Card

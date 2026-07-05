@@ -17,7 +17,7 @@ with the updater pulling newer bundles in the background without an App Store re
 | SwiftPM product | `WebViewBundle`                                            |
 
 The package binds the Rust core through a UniFFI-generated module named `WebViewBundleLibrary`, both
-exposed under the `WebViewBundle` module. See [Platform integration](/docs/guide/glue-to-native)
+exposed under the `WebViewBundle` module. See [Platform integration](/docs/guide/core-concepts/glue-to-native)
 for how the shared core reaches each platform.
 
 Add the package as a dependency (the install script below wires in the native FFI):
@@ -129,7 +129,7 @@ do {
 
 Two protocol kinds exist — `.bundle` serves bundle entries, `.local` proxies to a local HTTP server
 (matching the full request host against the `hosts` map). See
-[Protocol handling](/docs/guide/protocol-handling) for the model.
+[Protocol handling](/docs/guide/core-concepts/protocol-handling) for the model.
 
 ```swift
 WebViewBundleConfig(protocols: [
@@ -153,7 +153,7 @@ window.webkit.messageHandlers.wvbIos.postMessage({
 
 ## Sources
 
-Each app reads from two sources. See [Bundle sources](/docs/guide/bundle-sources) for the full model.
+Each app reads from two sources. See [Bundle sources](/docs/guide/core-concepts/bundle-source) for the full model.
 
 - **Builtin** — read-only bundles shipped inside the app. Default dir is the app bundle's `/bundles`
   folder; ship it as a folder reference so files land there.
@@ -229,14 +229,14 @@ await webView.evaluateJavaScript("location.reload()")
 A failed signature surfaces as the FFI error `Error.Signature(message:)`.
 
 For the remote HTTP contract, integrity, and signing details, see
-[Remote bundles](/docs/guide/over-the-air) and [Building a remote](/docs/guide/remote).
+[Remote bundles](/docs/guide/core-concepts/over-the-air) and [Building a remote](/docs/guide/remote).
 
 ## Next steps
 
 <Cards>
   <Card
     title="Remote bundles"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="How updating, integrity, and signatures work across platforms."
   />
   <Card

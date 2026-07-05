@@ -3,7 +3,7 @@ title: Protocol
 description: Reference for the @wvb/node protocol handlers — BundleProtocol serves bundle assets, LocalProtocol proxies to localhost.
 ---
 
-`@wvb/node` ships two protocol handlers that turn a request from the webview into an HTTP-style response. `BundleProtocol` serves assets out of a `BundleSource`, and `LocalProtocol` proxies requests to a localhost server during development. Both take an HTTP method, a URI, and optional headers, and resolve to an `HttpResponse`. See [Protocol handling](/docs/guide/protocol-handling) for how these schemes fit into a webview platform.
+`@wvb/node` ships two protocol handlers that turn a request from the webview into an HTTP-style response. `BundleProtocol` serves assets out of a `BundleSource`, and `LocalProtocol` proxies requests to a localhost server during development. Both take an HTTP method, a URI, and optional headers, and resolve to an `HttpResponse`. See [Protocol handling](/docs/guide/core-concepts/protocol-handling) for how these schemes fit into a webview platform.
 
 Both handlers share the same call shape:
 
@@ -41,8 +41,8 @@ handle(
 
 <Callout type="info">
   Use `BundleProtocol` to serve packed bundles in production and `LocalProtocol` to proxy a dev
-  server during development. See [Protocol handling](/docs/guide/protocol-handling) to wire either
-  scheme into your platform.
+  server during development. See [Protocol handling](/docs/guide/core-concepts/protocol-handling) to
+  wire either scheme into your platform.
 </Callout>
 
 ## Serve requests through a protocol
@@ -70,7 +70,7 @@ res.body; // Buffer
 <Cards>
   <Card
     title="Protocol handling"
-    href="/docs/guide/protocol-handling"
+    href="/docs/guide/core-concepts/protocol-handling"
     description="How the bundle and local schemes reach each webview platform."
   />
   <Card

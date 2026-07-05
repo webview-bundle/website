@@ -5,7 +5,7 @@ description: 웹뷰 안의 JavaScript가 네이티브 호스트를 호출하게 
 
 `@wvb/bridge`는 Webview Bundle의 웹 측 라이브러리입니다. **웹뷰 안에서** 실행되는 JavaScript가 번들 소스, 원격, 업데이터를 관리하는 네이티브 호스트를 호출하게 해줍니다. 하나의 통일된 `invoke()`가 Electron, Tauri, Android, iOS에서 모두 동작합니다. 플랫폼별 전송 방식은 추상화되어 있으므로 웹 코드는 어떤 플랫폼에서도 동일하게 유지됩니다.
 
-이 패키지는 순수 TypeScript이며, 타입이 지정된 명령어 그룹(`source`, `remote`, `updater`)을 제공합니다. 따라서 `invoke()`를 직접 호출하는 경우는 드뭅니다. 네이티브 호스트가 이 명령어들을 노출하는 방법은 [플랫폼 연동](/docs/guide/glue-to-native)을 참고하세요. 대응하는 네이티브 API는 [Node API 레퍼런스](/docs/references/javascript/node)를 참고하세요.
+이 패키지는 순수 TypeScript이며, 타입이 지정된 명령어 그룹(`source`, `remote`, `updater`)을 제공합니다. 따라서 `invoke()`를 직접 호출하는 경우는 드뭅니다. 네이티브 호스트가 이 명령어들을 노출하는 방법은 [플랫폼 연동](/docs/guide/core-concepts/glue-to-native)을 참고하세요. 대응하는 네이티브 API는 [Node API 레퍼런스](/docs/references/javascript/node)를 참고하세요.
 
 ## Install
 
@@ -149,7 +149,7 @@ async function checkForUpdate(bundleName: string) {
 <Cards>
   <Card
     title="플랫폼 통합"
-    href="/docs/guide/glue-to-native"
+    href="/docs/guide/core-concepts/glue-to-native"
     description="코어가 각 플랫폼에 도달하여 브리지 명령어를 노출하는 방법입니다."
   />
   <Card

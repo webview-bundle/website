@@ -1,5 +1,68 @@
 ---
 title: '내장 번들'
+description: wvb builtin으로 빌드 시점에 빌트인 .wvb 번들을 Tauri 앱에 설치하고 Tauri 리소스로 함께 배포하세요.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+하나 이상의 `.wvb` 번들을 Tauri 앱 안에 포함하여 배포하면, 원격 업데이트가 이루어지기 전에도 웹뷰가 오프라인으로 로드됩니다. `wvb builtin`으로 빌드 시점에 번들을 설치한 뒤, 해당 디렉터리를 Tauri 리소스로 배포하세요.
+
+## 빌드 시점에 번들 설치하기
+
+`wvb builtin`은 `--out`에 `manifest.json`과 함께 번들마다 하나씩 `<name>/<name>_<version>.wvb` 파일을 기록합니다. 리소스로 배포할 디렉터리를 가리키도록 설정하세요.
+
+```sh
+wvb builtin --out src-tauri/bundles
+```
+
+소스는 [설정](/docs/references/configuration)의 `builtin.target`으로 선택됩니다. `remote` 타겟은 엔드포인트에서 다운로드하고, `local` 타겟은 워크스페이스의 번들을 패킹합니다. 모든 플래그는 [`wvb builtin` 레퍼런스](/docs/references/cli/builtin)를 참고하세요.
+
+## 디렉터리를 리소스로 배포하기
+
+Tauri가 번들 디렉터리를 앱에 패킹하도록 `bundle.resources` 아래에 해당 디렉터리를 나열하세요.
+
+```json title="src-tauri/tauri.conf.json"
+{
+  "bundle": {
+    "resources": ["bundles/**/*"]
+  }
+}
+```
+
+## 런타임에 번들이 해석되는 위치
+
+기본적으로 플러그인은 앱의 리소스 디렉터리 내 `bundles` 디렉터리에서 빌트인 번들을 제공합니다. 위치는 `Source`에서 재정의하세요.
+
+```rust title="src-tauri/src/lib.rs"
+use wvb_tauri::Source;
+
+// 정적 경로. Tauri의 path API를 통해 해석됩니다.
+Source::new().builtin_dir("$RESOURCE/bundles");
+
+// 또는 AppHandle에서 계산할 수도 있습니다.
+Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles")));
+```
+
+<Callout type="warn">
+  Android에서 빌트인 번들은 APK 안에 파일시스템이 직접 읽을 수 없는 `asset://` 리소스로 포함되어
+  배포됩니다. 플러그인은 첫 요청 시 APK에서 번들을 추출하므로, 앱에서 `tauri_plugin_fs::init()`도
+  함께 등록해야 합니다. [Tauri 모바일](/docs/guide/native/tauri/mobile)을 참고하세요.
+</Callout>
+
+## 함께 보기
+
+<Cards>
+  <Card
+    title="Tauri 설정"
+    href="/docs/guide/native/tauri"
+    description="wvb-tauri 플러그인을 등록하고 윈도우가 번들 스킴을 가리키도록 설정합니다."
+  />
+  <Card
+    title="wvb builtin"
+    href="/docs/references/cli/builtin"
+    description="빌트인 번들을 설치하기 위한 모든 플래그."
+  />
+  <Card
+    title="번들 소스"
+    href="/docs/guide/core-concepts/bundle-source"
+    description="빌트인 번들과 리모트 번들이 런타임에 해석되는 방식."
+  />
+</Cards>

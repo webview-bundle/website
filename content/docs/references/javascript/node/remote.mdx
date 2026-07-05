@@ -3,7 +3,7 @@ title: Remote
 description: The @wvb/node HTTP client that lists, inspects, and downloads bundles from a remote.
 ---
 
-`Remote` is the `@wvb/node` HTTP client for a [bundle remote](/docs/guide/remote). It talks to any server that implements the [Remote HTTP Spec](/docs/guide/spec), so you can list available bundles, read a bundle's metadata, and download bundle bytes from Node.js. The [Updater](/docs/references/javascript/node/updater) builds on `Remote` to stage and activate updates; use `Remote` directly when you need lower-level access to the remote.
+`Remote` is the `@wvb/node` HTTP client for a [bundle remote](/docs/guide/remote). It talks to any server that implements the [Remote HTTP Spec](/docs/guide/remote/http-spec), so you can list available bundles, read a bundle's metadata, and download bundle bytes from Node.js. The [Updater](/docs/references/javascript/node/updater) builds on `Remote` to stage and activate updates; use `Remote` directly when you need lower-level access to the remote.
 
 ## Constructor
 
@@ -118,7 +118,7 @@ type RemoteBundleInfo = {
 };
 ```
 
-The `integrity` and `signature` fields carry the values the remote advertises through the `Webview-Bundle-Integrity` and `Webview-Bundle-Signature` response headers. See [Errors](/docs/guide/spec/errors) for how the client surfaces non-success responses such as `404` (not deployed) and `403` (forbidden).
+The `integrity` and `signature` fields carry the values the remote advertises through the `Webview-Bundle-Integrity` and `Webview-Bundle-Signature` response headers. See [Errors](/docs/guide/remote/http-spec/errors) for how the client surfaces non-success responses such as `404` (not deployed) and `403` (forbidden).
 
 ## Related
 
@@ -130,7 +130,7 @@ The `integrity` and `signature` fields carry the values the remote advertises th
   />
   <Card
     title="Remote HTTP Spec"
-    href="/docs/guide/spec"
+    href="/docs/guide/remote/http-spec"
     description="The HTTP contract every remote implements."
   />
   <Card

@@ -1,5 +1,56 @@
 ---
 title: '로컬 개발'
+description: wvb 커스텀 스킴을 Tauri/Vite 개발 서버로 프록시하여 웹뷰를 실시간으로 로드하고, 개발 번들과 패킹된 번들을 전환합니다.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+개발 중에는 웹뷰가 패킹된 `.wvb`가 아니라 실행 중인 개발 서버에서 로드되어야 합니다. `local` 프로토콜을 등록하면 커스텀 스킴이 Tauri의 Vite 개발 서버로 프록시되어 핫 리로드가 유지됩니다.
+
+## 개발 서버 프록시
+
+`Protocol::bundle` 옆에 `Protocol::local`을 등록하여 스킴 호스트를 Tauri의 Vite 개발 서버(기본값 `http://localhost:1420`)에 매핑하세요.
+
+```rust title="src-tauri/src/lib.rs"
+use wvb_tauri::{Config, Protocol, Source};
+
+Config::new()
+  .source(Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles"))))
+  // 프로덕션: 패킹된 번들에서 파일을 제공합니다.
+  .protocol(Protocol::bundle("bundle"))
+  // 개발: 동일한 호스트를 실행 중인 개발 서버로 프록시합니다.
+  .protocol(Protocol::local("local").host("example.com", "http://localhost:1420"));
+```
+
+`Protocol::local(scheme)`는 `local://example.com/...`을 개발 서버로 전달하므로 편집 내용이 실시간으로 다시 로드됩니다. `.host(...)` 호출을 여러 번 사용하거나 하나의 `.hosts(...)`로 여러 호스트를 매핑하세요.
+
+## 개발과 프로덕션 전환
+
+개발 중에는 창을 `local` 스킴으로, 배포할 때는 `bundle` 스킴으로 지정하세요.
+
+```json title="src-tauri/tauri.conf.json"
+{
+  "app": {
+    "windows": [
+      {
+        "url": "local://example.com"
+      }
+    ]
+  }
+}
+```
+
+프로덕션 빌드에서는 창의 `url`을 `bundle://app.wvb`로 바꾸거나, `cfg!(debug_assertions)`로 런타임에 선택하여 전환이 자동으로 이뤄지도록 하세요.
+
+## 더 알아보기
+
+<Cards>
+  <Card
+    title="Tauri 설정"
+    href="/docs/guide/native/tauri"
+    description="wvb-tauri 플러그인을 등록하고, 번들을 패킹하고, OTA 업데이트를 활성화하기."
+  />
+  <Card
+    title="프로토콜 처리"
+    href="/docs/guide/core-concepts/protocol-handling"
+    description="bundle 및 local 스킴이 웹뷰 요청을 해석하는 방식."
+  />
+</Cards>

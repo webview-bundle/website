@@ -1,5 +1,49 @@
 ---
 title: 'Builtin bundles'
+description: Ship bundles inside a Deno Desktop app by installing them into the builtin directory the BundleSource reads.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+Builtin bundles ship inside the app so the window loads offline on first launch, before any bundle has been downloaded over the air. The `BundleSource` reads them from its `builtinDir`; `wvb builtin` writes the installed set into that directory.
+
+## Point the source at a builtin directory
+
+`webviewBundle` builds its `BundleSource` from `source`. Set `builtinDir` to the directory you install into. It defaults to `bundles` next to your entry module.
+
+```ts title="main.ts"
+import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
+
+const wvb = await webviewBundle({
+  protocols: [bundleProtocol('app')],
+  source: { builtinDir: './bundles' },
+});
+```
+
+## Install with wvb builtin
+
+Run `wvb builtin` and point `--out` at that same directory. It writes a `manifest.json` plus one `<name>/<name>_<version>.wvb` file per bundle.
+
+```sh
+wvb builtin --out ./bundles
+```
+
+Whether bundles come from a remote endpoint or from local workspaces is set by `builtin.target` in your [config](/docs/references/configuration), not by a CLI flag. It defaults to a remote target. See [`wvb builtin`](/docs/references/cli/builtin) for every flag and both target shapes.
+
+## See also
+
+<Cards>
+  <Card
+    title="Deno Desktop setup"
+    href="/docs/guide/native/deno"
+    description="Serve and update bundles in a Deno Desktop webview."
+  />
+  <Card
+    title="wvb builtin"
+    href="/docs/references/cli/builtin"
+    description="Install builtin bundles from a remote or local target."
+  />
+  <Card
+    title="Deno BundleSource"
+    href="/docs/references/javascript/deno/source"
+    description="How builtinDir and remoteDir resolve a bundle."
+  />
+</Cards>

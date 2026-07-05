@@ -5,7 +5,7 @@ description: 웹뷰 내부에서 무선(OTA) 업데이트 흐름을 구동하는
 
 `updater` 명령어 그룹은 웹뷰 내부에서 실행되는 웹 코드에서 무선(OTA) 업데이트 흐름을 구동합니다. 이 그룹으로 더 새로운 번들이 있는지 확인하고, 스테이징한 뒤, 네이티브 호스트에서 활성화하세요. 각 메서드는 타입이 지정된 `invoke()` 호출이며, 대응하는 네이티브 업데이터 핸들러로 라우팅됩니다. 따라서 `invoke()`를 직접 다룰 일은 거의 없습니다.
 
-이 명령어들 뒤에 있는 OTA 개념은 [원격 번들](/docs/guide/over-the-air)을 참고하세요. bridge가 호출하는 네이티브 업데이터는 [Node 업데이터 API](/docs/references/javascript/node/updater)를 참고하세요. bridge 전체는 [Bridge 개요](/docs/references/javascript/bridge)를 참고하세요.
+이 명령어들 뒤에 있는 OTA 개념은 [원격 번들](/docs/guide/core-concepts/over-the-air)을 참고하세요. bridge가 호출하는 네이티브 업데이터는 [Node 업데이터 API](/docs/references/javascript/node/updater)를 참고하세요. bridge 전체는 [Bridge 개요](/docs/references/javascript/bridge)를 참고하세요.
 
 ```ts
 import { updater } from '@wvb/bridge';
@@ -71,7 +71,7 @@ async function checkForUpdate(bundleName: string) {
 <Cards>
   <Card
     title="원격 번들"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="OTA 업데이트, 무결성, 서명이 동작하는 방식."
   />
   <Card

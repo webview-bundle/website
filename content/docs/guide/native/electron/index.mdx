@@ -100,7 +100,7 @@ bundleProtocol('app', {
 <Callout type="info">
   Each scheme is registered as privileged with these defaults: `standard`, `secure`, `bypassCSP`,
   `allowServiceWorkers`, `supportFetchAPI`, `corsEnabled`, `codeCache` all `true`; `stream` `false`.
-  See [Protocol handling](/docs/guide/protocol-handling) for the full model.
+  See [Protocol handling](/docs/guide/core-concepts/protocol-handling) for the full model.
 </Callout>
 
 ## Add the preload script
@@ -178,7 +178,7 @@ updater: {
 },
 ```
 
-`SignatureAlgorithm` is one of `ecdsaSecp256R1`, `ecdsaSecp384R1`, `ed25519`, `rsaPkcs1V15`, `rsaPss`. See [Remote bundles](/docs/guide/over-the-air) for integrity and signature details, and [Building a remote](/docs/guide/remote) for standing a server up — including a local one for testing.
+`SignatureAlgorithm` is one of `ecdsaSecp256R1`, `ecdsaSecp384R1`, `ed25519`, `rsaPkcs1V15`, `rsaPss`. See [Remote bundles](/docs/guide/core-concepts/over-the-air) for integrity and signature details, and [Building a remote](/docs/guide/remote) for standing a server up — including a local one for testing.
 
 ## Where bundles live
 
@@ -189,7 +189,7 @@ updater: {
 | `builtinDir` | `process.resourcesPath/bundles` when packaged, else `process.cwd()/bundles` |
 | `remoteDir`  | `app.getPath('userData')/bundles`                                           |
 
-Downloaded versions take priority over builtin ones, so an installed update is served automatically after `updater.download(...)` and `updater.install(...)`. See [Bundle sources](/docs/guide/bundle-sources) for resolution details.
+Downloaded versions take priority over builtin ones, so an installed update is served automatically after `updater.download(...)` and `updater.install(...)`. See [Bundle sources](/docs/guide/core-concepts/bundle-source) for resolution details.
 
 ## Pack and ship bundles
 
@@ -231,7 +231,7 @@ Packaging an Electron app that uses `@wvb/electron` needs two things to land in 
 <Cards>
   <Card
     title="Remote bundles"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="Integrity, signatures, and updating bundles over the air."
   />
   <Card
@@ -241,7 +241,7 @@ Packaging an Electron app that uses `@wvb/electron` needs two things to land in 
   />
   <Card
     title="Bundle sources"
-    href="/docs/guide/bundle-sources"
+    href="/docs/guide/core-concepts/bundle-source"
     description="How builtin and remote bundles resolve at runtime."
   />
   <Card

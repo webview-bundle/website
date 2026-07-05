@@ -1,5 +1,68 @@
 ---
-title: 'Builtin bundles'
+title: Builtin bundles
+description: Install builtin .wvb bundles into a Tauri app at build time with wvb builtin and ship them as Tauri resources.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+Ship one or more `.wvb` bundles inside your Tauri app so the webview loads offline, before any over-the-air update. Install them at build time with `wvb builtin`, then ship the directory as a Tauri resource.
+
+## Install bundles at build time
+
+`wvb builtin` writes a `manifest.json` plus one `<name>/<name>_<version>.wvb` file per bundle into `--out`. Point it at the directory you ship as a resource:
+
+```sh
+wvb builtin --out src-tauri/bundles
+```
+
+The source is chosen by `builtin.target` in your [config](/docs/references/configuration) — a `remote` target downloads from an endpoint, a `local` target packs bundles from your workspaces. See the [`wvb builtin` reference](/docs/references/cli/builtin) for every flag.
+
+## Ship the directory as a resource
+
+List the bundles directory under `bundle.resources` so Tauri packs it into the app:
+
+```json title="src-tauri/tauri.conf.json"
+{
+  "bundle": {
+    "resources": ["bundles/**/*"]
+  }
+}
+```
+
+## Where bundles resolve at runtime
+
+By default the plugin serves builtin bundles from a `bundles` directory in the app's resource directory. Override the location on the `Source`:
+
+```rust title="src-tauri/src/lib.rs"
+use wvb_tauri::Source;
+
+// Static path, resolved through Tauri's path API.
+Source::new().builtin_dir("$RESOURCE/bundles");
+
+// Or compute it from the AppHandle.
+Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles")));
+```
+
+<Callout type="warn">
+  On Android, builtin bundles ship inside the APK as `asset://` resources that the filesystem cannot
+  read directly. The plugin extracts them from the APK on first request, so the app must also
+  register `tauri_plugin_fs::init()`. See [Tauri mobile](/docs/guide/native/tauri/mobile).
+</Callout>
+
+## See also
+
+<Cards>
+  <Card
+    title="Tauri setup"
+    href="/docs/guide/native/tauri"
+    description="Register the wvb-tauri plugin and point a window at the bundle scheme."
+  />
+  <Card
+    title="wvb builtin"
+    href="/docs/references/cli/builtin"
+    description="Every flag for installing builtin bundles."
+  />
+  <Card
+    title="Bundle source"
+    href="/docs/guide/core-concepts/bundle-source"
+    description="How builtin and remote bundles resolve at runtime."
+  />
+</Cards>

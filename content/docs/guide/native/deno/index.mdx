@@ -11,7 +11,7 @@ Deno Desktop renders a native webview with `Deno.BrowserWindow` and serves it ov
 import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: 'app' })],
+  protocols: [bundleProtocol('app')],
 });
 
 const server = Deno.serve(wvb.fetch);
@@ -23,7 +23,7 @@ await win.closed;
 
 ## How it fits together
 
-The window points at a single local origin served by `Deno.serve`, so the integration is **single-origin**: it allows exactly one protocol. See [Platform integration](/docs/guide/glue-to-native) for how the core reaches each platform and [Protocol handling](/docs/guide/protocol-handling) for the protocol model.
+The window points at a single local origin served by `Deno.serve`, so the integration is **single-origin**: it allows exactly one protocol. See [Platform integration](/docs/guide/core-concepts/glue-to-native) for how the core reaches each platform and [Protocol handling](/docs/guide/core-concepts/protocol-handling) for the protocol model.
 
 ## @wvb/deno-desktop
 
@@ -33,7 +33,7 @@ Call `webviewBundle(config)` — aliased as `wvb`, backed by the `WebviewBundle`
 import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: 'app' })],
+  protocols: [bundleProtocol('app')],
   updater: {
     remote: { endpoint: 'https://bundles.example.com' },
   },
@@ -52,7 +52,7 @@ Call `registerBindings(win, wvb)` to expose native commands to your web app. It 
 import { webviewBundle, bundleProtocol, registerBindings } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: 'app' })],
+  protocols: [bundleProtocol('app')],
 });
 
 const server = Deno.serve(wvb.fetch);
@@ -157,7 +157,7 @@ Two gaps apply to the Deno bindings today.
 
 ```ts title="updater.ts"
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: 'app' })],
+  protocols: [bundleProtocol('app')],
   updater: {
     remote: { endpoint: 'https://bundles.example.com' },
     integrityPolicy: 'strict',
@@ -175,7 +175,7 @@ The custom `integrityChecker` / `signatureVerifier` function callbacks available
 
 ```ts title="http.ts"
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: 'app' })],
+  protocols: [bundleProtocol('app')],
   updater: {
     remote: {
       endpoint: 'https://bundles.example.com',
@@ -185,7 +185,7 @@ const wvb = await webviewBundle({
 });
 ```
 
-For how integrity and signatures work across platforms, see [Remote bundles](/docs/guide/over-the-air).
+For how integrity and signatures work across platforms, see [Remote bundles](/docs/guide/core-concepts/over-the-air).
 
 ## Next steps
 
@@ -197,12 +197,12 @@ For how integrity and signatures work across platforms, see [Remote bundles](/do
   />
   <Card
     title="Platform support"
-    href="/docs/guide/getting-started/platform-support"
+    href="/docs/guide/getting-started/platform-and-framework-support"
     description="Where each platform stands, including experimental ones."
   />
   <Card
     title="Remote bundles"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="How updating, integrity, and signatures work across platforms."
   />
 </Cards>

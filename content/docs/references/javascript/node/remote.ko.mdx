@@ -3,7 +3,7 @@ title: Remote
 description: 원격에서 번들을 나열하고, 살펴보고, 다운로드하는 @wvb/node HTTP 클라이언트입니다.
 ---
 
-`Remote`는 [번들 원격](/docs/guide/remote)을 위한 `@wvb/node` HTTP 클라이언트입니다. [Remote HTTP Spec](/docs/guide/spec)을 구현한 모든 서버와 통신합니다. 따라서 Node.js에서 사용 가능한 번들을 나열하고, 번들의 메타데이터를 읽고, 번들 바이트를 다운로드할 수 있습니다. [Updater](/docs/references/javascript/node/updater)는 `Remote` 위에서 업데이트를 준비하고 활성화합니다. 원격에 더 낮은 수준으로 접근해야 할 때는 `Remote`를 직접 사용하세요.
+`Remote`는 [번들 원격](/docs/guide/remote)을 위한 `@wvb/node` HTTP 클라이언트입니다. [Remote HTTP Spec](/docs/guide/remote/http-spec)을 구현한 모든 서버와 통신합니다. 따라서 Node.js에서 사용 가능한 번들을 나열하고, 번들의 메타데이터를 읽고, 번들 바이트를 다운로드할 수 있습니다. [Updater](/docs/references/javascript/node/updater)는 `Remote` 위에서 업데이트를 준비하고 활성화합니다. 원격에 더 낮은 수준으로 접근해야 할 때는 `Remote`를 직접 사용하세요.
 
 ## Constructor
 
@@ -117,7 +117,7 @@ type RemoteBundleInfo = {
 };
 ```
 
-`integrity`와 `signature` 필드는 원격이 `Webview-Bundle-Integrity`와 `Webview-Bundle-Signature` 응답 헤더로 알리는 값을 담습니다. `404`(배포되지 않음)나 `403`(금지됨) 같은 실패 응답을 클라이언트가 어떻게 드러내는지는 [Errors](/docs/guide/spec/errors)를 참고하세요.
+`integrity`와 `signature` 필드는 원격이 `Webview-Bundle-Integrity`와 `Webview-Bundle-Signature` 응답 헤더로 알리는 값을 담습니다. `404`(배포되지 않음)나 `403`(금지됨) 같은 실패 응답을 클라이언트가 어떻게 드러내는지는 [Errors](/docs/guide/remote/http-spec/errors)를 참고하세요.
 
 ## Related
 
@@ -129,7 +129,7 @@ type RemoteBundleInfo = {
   />
   <Card
     title="원격 HTTP 명세"
-    href="/docs/guide/spec"
+    href="/docs/guide/remote/http-spec"
     description="모든 원격이 구현하는 HTTP 규약입니다."
   />
   <Card

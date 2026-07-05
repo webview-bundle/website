@@ -1,5 +1,84 @@
 ---
-title: 'Local development'
+title: Local development
+description: Proxy your bundle host to the Vite dev server for hot reload, and switch protocols on app.isPackaged.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+In development you want hot reload, not a packed `.wvb`. Register a `localProtocol` on your bundle scheme so the webview loads the same URL while requests proxy to your framework dev server.
+
+## Proxy to the dev server
+
+`localProtocol(scheme, { hosts })` forwards each mapped host to a running dev server, so edits reload live over the same `app://app.wvb` URL you use in production. `hosts` maps `<bundle-name>.wvb` to the dev server origin.
+
+## Switch on `app.isPackaged`
+
+Register `localProtocol` in development and `bundleProtocol` in production, both on the same scheme. The renderer URL never changes — only the handler behind it does.
+
+```ts title="src/main.ts"
+import path from 'node:path';
+import { app, BrowserWindow } from 'electron';
+import { bundleProtocol, localProtocol, wvb } from '@wvb/electron';
+
+const DEV_SERVER_URL = 'http://localhost:5173';
+
+const instance = wvb({
+  source: {
+    builtinDir: path.join(process.resourcesPath, 'bundles'),
+  },
+  protocols: app.isPackaged
+    ? // Prod: serve `app://app.wvb/...` from the packed bundle.
+      [bundleProtocol('app')]
+    : // Dev: proxy `app://app.wvb/...` to the Vite dev server for hot reload.
+      [localProtocol('app', { hosts: { 'app.wvb': DEV_SERVER_URL } })],
+});
+
+async function createWindow() {
+  await instance.whenProtocolRegistered();
+  const win = new BrowserWindow({ width: 800, height: 600 });
+  await win.loadURL('app://app.wvb');
+}
+
+app.whenReady().then(createWindow);
+```
+
+<Callout type="info">
+  Only one handler can own a scheme at a time, so build the `protocols` array conditionally rather
+  than registering both. Always `await instance.whenProtocolRegistered()` before `loadURL`.
+</Callout>
+
+## Multiple hosts
+
+`hosts` takes any number of entries — map each window's bundle host to its own dev server, then load each by host.
+
+```ts
+localProtocol('app', {
+  hosts: {
+    'app.wvb': 'http://localhost:5173',
+    'admin.wvb': 'http://localhost:5174',
+  },
+});
+
+// win.loadURL('app://app.wvb');
+// adminWin.loadURL('app://admin.wvb');
+```
+
+In production, `bundleProtocol('app')` serves both from the `app` and `admin` bundles in your source.
+
+## See also
+
+<Cards>
+  <Card
+    title="Electron setup"
+    href="/docs/guide/native/electron"
+    description="Register the protocol, preload, and over-the-air updates."
+  />
+  <Card
+    title="@wvb/electron reference"
+    href="/docs/references/javascript/electron"
+    description="Full API for bundleProtocol, localProtocol, and wvb()."
+  />
+  <Card
+    title="Protocol handling"
+    href="/docs/guide/core-concepts/protocol-handling"
+    description="How the bundle and local schemes reach the webview."
+  />
+</Cards>

@@ -50,7 +50,7 @@ wvb remote list | jq '.[].name'
 
 ## wvb remote local
 
-Start a local update server backed by a directory. It implements the same HTTP contract as a production remote, so you can test the full update loop offline before wiring in a hosted [provider](/docs/guide/providers/local). The server defaults to serving `~/.wvb/local` on port `4313`.
+Start a local update server backed by a directory. It implements the same HTTP contract as a production remote, so you can test the full update loop offline before wiring in a hosted [provider](/docs/guide/remote/providers/local). The server defaults to serving `~/.wvb/local` on port `4313`.
 
 ```sh
 wvb remote local                                  # http://localhost:4313, serving ~/.wvb/local
@@ -94,7 +94,7 @@ By default the local server only serves the version marked current for each bund
   />
   <Card
     title="Local provider"
-    href="/docs/guide/providers/local"
+    href="/docs/guide/remote/providers/local"
     description="Run @wvb/remote-local-provider as your update server."
   />
 </Cards>

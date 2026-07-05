@@ -1,5 +1,66 @@
 ---
 title: '내장 번들'
+description: wvb builtin으로 빌트인 Webview Bundle을 Android 앱 모듈에 설치하면, 소스가 오프라인에서 이를 제공합니다.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+`wvb builtin`은 Android 앱이 함께 배포하는 번들을 모듈의 `assets/bundles/`에 설치합니다. [소스](/docs/guide/native/android)는 원격 업데이트가 이루어지기 전, 첫 실행 시 이곳에서 번들을 읽습니다.
+
+## 앱 모듈에 설치하기
+
+`--android` 프리셋으로 CLI를 실행하세요. `--android`만 쓰면 `com.android.application` 모듈을 자동으로 감지합니다. 모듈을 명시적으로 지정하려면 `--android=<dir>`을 전달하세요.
+
+```sh
+# 앱 모듈을 자동 감지하여 src/main/assets/bundles에 설치
+wvb builtin --android
+
+# 또는 특정 모듈을 지정
+wvb builtin --android=./app
+```
+
+번들은 config의 `builtin.target`에서 가져옵니다. 기본값은 원격 엔드포인트이며, 로컬 워크스페이스일 수도 있습니다. 원격 대상을 재정의하려면 `--endpoint`와 `--channel`을 사용하세요. 모든 플래그는 [`wvb builtin`](/docs/references/cli/builtin)을 참고하세요.
+
+프리셋은 `<module>/src/main/assets/bundles/`에 파일을 씁니다. `manifest.json` 하나와, 번들마다 `<name>/<name>_<version>.wvb` 파일 하나가 생성됩니다.
+
+```text
+app/src/main/assets/bundles/
+├── manifest.json
+└── app/
+    └── app_0.1.0.wvb
+```
+
+<Callout type="warn">
+  `.wvb` 에셋이 APK에서 다시 압축되지 않도록, 모듈의 `build.gradle.kts`에 있는 `androidResources`
+  블록에 `noCompress += "wvb"`을 추가하세요. 이 설정이 없으면 CLI가 경고합니다.
+</Callout>
+
+## 소스가 번들을 로드하는 방식
+
+네이티브 소스는 에셋 스트림이 아니라 파일을 읽습니다. 그래서 라이브러리는 설치하거나 업데이트할 때마다 `assets/bundles/`를 앱의 `filesDir`로 복사합니다. 이 동작은 `SourceOptions.builtinAssetsDir`로 제어합니다.
+
+```kotlin
+import dev.wvb.SourceOptions
+
+WebViewBundleConfig(
+  protocols = listOf(WebViewBundleProtocol.bundle()),
+  source = SourceOptions(
+    builtinAssetsDir = "bundles",   // APK의 assets/<dir>, null이면 추출 비활성화
+  ),
+)
+```
+
+`<filesDir>/wvb/builtin` 아래로 추출된 사본은 읽기 전용입니다. 원격 다운로드는 쓰기 가능한 `<filesDir>/wvb/remote`에 저장됩니다.
+
+## 함께 보기
+
+<Cards>
+  <Card
+    title="Android 설정"
+    href="/docs/guide/native/android"
+    description="라이브러리를 설치하고, 번들을 제공하고, 소스를 설정합니다."
+  />
+  <Card
+    title="wvb builtin"
+    href="/docs/references/cli/builtin"
+    description="원격 또는 로컬 대상에서 빌트인 번들을 설치하는 모든 플래그를 다룹니다."
+  />
+</Cards>

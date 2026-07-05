@@ -1,5 +1,60 @@
 ---
 title: '로컬 개발'
+description: 로컬 프로토콜을 등록해 WKWebView가 번들 스킴으로 개발 서버를 로드하게 하고, #if DEBUG로 전환합니다.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+개발 중에는 `WKWebView`가 패킹된 `.wvb`이 아니라 실행 중인 개발 서버를 로드하기를 원할 것입니다. 번들 스킴에 `.local` 프로토콜을 등록하면, 동일한 `app://app.wvb` URL이 개발 서버로 프록시되고 수정 사항이 실시간으로 다시 로드됩니다.
+
+## Proxy the dev server
+
+`.local(scheme:hosts:)`은 매핑된 각 호스트를 실행 중인 개발 서버로 전달합니다. `hosts` 키는 요청 호스트 **전체**와 대조되므로, 로드하는 전체 호스트인 `app.wvb`을 개발 서버 오리진에 매핑하세요.
+
+`protocols` 배열은 동일한 스킴에 대해 조건부로 구성하세요. `#if DEBUG`에서는 `.local`을, 릴리스에서는 `.bundle`을 사용합니다. 로드되는 URL은 절대 바뀌지 않고, 그 뒤의 핸들러만 바뀝니다.
+
+```swift title="ContentView.swift"
+import WebKit
+import WebViewBundle
+
+#if DEBUG
+let protocols: [WebViewBundleProtocol] = [
+  // Dev: proxy `app://app.wvb/...` to the Vite dev server for hot reload.
+  .local(scheme: "app", hosts: ["app.wvb": "http://localhost:5173"]),
+]
+#else
+let protocols: [WebViewBundleProtocol] = [
+  // Prod: serve `app://app.wvb/...` from the packed bundle.
+  .bundle(scheme: "app"),
+]
+#endif
+
+let instance = try WebViewBundle.configure(WebViewBundleConfig(protocols: protocols))
+
+let config = WKWebViewConfiguration()
+instance.install(on: config)
+
+let webView = WKWebView(frame: .zero, configuration: config)
+webView.load(URLRequest(url: URL(string: "app://app.wvb")!))
+```
+
+## App Transport Security
+
+<Callout type="warn">
+  개발 서버가 평문 `http://localhost`라면, iOS App Transport Security가 평문 요청을 차단할 수
+  있습니다. 개발 빌드용으로 앱의 `Info.plist`에서 `NSAppTransportSecurity` 아래에
+  `NSAllowsLocalNetworking` 예외를 추가하세요.
+</Callout>
+
+## See also
+
+<Cards>
+  <Card
+    title="iOS 설정"
+    href="/docs/guide/native/ios"
+    description="스킴을 등록하고, 빌트인 번들을 배포하며, 원격 업데이트를 활성화합니다."
+  />
+  <Card
+    title="프로토콜 처리"
+    href="/docs/guide/core-concepts/protocol-handling"
+    description="번들 스킴과 로컬 스킴이 WKWebView 요청을 해석하는 방식."
+  />
+</Cards>

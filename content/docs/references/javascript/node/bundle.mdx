@@ -5,7 +5,7 @@ description: The @wvb/node classes for reading, building, and inspecting .wvb ar
 
 `@wvb/node` exposes a small set of classes for working with a `.wvb` archive in memory and on disk. `Bundle` and `BundleBuilder` read and write whole bundles, while `BundleDescriptor`, `Header`, `Index`, and `LoadedDescriptor` let you inspect a bundle's structure and pull individual files without loading everything into memory.
 
-For the full package surface — sources, protocols, the remote client, and the updater — see the [Node API overview](/docs/references/javascript/node). For how the bytes are laid out on disk, see [The .wvb bundle format](/docs/guide/bundle-format).
+For the full package surface — sources, protocols, the remote client, and the updater — see the [Node API overview](/docs/references/javascript/node). For how the bytes are laid out on disk, see [The .wvb bundle format](/docs/guide/core-concepts/webview-bundle).
 
 ## Read a bundle and get a file
 
@@ -78,7 +78,7 @@ type IndexEntry = {
   />
   <Card
     title="Bundle format"
-    href="/docs/guide/bundle-format"
+    href="/docs/guide/core-concepts/webview-bundle"
     description="How a .wvb archive is laid out on disk, with checksums and integrity."
   />
 </Cards>

@@ -1,5 +1,72 @@
 ---
 title: 'Packing'
+description: Pack a built web app into a single .wvb bundle with wvb pack.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+Packing turns a built web app into one `.wvb` file — the unit your app ships to its webview or uploads for over-the-air updates.
+
+## Pack a bundle
+
+Run `wvb pack` against your build output directory. It reads every file under the source directory and writes a single compressed `.wvb` archive.
+
+```sh
+wvb pack                                    # uses config defaults
+wvb pack ./dist                             # explicit source directory
+wvb pack ./dist --outfile ./build/app.wvb   # explicit output path
+```
+
+The source directory defaults to `pack.srcDir` (or `./dist`), and the output path defaults to `pack.outFile`. The `.wvb` extension is appended when you omit it. See [`wvb pack`](/docs/references/cli/pack) for every flag.
+
+## Name and version
+
+The bundle name comes from your `package.json` `name` field with any scope prefix stripped. It sets the default output path, `.wvb/<name>.wvb`.
+
+The version comes from your `package.json` `version` field. Packing does not embed it in the filename — the version is stamped when you upload the bundle or install it as a builtin.
+
+## Configure defaults
+
+Set `pack` defaults in your `wvb.config` file so the command runs with no arguments.
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/config';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+    outFile: '.wvb/app',
+  },
+});
+```
+
+`outFile` is a single output path — there is no separate `outDir`. A flag passed on the command line always overrides the config value. See [Configuration](/docs/references/configuration) for the full `pack` schema.
+
+## Ship as builtin
+
+A packed `.wvb` can ship inside your native app as a builtin bundle, served when the app is offline or before it fetches a newer bundle over the air.
+
+`wvb builtin` collects bundles into an output directory (default `.wvb/builtin/bundles`), laid out as `<name>/<name>_<version>.wvb` alongside a `manifest.json`.
+
+## Next steps
+
+<Cards>
+  <Card
+    title="wvb pack"
+    href="/docs/references/cli/pack"
+    description="The pack command, its flags, and defaults."
+  />
+  <Card
+    title="Configuration"
+    href="/docs/references/configuration"
+    description="The wvb.config file that supplies pack defaults."
+  />
+  <Card
+    title="Upload to remote"
+    href="/docs/guide/frontend/upload"
+    description="Publish a packed bundle for over-the-air updates."
+  />
+  <Card
+    title="wvb builtin"
+    href="/docs/references/cli/builtin"
+    description="Install bundles so your app can ship them as builtin."
+  />
+</Cards>

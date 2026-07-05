@@ -28,7 +28,7 @@ This route does not accept a `channel` query parameter.
 | `403`  | The server disables other-version downloads. |
 | `404`  | The named bundle or version is not deployed. |
 
-The client maps `403` to a "forbidden" error and `404` to a "bundle not found" error. See [Errors](/docs/guide/spec/errors) for the full mapping and the JSON error body shape.
+The client maps `403` to a "forbidden" error and `404` to a "bundle not found" error. See [Errors](/docs/guide/remote/http-spec/errors) for the full mapping and the JSON error body shape.
 
 ### Response headers
 
@@ -47,7 +47,7 @@ The `200` body is the raw `.wvb` bytes, served with `Content-Type: application/w
 
 <Callout type="info">
   This route never selects a channel. To download the current version, with or without a channel,
-  use [GET /bundles/{name}](/docs/guide/spec/get-current).
+  use [GET /bundles/{name}](/docs/guide/remote/http-spec/endpoints/get-current).
 </Callout>
 
 ## Example
@@ -85,22 +85,22 @@ HTTP/1.1 404 Not Found
 <Cards>
   <Card
     title="GET /bundles/{name}"
-    href="/docs/guide/spec/get-current"
+    href="/docs/guide/remote/http-spec/endpoints/get-current"
     description="Download the current version, optionally for a channel."
   />
   <Card
     title="Errors"
-    href="/docs/guide/spec/errors"
+    href="/docs/guide/remote/http-spec/errors"
     description="Status codes and the JSON error body shape."
   />
   <Card
     title="Remote HTTP Spec"
-    href="/docs/guide/spec"
+    href="/docs/guide/remote/http-spec"
     description="The full contract every remote server implements."
   />
   <Card
     title="Local provider"
-    href="/docs/guide/providers/local"
+    href="/docs/guide/remote/providers/local"
     description="The allowOtherVersions option that gates this route."
   />
 </Cards>

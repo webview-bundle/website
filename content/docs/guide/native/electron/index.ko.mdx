@@ -100,7 +100,8 @@ bundleProtocol('app', {
 <Callout type="info">
   각 스킴은 다음 기본값으로 privileged로 등록됩니다. `standard`, `secure`, `bypassCSP`,
   `allowServiceWorkers`, `supportFetchAPI`, `corsEnabled`, `codeCache`는 모두 `true`이고, `stream`은
-  `false`입니다. 전체 모델은 [프로토콜 처리](/docs/guide/protocol-handling)를 참고하세요.
+  `false`입니다. 전체 모델은 [프로토콜 처리](/docs/guide/core-concepts/protocol-handling)를
+  참고하세요.
 </Callout>
 
 ## Add the preload script
@@ -179,7 +180,7 @@ updater: {
 },
 ```
 
-`SignatureAlgorithm`은 `ecdsaSecp256R1`, `ecdsaSecp384R1`, `ed25519`, `rsaPkcs1V15`, `rsaPss` 중 하나입니다. 무결성과 서명에 대한 자세한 내용은 [원격 번들](/docs/guide/over-the-air)을, 서버를 세우는 방법(테스트용 로컬 서버 포함)은 [원격 서버 구축](/docs/guide/remote)을 참고하세요.
+`SignatureAlgorithm`은 `ecdsaSecp256R1`, `ecdsaSecp384R1`, `ed25519`, `rsaPkcs1V15`, `rsaPss` 중 하나입니다. 무결성과 서명에 대한 자세한 내용은 [원격 번들](/docs/guide/core-concepts/over-the-air)을, 서버를 세우는 방법(테스트용 로컬 서버 포함)은 [원격 서버 구축](/docs/guide/remote)을 참고하세요.
 
 ## Where bundles live
 
@@ -190,7 +191,7 @@ updater: {
 | `builtinDir` | 패키징된 경우 `process.resourcesPath/bundles`, 그 외에는 `process.cwd()/bundles` |
 | `remoteDir`  | `app.getPath('userData')/bundles`                                                |
 
-다운로드된 버전이 builtin 버전보다 우선하므로, `updater.download(...)`와 `updater.install(...)` 후에는 설치된 업데이트가 자동으로 제공됩니다. 해석 방식에 대한 자세한 내용은 [번들 소스](/docs/guide/bundle-sources)를 참고하세요.
+다운로드된 버전이 builtin 버전보다 우선하므로, `updater.download(...)`와 `updater.install(...)` 후에는 설치된 업데이트가 자동으로 제공됩니다. 해석 방식에 대한 자세한 내용은 [번들 소스](/docs/guide/core-concepts/bundle-source)를 참고하세요.
 
 ## Pack and ship bundles
 
@@ -232,7 +233,7 @@ npx wvb pack ./dist --outfile bundles/app/app_1.0.0.wvb
 <Cards>
   <Card
     title="원격 번들"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="무결성, 서명, 그리고 번들의 무선(OTA) 업데이트."
   />
   <Card
@@ -242,7 +243,7 @@ npx wvb pack ./dist --outfile bundles/app/app_1.0.0.wvb
   />
   <Card
     title="번들 소스"
-    href="/docs/guide/bundle-sources"
+    href="/docs/guide/core-concepts/bundle-source"
     description="builtin 번들과 원격 번들이 런타임에 해석되는 방식."
   />
   <Card

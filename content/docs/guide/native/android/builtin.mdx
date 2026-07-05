@@ -1,5 +1,67 @@
 ---
 title: 'Builtin bundles'
+description: Install builtin Webview Bundles into an Android app module with wvb builtin so the Source serves them offline.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+`wvb builtin` installs the bundles your Android app ships into the module's `assets/bundles/`, where the [Source](/docs/guide/native/android) reads them on first launch — before any over-the-air update.
+
+## Install into the app module
+
+Run the CLI with the `--android` preset. Bare `--android` auto-detects the `com.android.application` module; pass `--android=<dir>` to point at it explicitly.
+
+```sh
+# Auto-detect the app module and install into src/main/assets/bundles
+wvb builtin --android
+
+# Or target an explicit module
+wvb builtin --android=./app
+```
+
+The bundles come from `builtin.target` in your config — a remote endpoint by default, or local workspaces. Use `--endpoint` and `--channel` to override the remote target. See [`wvb builtin`](/docs/references/cli/builtin) for every flag.
+
+The preset writes into `<module>/src/main/assets/bundles/`: a `manifest.json` plus one `<name>/<name>_<version>.wvb` file per bundle.
+
+```text
+app/src/main/assets/bundles/
+├── manifest.json
+└── app/
+    └── app_0.1.0.wvb
+```
+
+<Callout type="warn">
+  Keep `.wvb` assets uncompressed so the APK does not re-compress them: add `noCompress += "wvb"` to
+  the `androidResources` block in your module's `build.gradle.kts`. The CLI warns when it is
+  missing.
+</Callout>
+
+## How the Source loads them
+
+The native Source reads files, not asset streams, so the library copies `assets/bundles/` into the app's `filesDir` on each install or update. This is controlled by `SourceOptions.builtinAssetsDir`:
+
+```kotlin
+import dev.wvb.SourceOptions
+
+WebViewBundleConfig(
+  protocols = listOf(WebViewBundleProtocol.bundle()),
+  source = SourceOptions(
+    builtinAssetsDir = "bundles",   // APK assets/<dir>; null disables extraction
+  ),
+)
+```
+
+The extracted copy under `<filesDir>/wvb/builtin` is read-only; over-the-air downloads land in the writable `<filesDir>/wvb/remote`.
+
+## See also
+
+<Cards>
+  <Card
+    title="Android setup"
+    href="/docs/guide/native/android"
+    description="Install the library, serve a bundle, and configure the Source."
+  />
+  <Card
+    title="wvb builtin"
+    href="/docs/references/cli/builtin"
+    description="Every flag for installing builtin bundles from a remote or local target."
+  />
+</Cards>

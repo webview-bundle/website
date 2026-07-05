@@ -28,8 +28,8 @@ dependencies {
 ```
 
 <Callout type="info">
-  See [Platform support](/docs/guide/getting-started/platform-support) for the status of every
-  platform.
+  See [Platform support](/docs/guide/getting-started/platform-and-framework-support) for the status
+  of every platform.
 </Callout>
 
 ## Quick start
@@ -111,7 +111,7 @@ The manifest needs the internet permission. For local development against a clea
 
 No custom URL scheme is registered. `install()` sets a `WebViewClient` whose `shouldInterceptRequest` inspects ordinary `http`/`https` requests and serves matching ones from the bundle source. For each request, the handler lowercases the host and walks your registered protocols in order; the first matcher to accept the host wins. The bundle protocol takes the bundle name from the first host label and returns the file at the request path. No match returns `null` and the `WebView` loads from the network.
 
-If a handler throws, the library synthesizes a `500 text/plain` response and calls the optional `onError` callback. See [Protocol handling](/docs/guide/protocol-handling) for how a request path maps to a file inside a `.wvb`.
+If a handler throws, the library synthesizes a `500 text/plain` response and calls the optional `onError` callback. See [Protocol handling](/docs/guide/core-concepts/protocol-handling) for how a request path maps to a file inside a `.wvb`.
 
 `install()` also attaches the native bridge as `window.wvbAndroid` on the main frame. Use the install options to register extra native handlers, wrap your own `WebViewClient`, or skip the bridge:
 
@@ -176,7 +176,7 @@ Re-extraction happens on each APK install or update and is additive — removed 
 }
 ```
 
-See [Bundle sources](/docs/guide/bundle-sources) for the manifest format.
+See [Bundle sources](/docs/guide/core-concepts/bundle-source) for the manifest format.
 
 ## Protocols
 
@@ -315,14 +315,14 @@ await invoke('updaterDownload', { name: 'app' });
 await invoke('updaterInstall', { name: 'app', version: '0.2.0' });
 ```
 
-For the remote HTTP contract, integrity, and signatures across platforms, see [Remote bundles](/docs/guide/over-the-air) and the guide to [building a remote](/docs/guide/remote).
+For the remote HTTP contract, integrity, and signatures across platforms, see [Remote bundles](/docs/guide/core-concepts/over-the-air) and the guide to [building a remote](/docs/guide/remote).
 
 ## Next steps
 
 <Cards>
   <Card
     title="Remote bundles"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="How OTA updates, integrity, and signatures work across platforms."
   />
   <Card

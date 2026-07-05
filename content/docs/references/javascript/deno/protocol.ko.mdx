@@ -5,7 +5,7 @@ description: 번들 파일을 제공하고 로컬 개발 URL을 웹뷰로 프록
 
 Deno 바인딩은 두 가지 프로토콜 핸들러를 제공합니다. `BundleProtocol`은 커스텀 스킴을 통해 번들의 파일을 웹뷰에 제공합니다. `LocalProtocol`은 개발용으로 `app://host/...` URL을 로컬호스트 주소로 프록시합니다. 두 핸들러 모두 요청을 FFI 응답으로 해석하며, `toResponse(res)`로 표준 `Response`로 변환합니다.
 
-기본 개념은 [프로토콜 처리](/docs/guide/protocol-handling)를 참고하세요. Deno가 제공하는 전체 API와 네이티브 라이브러리를 로드하는 방법은 [Deno API 개요](/docs/references/javascript/deno)를 참고하세요.
+기본 개념은 [프로토콜 처리](/docs/guide/core-concepts/protocol-handling)를 참고하세요. Deno가 제공하는 전체 API와 네이티브 라이브러리를 로드하는 방법은 [Deno API 개요](/docs/references/javascript/deno)를 참고하세요.
 
 ## Handlers
 
@@ -69,7 +69,7 @@ using protocol = new BundleProtocol(lib, source);
   />
   <Card
     title="프로토콜 처리"
-    href="/docs/guide/protocol-handling"
+    href="/docs/guide/core-concepts/protocol-handling"
     description="번들 스킴과 로컬 스킴이 요청을 해석하는 방식입니다."
   />
 </Cards>

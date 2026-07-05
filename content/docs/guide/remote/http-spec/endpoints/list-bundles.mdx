@@ -21,7 +21,7 @@ GET /bundles
 | ------ | ----------------------------------------------- |
 | `200`  | A JSON array of the currently deployed bundles. |
 
-For 4xx responses, see [Errors](/docs/guide/spec/errors).
+For 4xx responses, see [Errors](/docs/guide/remote/http-spec/errors).
 
 ### Response headers
 
@@ -68,7 +68,7 @@ curl -s 'http://localhost:4313/bundles?channel=beta'
 
 <Callout type="info">
   This operation is the entry point of the remote HTTP contract. To read a bundle's current metadata
-  or download its bytes, see the [Remote HTTP Spec](/docs/guide/spec) overview.
+  or download its bytes, see the [Remote HTTP Spec](/docs/guide/remote/http-spec) overview.
 </Callout>
 
 ## Where to go next
@@ -76,17 +76,17 @@ curl -s 'http://localhost:4313/bundles?channel=beta'
 <Cards>
   <Card
     title="HEAD /bundles/{name}"
-    href="/docs/guide/spec/head-current"
+    href="/docs/guide/remote/http-spec/endpoints/head-current"
     description="Read the current version's metadata headers without a body."
   />
   <Card
     title="GET /bundles/{name}"
-    href="/docs/guide/spec/get-current"
+    href="/docs/guide/remote/http-spec/endpoints/get-current"
     description="Download the current version of a bundle."
   />
   <Card
     title="Errors"
-    href="/docs/guide/spec/errors"
+    href="/docs/guide/remote/http-spec/errors"
     description="Status codes and the JSON error body shape."
   />
   <Card

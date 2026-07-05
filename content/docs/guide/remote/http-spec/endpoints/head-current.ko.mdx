@@ -23,7 +23,7 @@ HEAD /bundles/{name}
 | `204`  | 번들이 배포되어 있습니다. 메타데이터가 헤더로 반환됩니다. |
 | `404`  | 지정한 번들이 배포되어 있지 않습니다.                     |
 
-성공은 `204 No Content`입니다. 응답은 메타데이터 헤더만 담으며 본문은 절대 포함하지 않습니다. `404`는 지정한 번들에 현재 배포된 버전이 없다는 뜻입니다. 오류 본문 형태와 다른 상태 코드는 [오류](/docs/guide/spec/errors)를 참고하세요.
+성공은 `204 No Content`입니다. 응답은 메타데이터 헤더만 담으며 본문은 절대 포함하지 않습니다. `404`는 지정한 번들에 현재 배포된 버전이 없다는 뜻입니다. 오류 본문 형태와 다른 상태 코드는 [오류](/docs/guide/remote/http-spec/errors)를 참고하세요.
 
 ### 응답 헤더
 
@@ -40,7 +40,7 @@ HEAD /bundles/{name}
 
 <Callout type="info">
   이 경로는 메타데이터만 반환합니다. 번들 바이트를 가져오려면 [GET /bundles/{name}
-  ](/docs/guide/spec/get-current)을 사용하세요.
+  ](/docs/guide/remote/http-spec/endpoints/get-current)을 사용하세요.
 </Callout>
 
 ## 예시
@@ -69,22 +69,22 @@ $ curl -sI 'http://localhost:4313/bundles/app?channel=beta'
 <Cards>
   <Card
     title="GET /bundles/{name}"
-    href="/docs/guide/spec/get-current"
+    href="/docs/guide/remote/http-spec/endpoints/get-current"
     description="현재 배포된 버전의 바이트를 다운로드합니다."
   />
   <Card
     title="GET /bundles"
-    href="/docs/guide/spec/list-bundles"
+    href="/docs/guide/remote/http-spec/endpoints/list-bundles"
     description="배포된 모든 번들과 각각의 현재 버전을 나열합니다."
   />
   <Card
     title="오류"
-    href="/docs/guide/spec/errors"
+    href="/docs/guide/remote/http-spec/errors"
     description="상태 코드와 JSON 오류 본문 형태입니다."
   />
   <Card
     title="원격 HTTP 명세"
-    href="/docs/guide/spec"
+    href="/docs/guide/remote/http-spec"
     description="원격 서버가 구현하는 전체 계약입니다."
   />
 </Cards>

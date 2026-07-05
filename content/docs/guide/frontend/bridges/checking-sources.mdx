@@ -1,5 +1,52 @@
 ---
 title: 'Checking the sources'
+description: Read installed bundles from the web app with the source bridge — current version, all versions, builtin vs remote.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+The `source` bridge reads the native bundle source from your web app. Use it to show the active version, list what is installed, and tell builtin bundles apart from remote (over-the-air) ones.
+
+## Read the current version
+
+`loadVersion` returns the active version and its type, or `null` if the bundle is not loaded.
+
+```ts title="src/version.ts"
+import { source } from '@wvb/bridge';
+
+const current = await source.loadVersion('app');
+// { type: 'builtin' | 'remote', version: '1.2.0' } | null
+```
+
+## List installed bundles
+
+`listBundles` returns every bundle the host knows about. Each item carries its `type` and the manifest item, including whether it is `current`.
+
+```ts
+import { source } from '@wvb/bridge';
+
+const bundles = await source.listBundles();
+
+for (const { type, item } of bundles) {
+  console.log(item.name, item.version, type, item.current);
+}
+```
+
+## Use cases
+
+- Render an "about" or diagnostics screen with the running version.
+- Detect whether the user is on a builtin fallback or a downloaded remote bundle.
+- Read `loadBuiltinMetadata` / `loadRemoteMetadata` to surface integrity or last-modified details.
+
+## See also
+
+<Cards>
+  <Card
+    title="source reference"
+    href="/docs/references/javascript/bridge/source"
+    description="Every source method, its parameters, and return types."
+  />
+  <Card
+    title="Bundle source"
+    href="/docs/guide/core-concepts/bundle-source"
+    description="How the native host stores builtin and remote bundles."
+  />
+</Cards>

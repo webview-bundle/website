@@ -50,7 +50,7 @@ wvb remote list | jq '.[].name'
 
 ## wvb remote local
 
-디렉터리를 기반으로 로컬 업데이트 서버를 시작합니다. 프로덕션 원격과 동일한 HTTP 규약을 구현하므로, 호스팅된 [프로바이더](/docs/guide/providers/local)를 연결하기 전에 전체 업데이트 루프를 오프라인에서 테스트할 수 있습니다. 서버는 기본적으로 `~/.wvb/local`을 `4313` 포트로 제공합니다.
+디렉터리를 기반으로 로컬 업데이트 서버를 시작합니다. 프로덕션 원격과 동일한 HTTP 규약을 구현하므로, 호스팅된 [프로바이더](/docs/guide/remote/providers/local)를 연결하기 전에 전체 업데이트 루프를 오프라인에서 테스트할 수 있습니다. 서버는 기본적으로 `~/.wvb/local`을 `4313` 포트로 제공합니다.
 
 ```sh
 wvb remote local                                  # http://localhost:4313, ~/.wvb/local 제공
@@ -94,7 +94,7 @@ wvb remote local --allow-other-versions --hostname 0.0.0.0
   />
   <Card
     title="로컬 프로바이더"
-    href="/docs/guide/providers/local"
+    href="/docs/guide/remote/providers/local"
     description="@wvb/remote-local-provider를 업데이트 서버로 실행합니다."
   />
 </Cards>

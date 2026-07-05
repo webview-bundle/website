@@ -6,8 +6,8 @@ description: Rust 코어, Node 및 Deno 바인딩, 웹 측 브리지에 대한 A
 대부분의 앱 개발자는 이 API를 직접 다룰 일이 없습니다. 앱에 Webview Bundle을 도입하려면 플랫폼 통합 패키지를 사용하고 플랫폼 가이드를 따르세요. 이 패키지들이 코어를 대신 감싸줍니다. 이 레퍼런스는 고급 사용과 임베딩을 위한 것입니다. 코어를 직접 호스팅하거나, Node 또는 Deno 바인딩을 다루거나, 웹뷰 내부에서 네이티브 호스트를 호출하는 경우에 해당합니다.
 
 <Callout type="info">
-  앱을 만드시나요? [플랫폼 통합 가이드](/docs/guide/glue-to-native)에서 시작해 플랫폼을 선택하세요.
-  [Electron](/docs/guide/native/electron), [Tauri](/docs/guide/native/tauri),
+  앱을 만드시나요? [플랫폼 통합 가이드](/docs/guide/core-concepts/glue-to-native)에서 시작해
+  플랫폼을 선택하세요. [Electron](/docs/guide/native/electron), [Tauri](/docs/guide/native/tauri),
   [Android](/docs/guide/native/android), [iOS](/docs/guide/native/ios), [Deno
   Desktop](/docs/guide/native/deno) 중에서 고르면 됩니다.
 </Callout>
@@ -55,7 +55,7 @@ if (update.isAvailable) {
 const bundles = await invoke('sourceListBundles');
 ```
 
-네이티브 측은 `@wvb/node`를 호스팅하며 이 호출들에 응답합니다. 브리지가 각 플랫폼에 어떻게 들어맞는지는 [플랫폼 통합 가이드](/docs/guide/glue-to-native)를 참고하세요.
+네이티브 측은 `@wvb/node`를 호스팅하며 이 호출들에 응답합니다. 브리지가 각 플랫폼에 어떻게 들어맞는지는 [플랫폼 통합 가이드](/docs/guide/core-concepts/glue-to-native)를 참고하세요.
 
 ## 그 밖의 플랫폼
 

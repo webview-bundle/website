@@ -1,5 +1,85 @@
 ---
 title: '로컬 개발'
+description: 번들 호스트를 Vite 개발 서버로 프록시하여 핫 리로드를 지원하고, app.isPackaged에 따라 프로토콜을 전환하세요.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+개발 중에는 패킹된 `.wvb`이 아니라 핫 리로드가 필요합니다. 번들 스킴에 `localProtocol`을 등록하면, 웹뷰는 동일한 URL을 로드하면서 요청은 프레임워크 개발 서버로 프록시됩니다.
+
+## Proxy to the dev server
+
+`localProtocol(scheme, { hosts })`은 매핑된 각 호스트를 실행 중인 개발 서버로 전달하므로, 프로덕션에서 사용하는 것과 동일한 `app://app.wvb` URL을 통해 수정 사항이 실시간으로 리로드됩니다. `hosts`은 `<bundle-name>.wvb`을 개발 서버 오리진으로 매핑합니다.
+
+## Switch on `app.isPackaged`
+
+개발에서는 `localProtocol`을, 프로덕션에서는 `bundleProtocol`을 같은 스킴에 등록하세요. 렌더러 URL은 절대 바뀌지 않으며, 그 뒤의 핸들러만 바뀝니다.
+
+```ts title="src/main.ts"
+import path from 'node:path';
+import { app, BrowserWindow } from 'electron';
+import { bundleProtocol, localProtocol, wvb } from '@wvb/electron';
+
+const DEV_SERVER_URL = 'http://localhost:5173';
+
+const instance = wvb({
+  source: {
+    builtinDir: path.join(process.resourcesPath, 'bundles'),
+  },
+  protocols: app.isPackaged
+    ? // Prod: serve `app://app.wvb/...` from the packed bundle.
+      [bundleProtocol('app')]
+    : // Dev: proxy `app://app.wvb/...` to the Vite dev server for hot reload.
+      [localProtocol('app', { hosts: { 'app.wvb': DEV_SERVER_URL } })],
+});
+
+async function createWindow() {
+  await instance.whenProtocolRegistered();
+  const win = new BrowserWindow({ width: 800, height: 600 });
+  await win.loadURL('app://app.wvb');
+}
+
+app.whenReady().then(createWindow);
+```
+
+<Callout type="info">
+  하나의 스킴은 한 번에 하나의 핸들러만 소유할 수 있으므로, 둘 다 등록하지 말고 `protocols` 배열을
+  조건에 따라 구성하세요. `loadURL` 전에는 항상 `await instance.whenProtocolRegistered()`를
+  호출하세요.
+</Callout>
+
+## Multiple hosts
+
+`hosts`은 항목 수에 제한이 없습니다 — 각 윈도우의 번들 호스트를 저마다의 개발 서버로 매핑한 다음, 호스트별로 로드하세요.
+
+```ts
+localProtocol('app', {
+  hosts: {
+    'app.wvb': 'http://localhost:5173',
+    'admin.wvb': 'http://localhost:5174',
+  },
+});
+
+// win.loadURL('app://app.wvb');
+// adminWin.loadURL('app://admin.wvb');
+```
+
+프로덕션에서는 `bundleProtocol('app')`이 소스에 있는 `app`과 `admin` 번들에서 둘 다 제공합니다.
+
+## See also
+
+<Cards>
+  <Card
+    title="Electron setup"
+    href="/docs/guide/native/electron"
+    description="Register the protocol, preload, and over-the-air updates."
+  />
+  <Card
+    title="@wvb/electron reference"
+    href="/docs/references/javascript/electron"
+    description="Full API for bundleProtocol, localProtocol, and wvb()."
+  />
+  <Card
+    title="Protocol handling"
+    href="/docs/guide/core-concepts/protocol-handling"
+    description="How the bundle and local schemes reach the webview."
+  />
+</Cards>

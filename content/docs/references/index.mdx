@@ -6,8 +6,9 @@ description: API references for the Rust core, the Node and Deno bindings, and t
 Most app developers never touch these APIs directly. To ship Webview Bundle in an app, reach for the platform integration packages and follow the platform guides — they wrap the core for you. These references are for advanced and embedding use: hosting the core yourself, driving the Node or Deno bindings, or calling the native host from inside the webview.
 
 <Callout type="info">
-  Building an app? Start with the [platform integration guide](/docs/guide/glue-to-native) and pick
-  your platform: [Electron](/docs/guide/native/electron), [Tauri](/docs/guide/native/tauri),
+  Building an app? Start with the [platform integration
+  guide](/docs/guide/core-concepts/glue-to-native) and pick your platform:
+  [Electron](/docs/guide/native/electron), [Tauri](/docs/guide/native/tauri),
   [Android](/docs/guide/native/android), [iOS](/docs/guide/native/ios), or [Deno
   Desktop](/docs/guide/native/deno).
 </Callout>
@@ -55,7 +56,7 @@ if (update.isAvailable) {
 const bundles = await invoke('sourceListBundles');
 ```
 
-The native side hosts `@wvb/node` and answers these calls. For how the bridge fits into each platform, see the [platform integration guide](/docs/guide/glue-to-native).
+The native side hosts `@wvb/node` and answers these calls. For how the bridge fits into each platform, see the [platform integration guide](/docs/guide/core-concepts/glue-to-native).
 
 ## Other platforms
 

@@ -5,7 +5,7 @@ description: Deno protocol handlers that serve bundle files and proxy local deve
 
 The Deno binding ships two protocol handlers. `BundleProtocol` serves a bundle's files to the webview through a custom scheme. `LocalProtocol` proxies an `app://host/...` URL to a localhost address for development. Both resolve a request to an FFI response that you convert to a standard `Response` with `toResponse(res)`.
 
-For the underlying concepts, see [Protocol handling](/docs/guide/protocol-handling). For the full Deno surface and how to load the native library, see the [Deno API overview](/docs/references/javascript/deno).
+For the underlying concepts, see [Protocol handling](/docs/guide/core-concepts/protocol-handling). For the full Deno surface and how to load the native library, see the [Deno API overview](/docs/references/javascript/deno).
 
 ## Handlers
 
@@ -69,7 +69,7 @@ using protocol = new BundleProtocol(lib, source);
   />
   <Card
     title="Protocol handling"
-    href="/docs/guide/protocol-handling"
+    href="/docs/guide/core-concepts/protocol-handling"
     description="How the bundle and local schemes resolve requests."
   />
 </Cards>

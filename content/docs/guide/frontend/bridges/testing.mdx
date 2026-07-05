@@ -1,5 +1,48 @@
 ---
-title: 'Testing'
+title: Testing
+description: Test web code that calls the bridge without a native host by stubbing invoke calls with mockInvoke.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+Test web code that calls the bridge without a native host. The `@wvb/bridge/testing` subpath stubs bridge calls so your code resolves against fixtures instead of a real platform.
+
+## Stub a command
+
+`mockInvoke(command, handler)` registers a handler for one dotted command key and returns a disposable handle. The handler receives the method's params positionally and returns the value the call resolves to.
+
+```ts title="load-version.test.ts"
+import { expect, test } from 'vitest';
+import { source } from '@wvb/bridge';
+import { mockInvoke } from '@wvb/bridge/testing';
+
+test('loads the current version', async () => {
+  using _mock = mockInvoke('source.loadVersion', bundleName => ({
+    type: 'remote',
+    version: '1.0.0',
+  }));
+
+  await expect(source.loadVersion('app')).resolves.toEqual({
+    type: 'remote',
+    version: '1.0.0',
+  });
+});
+```
+
+<Callout type="info">
+  `using` disposes the mock at the end of the block. Without it, call `_mock[Symbol.dispose]()` or
+  `_mock.clear()` yourself so the stub does not leak into the next test.
+</Callout>
+
+## Next steps
+
+<Cards>
+  <Card
+    title="Testing reference"
+    href="/docs/references/javascript/bridge/testing"
+    description="mockInvoke, mockPlatform, mockBridge, and clearInvokeMocks in full."
+  />
+  <Card
+    title="Bridges"
+    href="/docs/guide/frontend/bridges"
+    description="The bridge command groups your tests stand in for."
+  />
+</Cards>

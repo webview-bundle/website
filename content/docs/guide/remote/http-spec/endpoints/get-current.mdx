@@ -25,11 +25,11 @@ Pass `?channel=` to download the current version for a specific channel instead 
 | `200`  | The bundle was found; the body is the `.wvb` archive. |
 | `404`  | The named bundle is not deployed.                     |
 
-For the `404` shape and how the client maps other non-2xx responses, see [Errors](/docs/guide/spec/errors).
+For the `404` shape and how the client maps other non-2xx responses, see [Errors](/docs/guide/remote/http-spec/errors).
 
 ### Response headers
 
-A `200` response carries the same bundle metadata headers as [HEAD /bundles/{name}](/docs/guide/spec/head-current). The client reads them case-insensitively; the canonical casing is shown here.
+A `200` response carries the same bundle metadata headers as [HEAD /bundles/{name}](/docs/guide/remote/http-spec/endpoints/head-current). The client reads them case-insensitively; the canonical casing is shown here.
 
 | Header                     | Required | Description                          |
 | -------------------------- | -------- | ------------------------------------ |
@@ -83,17 +83,17 @@ HTTP/1.1 404 Not Found
 <Cards>
   <Card
     title="HEAD /bundles/{name}"
-    href="/docs/guide/spec/head-current"
+    href="/docs/guide/remote/http-spec/endpoints/head-current"
     description="Read the current version's metadata without downloading the body."
   />
   <Card
     title="GET /bundles/{name}/{version}"
-    href="/docs/guide/spec/get-version"
+    href="/docs/guide/remote/http-spec/endpoints/get-version"
     description="Download a specific version instead of the current one."
   />
   <Card
     title="Errors"
-    href="/docs/guide/spec/errors"
+    href="/docs/guide/remote/http-spec/errors"
     description="Status codes and error bodies the client recognizes."
   />
 </Cards>

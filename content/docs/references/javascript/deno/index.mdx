@@ -120,7 +120,7 @@ The Deno binding crosses an FFI boundary, so a few `@wvb/node` features are out 
 
 `@wvb/deno-desktop` ties `@wvb/deno` to Deno's desktop runtime. Its `webviewBundle` factory builds a
 `BundleSource` (and an optional `Remote`/`Updater`) and exposes a `Deno.serve`-compatible handler,
-while `registerBindings` wires the [`@wvb/bridge`](/docs/guide/glue-to-native)
+while `registerBindings` wires the [`@wvb/bridge`](/docs/guide/core-concepts/glue-to-native)
 `source.*`/`remote.*`/`updater.*` commands into a `Deno.BrowserWindow`.
 
 For an end-to-end walkthrough, see the [Deno Desktop guide](/docs/guide/native/deno).

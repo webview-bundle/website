@@ -1,5 +1,59 @@
 ---
-title: 'Building'
+title: Building
+description: Compile a Deno Desktop app into a self-contained binary that embeds the native cdylib and your builtin bundles.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+Compile a Deno Desktop app into a distributable binary with `deno desktop`, embedding the `@wvb/deno` native library and your builtin bundles so it runs offline with no separate install.
+
+<Callout type="info">
+  A single compiled binary targets one platform. Vendor and compile once per target triple you ship.
+</Callout>
+
+## Vendor the native library
+
+`@wvb/deno` loads a prebuilt Rust `cdylib` over FFI. Download it into your project for the target you are building:
+
+```sh
+deno run -A jsr:@wvb/deno/install --out vendor/wvb --target aarch64-apple-darwin
+```
+
+The library is saved under the plain platform name — `libwvb_deno.dylib`, `libwvb_deno.so`, or `wvb_deno.dll` — and its SHA-256 checksum is verified before it is written. See the [Deno Desktop setup](/docs/guide/native/deno) for the supported target triples.
+
+## Compile a distributable binary
+
+Embed the vendored `cdylib` and your packed `bundles` directory with `deno desktop --include`, then resolve the library from `import.meta.url` at runtime:
+
+```sh
+deno desktop --allow-ffi --include vendor/wvb/libwvb_deno.dylib --include bundles main.ts
+```
+
+```ts title="main.ts"
+import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
+
+const wvb = await webviewBundle({
+  lib: new URL('./vendor/wvb/libwvb_deno.dylib', import.meta.url),
+  protocols: [bundleProtocol('app')],
+});
+```
+
+The app reads builtin bundles from the included `bundles` directory next to its entry module, so the compiled binary serves them without network access.
+
+## See also
+
+<Cards>
+  <Card
+    title="Deno Desktop setup"
+    href="/docs/guide/native/deno"
+    description="Serve and update .wvb bundles in a Deno Desktop webview."
+  />
+  <Card
+    title="@wvb/deno-desktop"
+    href="/docs/references/javascript/deno-desktop"
+    description="Integration-layer API reference."
+  />
+  <Card
+    title="@wvb/deno"
+    href="/docs/references/javascript/deno"
+    description="The native library, loadLib, and the install subcommand."
+  />
+</Cards>

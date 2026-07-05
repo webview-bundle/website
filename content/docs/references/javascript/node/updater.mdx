@@ -3,7 +3,7 @@ title: Updater
 description: The @wvb/node Updater class — check a remote for newer bundles, stage them with integrity and signature verification, then activate them.
 ---
 
-`Updater` drives over-the-air (OTA) updates for a bundle. It pairs a [`BundleSource`](/docs/references/javascript/node/source) with a [`Remote`](/docs/references/javascript/node/remote): it checks the remote for a newer version, downloads it into the source's remote directory, and activates it. The check, download, and activate steps are separate methods, so you can stage an update in the background and switch to it later — for example on the next app restart. See [Remote bundles](/docs/guide/over-the-air) for the end-to-end flow.
+`Updater` drives over-the-air (OTA) updates for a bundle. It pairs a [`BundleSource`](/docs/references/javascript/node/source) with a [`Remote`](/docs/references/javascript/node/remote): it checks the remote for a newer version, downloads it into the source's remote directory, and activates it. The check, download, and activate steps are separate methods, so you can stage an update in the background and switch to it later — for example on the next app restart. See [Remote bundles](/docs/guide/core-concepts/over-the-air) for the end-to-end flow.
 
 ```ts
 import { BundleSource, Remote, Updater } from '@wvb/node';
@@ -142,7 +142,7 @@ if (update.isAvailable) {
 <Cards>
   <Card
     title="Remote bundles"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="How checking, integrity, and signature verification fit together."
   />
   <Card

@@ -96,7 +96,7 @@ Source::new().builtin_dir("$RESOURCE/bundles").remote_dir("$APPLOCALDATA/bundles
 Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles")));
 ```
 
-값을 설정하지 않으면 builtin 디렉터리는 앱 리소스 디렉터리의 `bundles`로, remote 디렉터리는 앱 로컬 데이터의 `bundles`로 기본 설정됩니다. 각 `.protocol(...)` 호출은 자체 비동기 URI 스킴을 등록합니다. 스킴이 요청을 해석하는 방식은 [프로토콜 처리](/docs/guide/protocol-handling)를 참고하세요.
+값을 설정하지 않으면 builtin 디렉터리는 앱 리소스 디렉터리의 `bundles`로, remote 디렉터리는 앱 로컬 데이터의 `bundles`로 기본 설정됩니다. 각 `.protocol(...)` 호출은 자체 비동기 URI 스킴을 등록합니다. 스킴이 요청을 해석하는 방식은 [프로토콜 처리](/docs/guide/core-concepts/protocol-handling)를 참고하세요.
 
 ## 창을 커스텀 스킴으로 지정
 
@@ -158,7 +158,7 @@ resources에 디렉터리를 나열하여 빌드와 함께 배포하세요.
 }
 ```
 
-전체 패킹 워크플로와 플래그는 [CLI 레퍼런스](/docs/references/cli)와 [번들 소스](/docs/guide/bundle-sources)를 참고하세요.
+전체 패킹 워크플로와 플래그는 [CLI 레퍼런스](/docs/references/cli)와 [번들 소스](/docs/guide/core-concepts/bundle-source)를 참고하세요.
 
 ## 프런트엔드에서 업데이트 제어
 
@@ -254,7 +254,7 @@ await invoke('plugin:wvb-tauri|source_update_version', {
 });
 ```
 
-전체 커맨드 집합(`source_*` 12개, `remote_*` 4개, `updater_*` 4개)은 [`packages/tauri/src/commands.rs`](https://github.com/webview-bundle/webview-bundle/blob/main/packages/tauri/src/commands.rs)에 정의되어 있습니다. 무결성 및 서명 검증이 다운로드 흐름에 어떻게 들어맞는지는 [원격 번들](/docs/guide/over-the-air)을, 서버 쪽은 [원격 설정](/docs/references/configuration/remote)을 참고하세요.
+전체 커맨드 집합(`source_*` 12개, `remote_*` 4개, `updater_*` 4개)은 [`packages/tauri/src/commands.rs`](https://github.com/webview-bundle/webview-bundle/blob/main/packages/tauri/src/commands.rs)에 정의되어 있습니다. 무결성 및 서명 검증이 다운로드 흐름에 어떻게 들어맞는지는 [원격 번들](/docs/guide/core-concepts/over-the-air)을, 서버 쪽은 [원격 설정](/docs/references/configuration/remote)을 참고하세요.
 
 <Callout type="info">
   `remote_*` 커맨드는 설정에 `Remote`가 필요하고, `updater_*` 커맨드는 추가로 `Updater`가
@@ -327,7 +327,7 @@ tauri::Builder::default()
   .plugin(wvb_tauri::init(/* ... */));
 ```
 
-그러면 플러그인이 첫 요청 시 APK에서 각 번들을 추출하여 앱 로컬 데이터에 캐시합니다. 원격 전용 앱(builtin 번들 없음)은 추가 Android 설정이 필요하지 않습니다. 플랫폼별 세부 사항은 [Android](/docs/guide/native/android) 및 [iOS](/docs/guide/native/ios) 가이드를, 현재 상태는 [플랫폼 지원](/docs/guide/getting-started/platform-support)을 참고하세요.
+그러면 플러그인이 첫 요청 시 APK에서 각 번들을 추출하여 앱 로컬 데이터에 캐시합니다. 원격 전용 앱(builtin 번들 없음)은 추가 Android 설정이 필요하지 않습니다. 플랫폼별 세부 사항은 [Android](/docs/guide/native/android) 및 [iOS](/docs/guide/native/ios) 가이드를, 현재 상태는 [플랫폼 지원](/docs/guide/getting-started/platform-and-framework-support)을 참고하세요.
 
 ## 문제 해결
 
@@ -341,12 +341,12 @@ tauri::Builder::default()
 <Cards>
   <Card
     title="프로토콜 처리"
-    href="/docs/guide/protocol-handling"
+    href="/docs/guide/core-concepts/protocol-handling"
     description="bundle 및 local 스킴이 웹뷰 요청을 해석하는 방식."
   />
   <Card
     title="원격 번들"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="OTA 업데이트, 무결성, 서명 검증."
   />
   <Card

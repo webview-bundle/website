@@ -1,5 +1,53 @@
 ---
 title: 'Upload to remote'
+description: Stage a packed .wvb version on the remote so you can deploy it later.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+`wvb upload` sends a packed `.wvb` to your configured remote. Uploading _stages_ a version — it does not make it current.
+
+## Upload a version
+
+```sh
+wvb upload app --version 1.2.0
+```
+
+By default `wvb upload` packs `pack.srcDir`, computes an integrity hash, signs the bundle (when signing is configured), then uploads through `remote.uploader`. On success it prints the bundle endpoint.
+
+To upload a bundle you already built, skip packing and point at the file:
+
+```sh
+wvb upload app --version 1.2.0 --no-pack --file ./build/app.wvb
+```
+
+Pass `--force` to overwrite a version that already exists on the remote.
+
+## Stage vs deploy
+
+`--deploy` defaults to `false`, so an upload only stages the version. Clients keep receiving the previously deployed version until you activate this one.
+
+- **Upload** stores the version on the remote.
+- **Deploy** flips which version clients download.
+
+<Callout type="info">
+  `--channel` applies only with `--deploy`. To upload and activate in one step, add `--deploy` (and
+  `--channel beta` to target a channel).
+</Callout>
+
+## Requirements
+
+Uploading requires `remote.uploader` in your config. The optional `--deploy` step also needs `remote.deployer`. See [Remote configuration](/docs/references/configuration/remote).
+
+## Next steps
+
+<Cards>
+  <Card
+    title="Deploy"
+    href="/docs/guide/frontend/deploy"
+    description="Make a staged version the current one clients receive."
+  />
+  <Card
+    title="wvb upload"
+    href="/docs/references/cli/remote-upload"
+    description="Full flag reference for the upload command."
+  />
+</Cards>

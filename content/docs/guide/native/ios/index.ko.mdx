@@ -18,7 +18,7 @@ description: webview-bundle-ios Swift 패키지로 WKWebView에서 Webview Bundl
 
 이 패키지는 `WebViewBundleLibrary`라는 UniFFI 생성 모듈을 통해 Rust 코어에 바인딩되며, 둘 다
 `WebViewBundle` 모듈로 노출됩니다. 공유 코어가 각 플랫폼에 어떻게 도달하는지는
-[플랫폼 통합](/docs/guide/glue-to-native)을 참고하세요.
+[플랫폼 통합](/docs/guide/core-concepts/glue-to-native)을 참고하세요.
 
 패키지를 의존성으로 추가하세요(네이티브 FFI는 아래 설치 스크립트가 연결합니다).
 
@@ -127,7 +127,7 @@ do {
 
 프로토콜 종류는 두 가지입니다. `.bundle`은 번들 엔트리를 제공하고, `.local`은 로컬 HTTP 서버로
 프록시합니다(전체 요청 호스트를 `hosts` 맵과 대조). 모델은
-[프로토콜 처리](/docs/guide/protocol-handling)를 참고하세요.
+[프로토콜 처리](/docs/guide/core-concepts/protocol-handling)를 참고하세요.
 
 ```swift
 WebViewBundleConfig(protocols: [
@@ -151,7 +151,7 @@ window.webkit.messageHandlers.wvbIos.postMessage({
 
 ## Sources
 
-각 앱은 두 개의 소스에서 읽습니다. 전체 모델은 [번들 소스](/docs/guide/bundle-sources)를 참고하세요.
+각 앱은 두 개의 소스에서 읽습니다. 전체 모델은 [번들 소스](/docs/guide/core-concepts/bundle-source)를 참고하세요.
 
 - **Builtin** — 앱 안에 함께 배포되는 읽기 전용 번들입니다. 기본 디렉터리는 앱 번들의 `/bundles`
   폴더입니다. 파일이 그 위치에 놓이도록 폴더 레퍼런스로 배포하세요.
@@ -227,7 +227,7 @@ await webView.evaluateJavaScript("location.reload()")
 
 서명 실패는 FFI 오류 `Error.Signature(message:)`로 나타납니다.
 
-원격 HTTP 규약, 무결성, 서명 세부 사항은 [원격 번들](/docs/guide/over-the-air)과
+원격 HTTP 규약, 무결성, 서명 세부 사항은 [원격 번들](/docs/guide/core-concepts/over-the-air)과
 [원격 구축하기](/docs/guide/remote)를 참고하세요.
 
 ## Next steps
@@ -235,7 +235,7 @@ await webView.evaluateJavaScript("location.reload()")
 <Cards>
   <Card
     title="원격 번들"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="플랫폼 전반에서 업데이트, 무결성, 서명이 동작하는 방식."
   />
   <Card

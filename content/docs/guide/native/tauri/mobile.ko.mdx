@@ -1,5 +1,34 @@
 ---
 title: '모바일'
+description: wvb-tauri 플러그인을 Tauri 모바일(iOS 및 Android)에서 실행할 때 무엇이 달라지는지, 그리고 builtin 번들이 어디에 위치하는지 설명합니다.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+동일한 `wvb-tauri` 플러그인이 데스크톱과 Tauri 모바일에서 모두 동작합니다. [설정](/docs/guide/native/tauri)에서와 똑같이 등록하세요 — 아래 차이점은 각 플랫폼에서 builtin 번들이 위치하는 곳에 관한 것뿐입니다.
+
+## iOS
+
+builtin 번들은 실제 파일 시스템 리소스 디렉터리에 위치합니다. 데스크톱 설정 외에 추가 설정은 필요하지 않습니다.
+
+## Android
+
+builtin 번들은 APK 안에 `asset://` 리소스로 배포되는데, 파일 시스템이 이를 직접 읽을 수 없습니다. builtin 번들을 배포하는 앱은 Tauri 파일 시스템 플러그인도 등록해야 합니다.
+
+```rust title="src-tauri/src/lib.rs"
+tauri::Builder::default()
+  .plugin(tauri_plugin_fs::init())
+  .plugin(wvb_tauri::init(/* ... */));
+```
+
+플러그인은 첫 요청 시 APK에서 각 번들을 추출하여 앱 로컬 데이터에 캐시합니다. 원격 전용 앱(builtin 번들 없음)은 추가 Android 설정이 필요하지 않습니다.
+
+## 더 알아보기
+
+<Cards>
+  <Card
+    title="설정"
+    href="/docs/guide/native/tauri"
+    description="wvb-tauri 플러그인, 소스, 프로토콜, 리모트 등록하기."
+  />
+  <Card title="Android" href="/docs/guide/native/android" description="Android 플랫폼 세부 사항." />
+  <Card title="iOS" href="/docs/guide/native/ios" description="iOS 플랫폼 세부 사항." />
+</Cards>

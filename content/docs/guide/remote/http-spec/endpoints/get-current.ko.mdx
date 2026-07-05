@@ -25,11 +25,11 @@ GET /bundles/{name}
 | `200`  | 번들을 찾았습니다. 본문은 `.wvb` 아카이브입니다. |
 | `404`  | 해당 이름의 번들이 배포되지 않았습니다.          |
 
-`404` 형태와 클라이언트가 그 밖의 non-2xx 응답을 매핑하는 방식은 [오류](/docs/guide/spec/errors)를 참고하세요.
+`404` 형태와 클라이언트가 그 밖의 non-2xx 응답을 매핑하는 방식은 [오류](/docs/guide/remote/http-spec/errors)를 참고하세요.
 
 ### 응답 헤더
 
-`200` 응답은 [HEAD /bundles/{name}](/docs/guide/spec/head-current)과 동일한 번들 메타데이터 헤더를 담습니다. 클라이언트는 헤더를 대소문자 구분 없이 읽습니다. 여기서는 표준 표기를 보여줍니다.
+`200` 응답은 [HEAD /bundles/{name}](/docs/guide/remote/http-spec/endpoints/head-current)과 동일한 번들 메타데이터 헤더를 담습니다. 클라이언트는 헤더를 대소문자 구분 없이 읽습니다. 여기서는 표준 표기를 보여줍니다.
 
 | Header                     | Required | Description                       |
 | -------------------------- | -------- | --------------------------------- |
@@ -83,17 +83,17 @@ HTTP/1.1 404 Not Found
 <Cards>
   <Card
     title="HEAD /bundles/{name}"
-    href="/docs/guide/spec/head-current"
+    href="/docs/guide/remote/http-spec/endpoints/head-current"
     description="본문을 다운로드하지 않고 현재 버전의 메타데이터를 읽습니다."
   />
   <Card
     title="GET /bundles/{name}/{version}"
-    href="/docs/guide/spec/get-version"
+    href="/docs/guide/remote/http-spec/endpoints/get-version"
     description="현재 버전 대신 특정 버전을 다운로드합니다."
   />
   <Card
     title="오류"
-    href="/docs/guide/spec/errors"
+    href="/docs/guide/remote/http-spec/errors"
     description="클라이언트가 인식하는 상태 코드와 오류 본문입니다."
   />
 </Cards>

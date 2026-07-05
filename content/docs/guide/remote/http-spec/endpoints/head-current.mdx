@@ -23,7 +23,7 @@ HEAD /bundles/{name}
 | `204`  | The bundle is deployed. Metadata is returned in the headers. |
 | `404`  | The named bundle is not deployed.                            |
 
-Success is `204 No Content`: the response carries metadata headers only and never a body. A `404` means the named bundle has no current deployment. See [Errors](/docs/guide/spec/errors) for the error body shape and other status codes.
+Success is `204 No Content`: the response carries metadata headers only and never a body. A `404` means the named bundle has no current deployment. See [Errors](/docs/guide/remote/http-spec/errors) for the error body shape and other status codes.
 
 ### Response headers
 
@@ -40,7 +40,7 @@ The client reads these headers case-insensitively and rejects a response that om
 
 <Callout type="info">
   This route returns metadata only. To fetch the bundle bytes, use [GET /bundles/{name}
-  ](/docs/guide/spec/get-current).
+  ](/docs/guide/remote/http-spec/endpoints/get-current).
 </Callout>
 
 ## Example
@@ -69,22 +69,22 @@ $ curl -sI 'http://localhost:4313/bundles/app?channel=beta'
 <Cards>
   <Card
     title="GET /bundles/{name}"
-    href="/docs/guide/spec/get-current"
+    href="/docs/guide/remote/http-spec/endpoints/get-current"
     description="Download the current deployed version's bytes."
   />
   <Card
     title="GET /bundles"
-    href="/docs/guide/spec/list-bundles"
+    href="/docs/guide/remote/http-spec/endpoints/list-bundles"
     description="List every deployed bundle and its current version."
   />
   <Card
     title="Errors"
-    href="/docs/guide/spec/errors"
+    href="/docs/guide/remote/http-spec/errors"
     description="Status codes and the JSON error body shape."
   />
   <Card
     title="Remote HTTP Spec"
-    href="/docs/guide/spec"
+    href="/docs/guide/remote/http-spec"
     description="The full contract a remote server implements."
   />
 </Cards>

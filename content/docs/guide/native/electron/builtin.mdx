@@ -1,5 +1,61 @@
 ---
 title: 'Builtin bundles'
+description: Ship read-only .wvb bundles inside your Electron package as an offline fallback.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+Builtin bundles are the `.wvb` files you ship inside your Electron package. They are read-only and always present, so your app has something to serve when it starts offline or before it has fetched a newer bundle over the air. Downloaded updates take priority over builtin bundles at runtime — see [Bundle sources](/docs/guide/core-concepts/bundle-source).
+
+## Where builtin bundles land
+
+`@wvb/electron` reads builtin bundles from `source.builtinDir`, which defaults to `process.resourcesPath/bundles` in a packaged app — the `resources/bundles` directory. Each bundle is laid out as `<name>/<name>_<version>.wvb` next to a `manifest.json`.
+
+## Install with `wvb builtin`
+
+`wvb builtin` installs bundles into an output directory. The source is set by `builtin.target` in your [config](/docs/references/configuration): a `remote` target downloads them from your update server, a `local` target packs them from local workspaces.
+
+```sh
+# Install from the configured target into a bundles directory
+wvb builtin --out bundles
+
+# Or pull from a remote endpoint explicitly
+wvb builtin --endpoint https://updates.example.com --out bundles
+```
+
+Point `--out` at the directory you ship with your app. See [`wvb builtin`](/docs/references/cli/builtin) for every flag.
+
+## Install at package time
+
+The Forge and Builder integrations install builtin bundles for you during packaging and copy them into the packaged app's `resources/bundles`, so you never stage `.wvb` files by hand.
+
+<Cards>
+  <Card
+    title="Electron Forge"
+    href="/docs/guide/native/electron/forge"
+    description="Install builtin bundles with the @wvb/electron-forge plugin."
+  />
+  <Card
+    title="Electron Builder"
+    href="/docs/guide/native/electron/builder"
+    description="Install builtin bundles with the @wvb/electron-builder afterPack hook."
+  />
+</Cards>
+
+## See also
+
+<Cards>
+  <Card
+    title="Electron guide"
+    href="/docs/guide/native/electron"
+    description="Serve bundles through a protocol and update them over the air."
+  />
+  <Card
+    title="wvb builtin"
+    href="/docs/references/cli/builtin"
+    description="Every flag for installing builtin bundles."
+  />
+  <Card
+    title="Bundle sources"
+    href="/docs/guide/core-concepts/bundle-source"
+    description="How builtin and remote bundles resolve at runtime."
+  />
+</Cards>

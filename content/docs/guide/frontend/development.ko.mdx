@@ -1,5 +1,88 @@
 ---
 title: '개발'
+description: 프레임워크의 개발 서버를 실행하고 네이티브 로컬 프로토콜을 그 서버로 향하게 하여, 웹뷰가 핫 리로드되는 실시간 UI를 불러오도록 합니다.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+개발 중에는 변경이 있을 때마다 `.wvb`을 패킹하고 싶지 않을 것입니다. 대신, 프레임워크의 개발 서버를 실행하고 네이티브 **로컬 프로토콜**을 그 서버로 향하게 하여, 웹뷰가 핫 리로드되는 실시간 UI를 불러오도록 합니다.
+
+## 개발 서버 실행하기
+
+평소처럼 프레임워크의 개발 서버를 시작하세요.
+
+```sh
+vite dev
+```
+
+출력되는 URL(예: `http://localhost:5173`)을 확인하세요. 네이티브 쪽에서 이 URL로 프록시합니다.
+
+## 로컬 프로토콜을 개발 서버로 향하게 하기
+
+네이티브 앱은 두 개의 스킴을 등록합니다.
+
+- 패킹된 `.wvb` 번들에서 파일을 제공하는 **번들 프로토콜**.
+- 요청을 개발 서버로 프록시하는 **로컬 프로토콜**.
+
+앱이 개발 환경에서 실행 중인지 프로덕션 환경에서 실행 중인지에 따라 웹뷰가 어느 쪽을 불러올지 선택합니다.
+
+- **개발** — 로컬 프로토콜 URL(예: `app-local://app.wvb`)을 불러옵니다. 요청이 개발 서버로 전달되므로 핫 리로드가 동작합니다.
+- **프로덕션** — 번들 프로토콜 URL(예: `app://app.wvb`)을 불러옵니다. 파일이 번들에서 곧바로 제공됩니다.
+
+정확한 스킴 이름, 호스트와 개발 서버 간의 매핑, 그리고 개발과 프로덕션을 전환하는 방식은 네이티브 쪽 설정입니다. 사용하는 플랫폼의 로컬 개발 페이지에서 설정하세요.
+
+<Cards>
+  <Card
+    title="Electron"
+    href="/docs/guide/native/electron/local-development"
+    description="localProtocol로 스킴을 개발 서버에 프록시합니다."
+  />
+  <Card
+    title="Tauri"
+    href="/docs/guide/native/tauri/local-development"
+    description="Tauri 웹뷰를 개발 서버로 향하게 합니다."
+  />
+  <Card
+    title="Android"
+    href="/docs/guide/native/android/local-development"
+    description="Android에서 WebView를 개발 서버에 프록시합니다."
+  />
+  <Card
+    title="iOS"
+    href="/docs/guide/native/ios/local-development"
+    description="iOS에서 WKWebView를 개발 서버에 프록시합니다."
+  />
+  <Card
+    title="Deno"
+    href="/docs/guide/native/deno/local-development"
+    description="Deno 데스크톱 웹뷰를 개발 서버에 프록시합니다."
+  />
+</Cards>
+
+## 패킹된 번들 미리보기
+
+배포 전에 프로덕션 빌드(개발 서버가 아니라 패킹된 `.wvb`)을 확인하려면, [`wvb serve`](/docs/references/cli/serve)로 HTTP를 통해 제공하세요.
+
+```sh
+wvb serve ./build/app.wvb
+```
+
+이 명령은 번들 하나를 풀어서 `http://localhost:4312`에 제공하며, 이는 런타임에 웹뷰가 번들을 불러오는 방식과 동일합니다.
+
+## 다음 단계
+
+<Cards>
+  <Card
+    title="패킹"
+    href="/docs/guide/frontend/packing"
+    description="빌드된 웹 자산을 .wvb 번들로 패킹합니다."
+  />
+  <Card
+    title="프로토콜 핸들링"
+    href="/docs/guide/core-concepts/protocol-handling"
+    description="번들 스킴과 로컬 스킴이 웹뷰에 도달하는 방식을 설명합니다."
+  />
+  <Card
+    title="업로드"
+    href="/docs/guide/frontend/upload"
+    description="패킹된 번들을 리모트로 푸시합니다."
+  />
+</Cards>

@@ -1,5 +1,52 @@
 ---
 title: '소스 확인하기'
+description: 소스 브리지로 웹 앱에서 설치된 번들을 읽습니다. 현재 버전, 전체 버전, 빌트인과 리모트를 구분합니다.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+`source` 브리지는 웹 앱에서 네이티브 번들 소스를 읽습니다. 활성 버전을 표시하거나, 설치된 목록을 나열하거나, 빌트인 번들과 리모트(원격) 번들을 구분하는 데 사용하세요.
+
+## 현재 버전 읽기
+
+`loadVersion`은 활성 버전과 그 유형을 반환하며, 번들이 로드되지 않았으면 `null`을 반환합니다.
+
+```ts title="src/version.ts"
+import { source } from '@wvb/bridge';
+
+const current = await source.loadVersion('app');
+// { type: 'builtin' | 'remote', version: '1.2.0' } | null
+```
+
+## 설치된 번들 나열하기
+
+`listBundles`는 호스트가 알고 있는 모든 번들을 반환합니다. 각 항목은 `type`과 매니페스트 항목을 담고 있으며, `current` 여부도 포함됩니다.
+
+```ts
+import { source } from '@wvb/bridge';
+
+const bundles = await source.listBundles();
+
+for (const { type, item } of bundles) {
+  console.log(item.name, item.version, type, item.current);
+}
+```
+
+## 활용 사례
+
+- 실행 중인 버전을 표시하는 "정보" 화면이나 진단 화면을 렌더링합니다.
+- 사용자가 빌트인 폴백을 사용 중인지, 다운로드한 리모트 번들을 사용 중인지 감지합니다.
+- `loadBuiltinMetadata` / `loadRemoteMetadata`를 읽어 무결성이나 마지막 수정 정보를 노출합니다.
+
+## 함께 보기
+
+<Cards>
+  <Card
+    title="source 레퍼런스"
+    href="/docs/references/javascript/bridge/source"
+    description="모든 source 메서드와 그 매개변수, 반환 타입."
+  />
+  <Card
+    title="번들 소스"
+    href="/docs/guide/core-concepts/bundle-source"
+    description="네이티브 호스트가 빌트인 번들과 리모트 번들을 저장하는 방식."
+  />
+</Cards>

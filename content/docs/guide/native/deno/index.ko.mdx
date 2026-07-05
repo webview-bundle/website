@@ -11,7 +11,7 @@ Deno Desktop은 `Deno.BrowserWindow`로 네이티브 웹뷰를 렌더링하고 `
 import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: 'app' })],
+  protocols: [bundleProtocol('app')],
 });
 
 const server = Deno.serve(wvb.fetch);
@@ -23,7 +23,7 @@ await win.closed;
 
 ## 구성 방식
 
-창은 `Deno.serve`가 제공하는 단일 로컬 origin을 가리킵니다. 따라서 이 통합은 **단일 origin**이며, 정확히 하나의 프로토콜만 허용합니다. 코어가 각 플랫폼에 도달하는 방식은 [플랫폼 통합](/docs/guide/glue-to-native)을, 프로토콜 모델은 [프로토콜 처리](/docs/guide/protocol-handling)를 참고하세요.
+창은 `Deno.serve`가 제공하는 단일 로컬 origin을 가리킵니다. 따라서 이 통합은 **단일 origin**이며, 정확히 하나의 프로토콜만 허용합니다. 코어가 각 플랫폼에 도달하는 방식은 [플랫폼 통합](/docs/guide/core-concepts/glue-to-native)을, 프로토콜 모델은 [프로토콜 처리](/docs/guide/core-concepts/protocol-handling)를 참고하세요.
 
 ## @wvb/deno-desktop
 
@@ -33,7 +33,7 @@ await win.closed;
 import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: 'app' })],
+  protocols: [bundleProtocol('app')],
   updater: {
     remote: { endpoint: 'https://bundles.example.com' },
   },
@@ -52,7 +52,7 @@ await win.closed;
 import { webviewBundle, bundleProtocol, registerBindings } from '@wvb/deno-desktop';
 
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: 'app' })],
+  protocols: [bundleProtocol('app')],
 });
 
 const server = Deno.serve(wvb.fetch);
@@ -157,7 +157,7 @@ deno run -A jsr:@wvb/deno/install --out vendor/wvb --target x86_64-unknown-linux
 
 ```ts title="updater.ts"
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: 'app' })],
+  protocols: [bundleProtocol('app')],
   updater: {
     remote: { endpoint: 'https://bundles.example.com' },
     integrityPolicy: 'strict',
@@ -175,7 +175,7 @@ const wvb = await webviewBundle({
 
 ```ts title="http.ts"
 const wvb = await webviewBundle({
-  protocols: [bundleProtocol({ scheme: 'app' })],
+  protocols: [bundleProtocol('app')],
   updater: {
     remote: {
       endpoint: 'https://bundles.example.com',
@@ -185,7 +185,7 @@ const wvb = await webviewBundle({
 });
 ```
 
-무결성과 서명이 플랫폼 전반에서 동작하는 방식은 [원격 번들](/docs/guide/over-the-air)을 참고하세요.
+무결성과 서명이 플랫폼 전반에서 동작하는 방식은 [원격 번들](/docs/guide/core-concepts/over-the-air)을 참고하세요.
 
 ## 다음 단계
 
@@ -197,12 +197,12 @@ const wvb = await webviewBundle({
   />
   <Card
     title="플랫폼 지원"
-    href="/docs/guide/getting-started/platform-support"
+    href="/docs/guide/getting-started/platform-and-framework-support"
     description="실험적 플랫폼을 포함해 각 플랫폼의 현재 상태."
   />
   <Card
     title="원격 번들"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="업데이트, 무결성, 서명이 플랫폼 전반에서 동작하는 방식."
   />
 </Cards>

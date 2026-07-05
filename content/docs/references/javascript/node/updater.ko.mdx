@@ -3,7 +3,7 @@ title: Updater
 description: '@wvb/node의 Updater 클래스 — 원격 서버에서 최신 번들을 확인하고, 무결성과 서명 검증을 거쳐 스테이징한 뒤 활성화합니다.'
 ---
 
-`Updater`는 번들의 무선(OTA) 업데이트를 처리합니다. [`BundleSource`](/docs/references/javascript/node/source)와 [`Remote`](/docs/references/javascript/node/remote)를 짝지어 동작합니다. 원격 서버에서 더 새로운 버전을 확인하고, 소스의 원격 디렉터리로 다운로드한 뒤 활성화합니다. 확인, 다운로드, 활성화 단계는 각각 별도의 메서드입니다. 따라서 백그라운드에서 업데이트를 스테이징해 두고 나중에 전환할 수 있습니다. 예를 들어 다음 앱 재시작 시점입니다. 전체 흐름은 [원격 번들](/docs/guide/over-the-air)을 참고하세요.
+`Updater`는 번들의 무선(OTA) 업데이트를 처리합니다. [`BundleSource`](/docs/references/javascript/node/source)와 [`Remote`](/docs/references/javascript/node/remote)를 짝지어 동작합니다. 원격 서버에서 더 새로운 버전을 확인하고, 소스의 원격 디렉터리로 다운로드한 뒤 활성화합니다. 확인, 다운로드, 활성화 단계는 각각 별도의 메서드입니다. 따라서 백그라운드에서 업데이트를 스테이징해 두고 나중에 전환할 수 있습니다. 예를 들어 다음 앱 재시작 시점입니다. 전체 흐름은 [원격 번들](/docs/guide/core-concepts/over-the-air)을 참고하세요.
 
 ```ts
 import { BundleSource, Remote, Updater } from '@wvb/node';
@@ -141,7 +141,7 @@ if (update.isAvailable) {
 <Cards>
   <Card
     title="원격 번들"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="확인, 무결성, 서명 검증이 어떻게 맞물리는지 설명합니다."
   />
   <Card

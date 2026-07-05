@@ -1,5 +1,60 @@
 ---
 title: '빌드'
+description: Deno 데스크톱 앱을 네이티브 cdylib와 빌트인 번들을 임베드한 자체 완결형 바이너리로 컴파일합니다.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+`deno desktop`으로 Deno 데스크톱 앱을 배포 가능한 바이너리로 컴파일하세요. `@wvb/deno` 네이티브 라이브러리와 빌트인 번들을 임베드하므로 별도 설치 없이 오프라인으로 실행됩니다.
+
+<Callout type="info">
+  컴파일된 바이너리 하나는 하나의 플랫폼만 대상으로 합니다. 배포하는 target triple마다 한 번씩
+  벤더링하고 컴파일하세요.
+</Callout>
+
+## 네이티브 라이브러리 벤더링
+
+`@wvb/deno`는 FFI를 통해 사전 빌드된 Rust `cdylib`를 로드합니다. 빌드하려는 대상에 맞는 라이브러리를 프로젝트로 다운로드하세요.
+
+```sh
+deno run -A jsr:@wvb/deno/install --out vendor/wvb --target aarch64-apple-darwin
+```
+
+라이브러리는 `libwvb_deno.dylib`, `libwvb_deno.so`, `wvb_deno.dll`처럼 단순한 플랫폼 이름으로 저장되며, 파일을 쓰기 전에 SHA-256 체크섬을 검증합니다. 지원하는 target triple은 [Deno Desktop 설정](/docs/guide/native/deno)을 참고하세요.
+
+## 배포 가능한 바이너리 컴파일
+
+`deno desktop --include`로 벤더링한 `cdylib`와 패킹된 `bundles` 디렉터리를 임베드한 다음, 런타임에 `import.meta.url`에서 라이브러리를 resolve하세요.
+
+```sh
+deno desktop --allow-ffi --include vendor/wvb/libwvb_deno.dylib --include bundles main.ts
+```
+
+```ts title="main.ts"
+import { webviewBundle, bundleProtocol } from '@wvb/deno-desktop';
+
+const wvb = await webviewBundle({
+  lib: new URL('./vendor/wvb/libwvb_deno.dylib', import.meta.url),
+  protocols: [bundleProtocol('app')],
+});
+```
+
+앱은 진입 모듈 옆에 포함된 `bundles` 디렉터리에서 빌트인 번들을 읽으므로, 컴파일된 바이너리는 네트워크 접근 없이 이를 제공합니다.
+
+## 함께 보기
+
+<Cards>
+  <Card
+    title="Deno Desktop 설정"
+    href="/docs/guide/native/deno"
+    description="Deno 데스크톱 웹뷰에서 .wvb 번들을 제공하고 업데이트합니다."
+  />
+  <Card
+    title="@wvb/deno-desktop"
+    href="/docs/references/javascript/deno-desktop"
+    description="통합 계층 API 레퍼런스."
+  />
+  <Card
+    title="@wvb/deno"
+    href="/docs/references/javascript/deno"
+    description="네이티브 라이브러리, loadLib, install 서브커맨드."
+  />
+</Cards>

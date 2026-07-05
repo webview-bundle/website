@@ -1,5 +1,47 @@
 ---
 title: 'Local development'
+description: Proxy the Deno desktop webview to your dev server for live reload with localProtocol.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+<Badge>Experimental</Badge>
+
+In development, swap `bundleProtocol` for `localProtocol`. It proxies the webview to your dev server, so edits reload live instead of loading packed `.wvb` assets.
+
+## Proxy to your dev server
+
+`localProtocol(scheme, { hosts })` maps the served host to your dev server's base URL. Point it at Vite (or whatever serves your frontend) and reuse the same single-origin `webviewBundle` wiring as production.
+
+```ts title="main.ts"
+import { webviewBundle, localProtocol } from '@wvb/deno-desktop';
+
+const wvb = await webviewBundle({
+  protocols: [
+    localProtocol('app', {
+      hosts: { app: 'http://localhost:5173' },
+    }),
+  ],
+});
+
+const server = Deno.serve(wvb.fetch);
+const win = new Deno.BrowserWindow({ url: `http://localhost:${server.addr.port}` });
+await win.closed;
+```
+
+## Switch back for production
+
+Swap `localProtocol` back for `bundleProtocol` to serve packed `.wvb` assets offline. See [Setup](/docs/guide/native/deno) for the production wiring.
+
+## Next steps
+
+<Cards>
+  <Card
+    title="Deno Desktop setup"
+    href="/docs/guide/native/deno"
+    description="Serve and update packed bundles in a Deno desktop webview."
+  />
+  <Card
+    title="Deno API reference"
+    href="/docs/references/javascript/deno"
+    description="The full @wvb/deno class and method surface (experimental)."
+  />
+</Cards>

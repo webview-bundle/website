@@ -28,8 +28,8 @@ dependencies {
 ```
 
 <Callout type="info">
-  모든 플랫폼의 지원 현황은 [플랫폼 지원](/docs/guide/getting-started/platform-support)을
-  참고하세요.
+  모든 플랫폼의 지원 현황은 [플랫폼
+  지원](/docs/guide/getting-started/platform-and-framework-support)을 참고하세요.
 </Callout>
 
 ## 빠른 시작
@@ -111,7 +111,7 @@ wvb(context, config)                         // 짧은 별칭
 
 커스텀 URL 스킴은 등록되지 않습니다. `install()`은 `WebViewClient`를 설정하며, 이 클라이언트의 `shouldInterceptRequest`가 일반적인 `http`/`https` 요청을 검사해 일치하는 요청을 번들 소스에서 제공합니다. 각 요청마다 핸들러는 호스트를 소문자로 바꾼 뒤 등록된 프로토콜을 순서대로 살펴봅니다. 호스트를 처음으로 받아들이는 매처가 선택됩니다. 번들 프로토콜은 첫 번째 호스트 레이블을 번들 이름으로 삼고, 요청 경로에 해당하는 파일을 반환합니다. 일치하는 것이 없으면 `null`을 반환하고 `WebView`는 네트워크에서 로드합니다.
 
-핸들러가 예외를 던지면 라이브러리는 `500 text/plain` 응답을 만들고 선택적 `onError` 콜백을 호출합니다. 요청 경로가 `.wvb` 안의 파일로 어떻게 매핑되는지는 [프로토콜 처리](/docs/guide/protocol-handling)를 참고하세요.
+핸들러가 예외를 던지면 라이브러리는 `500 text/plain` 응답을 만들고 선택적 `onError` 콜백을 호출합니다. 요청 경로가 `.wvb` 안의 파일로 어떻게 매핑되는지는 [프로토콜 처리](/docs/guide/core-concepts/protocol-handling)를 참고하세요.
 
 `install()`은 메인 프레임에 네이티브 브리지를 `window.wvbAndroid`로 함께 연결합니다. install 옵션을 사용하면 추가 네이티브 핸들러를 등록하거나, 직접 만든 `WebViewClient`를 감싸거나, 브리지를 생략할 수 있습니다.
 
@@ -176,7 +176,7 @@ WebViewBundleConfig(
 }
 ```
 
-매니페스트 포맷은 [번들 소스](/docs/guide/bundle-sources)를 참고하세요.
+매니페스트 포맷은 [번들 소스](/docs/guide/core-concepts/bundle-source)를 참고하세요.
 
 ## 프로토콜
 
@@ -315,14 +315,14 @@ await invoke('updaterDownload', { name: 'app' });
 await invoke('updaterInstall', { name: 'app', version: '0.2.0' });
 ```
 
-플랫폼 전반의 원격 HTTP 규약, 무결성, 서명에 대해서는 [원격 번들](/docs/guide/over-the-air)과 [원격 구축하기](/docs/guide/remote) 가이드를 참고하세요.
+플랫폼 전반의 원격 HTTP 규약, 무결성, 서명에 대해서는 [원격 번들](/docs/guide/core-concepts/over-the-air)과 [원격 구축하기](/docs/guide/remote) 가이드를 참고하세요.
 
 ## 다음 단계
 
 <Cards>
   <Card
     title="원격 번들"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="OTA 업데이트, 무결성, 서명이 플랫폼 전반에서 어떻게 동작하는지 설명합니다."
   />
   <Card

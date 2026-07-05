@@ -1,5 +1,54 @@
 ---
-title: 'Local development'
+title: Local development
+description: Route a bundle host to your dev server with a Local protocol so the Android WebView loads your live dev build.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+Register a Local protocol to map a bundle host to your bundler's dev server. The `WebView` then loads your live dev build with hot reload intact, while unmapped hosts still fall through to the shipped bundle.
+
+## Map the bundle host to your dev server
+
+`WebViewBundleProtocol.local(hosts)` maps a full request host to a local base URL. Register it before `bundle()`, which matches every host, so the fallback stays last.
+
+```kotlin title="MainActivity.kt"
+import dev.wvb.WebViewBundleConfig
+import dev.wvb.WebViewBundleProtocol
+
+WebViewBundleConfig(
+  protocols = listOf(
+    WebViewBundleProtocol.local(mapOf("app.wvb" to "http://10.0.2.2:3000")),
+    WebViewBundleProtocol.bundle(),
+  ),
+)
+```
+
+Requests to `app.wvb` now proxy to `http://10.0.2.2:3000`; every other host serves from the bundle source.
+
+## Reach the host machine from the emulator
+
+On the Android emulator, `10.0.2.2` reaches the host machine's loopback, so a dev server on `localhost:3000` is `http://10.0.2.2:3000`. A cleartext `http://` server needs `usesCleartextTraffic` enabled in the manifest.
+
+```xml title="AndroidManifest.xml"
+<application
+  android:usesCleartextTraffic="true">
+  <!-- ... -->
+</application>
+```
+
+<Callout type="warn">
+  `usesCleartextTraffic="true"` is for local development only. Leave it disabled in release builds.
+</Callout>
+
+## See also
+
+<Cards>
+  <Card
+    title="Android setup"
+    href="/docs/guide/native/android"
+    description="Install the library, serve bundles, and configure protocols."
+  />
+  <Card
+    title="Protocol handling"
+    href="/docs/guide/core-concepts/protocol-handling"
+    description="How a request host and path map to a file inside a bundle."
+  />
+</Cards>

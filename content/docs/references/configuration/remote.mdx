@@ -11,7 +11,7 @@ documents those three options and ends with a complete, copy-pasteable config.
 
 For the rest of the config file (top-level fields, `pack`, `serve`, `builtin`), see
 [The wvb.config file](/docs/references/configuration). For the runtime side — how a client downloads, verifies, and
-activates these bundles over the air — see [Remote bundles](/docs/guide/over-the-air).
+activates these bundles over the air — see [Remote bundles](/docs/guide/core-concepts/over-the-air).
 
 ## remote
 
@@ -66,17 +66,17 @@ Each provider exports a factory that returns `{ uploader, deployer }` (AWS also 
 <Cards>
   <Card
     title="Local provider"
-    href="/docs/guide/providers/local"
+    href="/docs/guide/remote/providers/local"
     description="Serve bundles from disk for development and testing."
   />
   <Card
     title="AWS provider"
-    href="/docs/guide/providers/aws"
+    href="/docs/guide/remote/providers/aws"
     description="S3 + CloudFront, with optional KMS signing."
   />
   <Card
     title="Cloudflare provider"
-    href="/docs/guide/providers/cloudflare"
+    href="/docs/guide/remote/providers/cloudflare"
     description="R2 storage with a Workers handler."
   />
 </Cards>
@@ -163,8 +163,8 @@ signature: async ({ message }) => myExternalSigner(message),
 <Callout type="info">
   Clients verify with the matching **public** key, and the verify side accepts different key formats
   than the sign side — SPKI, PKCS#1 (RSA only), SEC1 (ECDSA only), and raw 32-byte (Ed25519 only),
-  but not JWK. See [Remote bundles](/docs/guide/over-the-air) for verification and the [Node API
-  reference](/docs/references/javascript/node) for the client-side helpers.
+  but not JWK. See [Remote bundles](/docs/guide/core-concepts/over-the-air) for verification and the
+  [Node API reference](/docs/references/javascript/node) for the client-side helpers.
 </Callout>
 
 ## Complete example

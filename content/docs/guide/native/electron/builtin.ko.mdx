@@ -1,5 +1,61 @@
 ---
 title: '내장 번들'
+description: 오프라인 폴백으로 사용할 읽기 전용 .wvb 번들을 Electron 패키지 안에 포함해 배포하세요.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+내장 번들은 Electron 패키지 안에 포함해 배포하는 `.wvb` 파일입니다. 읽기 전용이며 항상 존재하므로, 앱이 오프라인 상태로 시작하거나 원격으로 더 새로운 번들을 아직 가져오기 전에도 제공할 무언가가 있습니다. 런타임에서는 다운로드된 업데이트가 내장 번들보다 우선합니다. [번들 소스](/docs/guide/core-concepts/bundle-source)를 참고하세요.
+
+## 내장 번들이 위치하는 곳
+
+`@wvb/electron`은 `source.builtinDir`에서 내장 번들을 읽으며, 패키징된 앱에서는 기본값이 `process.resourcesPath/bundles`, 즉 `resources/bundles` 디렉터리입니다. 각 번들은 `manifest.json` 옆에 `<name>/<name>_<version>.wvb` 형태로 배치됩니다.
+
+## `wvb builtin`으로 설치하기
+
+`wvb builtin`은 번들을 출력 디렉터리에 설치합니다. 소스는 [설정](/docs/references/configuration)의 `builtin.target`으로 지정합니다. `remote` 타깃은 업데이트 서버에서 번들을 다운로드하고, `local` 타깃은 로컬 워크스페이스에서 번들을 패킹합니다.
+
+```sh
+# 설정된 타깃에서 bundles 디렉터리로 설치합니다
+wvb builtin --out bundles
+
+# 또는 리모트 엔드포인트를 명시적으로 지정해 가져옵니다
+wvb builtin --endpoint https://updates.example.com --out bundles
+```
+
+`--out`은 앱과 함께 배포할 디렉터리를 가리키게 하세요. 모든 플래그는 [`wvb builtin`](/docs/references/cli/builtin)을 참고하세요.
+
+## 패키징 시점에 설치하기
+
+Forge 및 Builder 통합은 패키징 과정에서 내장 번들을 대신 설치하고 패키징된 앱의 `resources/bundles`로 복사해 주므로, `.wvb` 파일을 직접 준비할 필요가 없습니다.
+
+<Cards>
+  <Card
+    title="Electron Forge"
+    href="/docs/guide/native/electron/forge"
+    description="@wvb/electron-forge 플러그인으로 내장 번들을 설치합니다."
+  />
+  <Card
+    title="Electron Builder"
+    href="/docs/guide/native/electron/builder"
+    description="@wvb/electron-builder afterPack 훅으로 내장 번들을 설치합니다."
+  />
+</Cards>
+
+## 함께 보기
+
+<Cards>
+  <Card
+    title="Electron 가이드"
+    href="/docs/guide/native/electron"
+    description="프로토콜을 통해 번들을 제공하고 원격으로 업데이트합니다."
+  />
+  <Card
+    title="wvb builtin"
+    href="/docs/references/cli/builtin"
+    description="내장 번들 설치를 위한 모든 플래그."
+  />
+  <Card
+    title="번들 소스"
+    href="/docs/guide/core-concepts/bundle-source"
+    description="빌트인 번들과 리모트 번들이 런타임에 해석되는 방식."
+  />
+</Cards>

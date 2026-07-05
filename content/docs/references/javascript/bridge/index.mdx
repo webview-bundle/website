@@ -5,7 +5,7 @@ description: The web-side @wvb/bridge library that lets JavaScript inside the we
 
 `@wvb/bridge` is the web-side companion to Webview Bundle. It lets JavaScript running **inside the webview** call the native host that manages your bundle source, remote, and updater. One uniform `invoke()` works across Electron, Tauri, Android, and iOS. The bridge hides the per-platform transport, so your web code stays the same on every platform.
 
-The package is pure TypeScript and ships typed command groups (`source`, `remote`, `updater`) so you rarely call `invoke()` directly. For how the native host exposes these commands, see [Platform integration](/docs/guide/glue-to-native); for the matching native API, see the [Node API reference](/docs/references/javascript/node).
+The package is pure TypeScript and ships typed command groups (`source`, `remote`, `updater`) so you rarely call `invoke()` directly. For how the native host exposes these commands, see [Platform integration](/docs/guide/core-concepts/glue-to-native); for the matching native API, see the [Node API reference](/docs/references/javascript/node).
 
 ## Install
 
@@ -149,7 +149,7 @@ For the full updater surface, see the [updater reference](/docs/references/javas
 <Cards>
   <Card
     title="Platform integration"
-    href="/docs/guide/glue-to-native"
+    href="/docs/guide/core-concepts/glue-to-native"
     description="How the core reaches each platform and exposes bridge commands."
   />
   <Card

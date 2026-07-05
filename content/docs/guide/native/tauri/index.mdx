@@ -96,7 +96,7 @@ Source::new().builtin_dir("$RESOURCE/bundles").remote_dir("$APPLOCALDATA/bundles
 Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles")));
 ```
 
-When unset, the builtin dir defaults to `bundles` in the app's resource directory and the remote dir to `bundles` in app local data. Each `.protocol(...)` call registers its own asynchronous URI scheme. See [Protocol handling](/docs/guide/protocol-handling) for how the schemes resolve requests.
+When unset, the builtin dir defaults to `bundles` in the app's resource directory and the remote dir to `bundles` in app local data. Each `.protocol(...)` call registers its own asynchronous URI scheme. See [Protocol handling](/docs/guide/core-concepts/protocol-handling) for how the schemes resolve requests.
 
 ## Point a window at the custom scheme
 
@@ -158,7 +158,7 @@ Ship the directory with the build by listing it in resources:
 }
 ```
 
-For the full packing workflow and flags, see the [CLI reference](/docs/references/cli) and [Bundle sources](/docs/guide/bundle-sources).
+For the full packing workflow and flags, see the [CLI reference](/docs/references/cli) and [Bundle sources](/docs/guide/core-concepts/bundle-source).
 
 ## Drive updates from the frontend
 
@@ -254,7 +254,7 @@ await invoke('plugin:wvb-tauri|source_update_version', {
 });
 ```
 
-The full command set (twelve `source_*`, four `remote_*`, and four `updater_*` commands) is defined in [`packages/tauri/src/commands.rs`](https://github.com/webview-bundle/webview-bundle/blob/main/packages/tauri/src/commands.rs). See [Remote bundles](/docs/guide/over-the-air) for how integrity and signature verification fit into the download flow, and [Remote config](/docs/references/configuration/remote) for the server side.
+The full command set (twelve `source_*`, four `remote_*`, and four `updater_*` commands) is defined in [`packages/tauri/src/commands.rs`](https://github.com/webview-bundle/webview-bundle/blob/main/packages/tauri/src/commands.rs). See [Remote bundles](/docs/guide/core-concepts/over-the-air) for how integrity and signature verification fit into the download flow, and [Remote config](/docs/references/configuration/remote) for the server side.
 
 <Callout type="info">
   The `remote_*` commands require a `Remote` on the config; the `updater_*` commands additionally
@@ -327,7 +327,7 @@ tauri::Builder::default()
   .plugin(wvb_tauri::init(/* ... */));
 ```
 
-The plugin then extracts each bundle from the APK on first request and caches it in app local data. Remote-only apps (no builtin bundles) need no extra Android setup. See the [Android](/docs/guide/native/android) and [iOS](/docs/guide/native/ios) guides for platform specifics, and [Platform support](/docs/guide/getting-started/platform-support) for current status.
+The plugin then extracts each bundle from the APK on first request and caches it in app local data. Remote-only apps (no builtin bundles) need no extra Android setup. See the [Android](/docs/guide/native/android) and [iOS](/docs/guide/native/ios) guides for platform specifics, and [Platform support](/docs/guide/getting-started/platform-and-framework-support) for current status.
 
 ## Troubleshooting
 
@@ -341,12 +341,12 @@ The plugin then extracts each bundle from the APK on first request and caches it
 <Cards>
   <Card
     title="Protocol handling"
-    href="/docs/guide/protocol-handling"
+    href="/docs/guide/core-concepts/protocol-handling"
     description="How the bundle and local schemes resolve webview requests."
   />
   <Card
     title="Remote bundles"
-    href="/docs/guide/over-the-air"
+    href="/docs/guide/core-concepts/over-the-air"
     description="OTA updates, integrity, and signature verification."
   />
   <Card

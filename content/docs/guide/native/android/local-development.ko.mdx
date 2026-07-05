@@ -1,5 +1,54 @@
 ---
 title: '로컬 개발'
+description: Local 프로토콜로 번들 호스트를 개발 서버에 연결해, Android WebView가 실시간 개발 빌드를 로드하도록 합니다.
 ---
 
-<Callout>이 문서는 작성 중입니다.</Callout>
+Local 프로토콜을 등록해 번들 호스트를 번들러의 개발 서버로 매핑하세요. 그러면 `WebView`는 핫 리로드를 그대로 유지한 채 실시간 개발 빌드를 로드하며, 매핑되지 않은 호스트는 여전히 배포된 번들로 폴백됩니다.
+
+## 번들 호스트를 개발 서버로 매핑하기
+
+`WebViewBundleProtocol.local(hosts)`은 전체 요청 호스트를 로컬 베이스 URL로 매핑합니다. 모든 호스트에 일치하는 `bundle()`보다 앞에 등록해, 폴백이 가장 마지막에 오도록 하세요.
+
+```kotlin title="MainActivity.kt"
+import dev.wvb.WebViewBundleConfig
+import dev.wvb.WebViewBundleProtocol
+
+WebViewBundleConfig(
+  protocols = listOf(
+    WebViewBundleProtocol.local(mapOf("app.wvb" to "http://10.0.2.2:3000")),
+    WebViewBundleProtocol.bundle(),
+  ),
+)
+```
+
+이제 `app.wvb`로 향하는 요청은 `http://10.0.2.2:3000`으로 프록시되고, 그 밖의 모든 호스트는 번들 소스에서 제공됩니다.
+
+## 에뮬레이터에서 호스트 머신에 연결하기
+
+Android 에뮬레이터에서 `10.0.2.2`는 호스트 머신의 루프백에 연결됩니다. 따라서 `localhost:3000`에서 실행 중인 개발 서버는 `http://10.0.2.2:3000`이 됩니다. 평문(cleartext) `http://` 서버를 사용하려면 매니페스트에서 `usesCleartextTraffic`을 활성화해야 합니다.
+
+```xml title="AndroidManifest.xml"
+<application
+  android:usesCleartextTraffic="true">
+  <!-- ... -->
+</application>
+```
+
+<Callout type="warn">
+  `usesCleartextTraffic="true"`는 로컬 개발 전용입니다. 릴리스 빌드에서는 비활성화한 채로 두세요.
+</Callout>
+
+## 함께 보기
+
+<Cards>
+  <Card
+    title="Android 설정"
+    href="/docs/guide/native/android"
+    description="라이브러리를 설치하고, 번들을 제공하고, 프로토콜을 설정합니다."
+  />
+  <Card
+    title="프로토콜 처리"
+    href="/docs/guide/core-concepts/protocol-handling"
+    description="요청 호스트와 경로가 번들 안의 파일로 어떻게 매핑되는지 설명합니다."
+  />
+</Cards>

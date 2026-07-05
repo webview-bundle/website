@@ -1,5 +1,38 @@
 ---
 title: 'For mobile'
+description: What changes when you run the wvb-tauri plugin on Tauri mobile (iOS and Android), and where builtin bundles live.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+The same `wvb-tauri` plugin runs on desktop and on Tauri mobile. Register it exactly as in [Setup](/docs/guide/native/tauri) — the differences below are only about where builtin bundles live on each platform.
+
+## iOS
+
+Builtin bundles live in a real filesystem resource directory. No extra setup beyond the desktop configuration.
+
+## Android
+
+Builtin bundles ship inside the APK as `asset://` resources, which the filesystem cannot read directly. An app that ships builtin bundles must also register the Tauri filesystem plugin:
+
+```rust title="src-tauri/src/lib.rs"
+tauri::Builder::default()
+  .plugin(tauri_plugin_fs::init())
+  .plugin(wvb_tauri::init(/* ... */));
+```
+
+The plugin extracts each bundle from the APK on first request and caches it in app local data. Remote-only apps (no builtin bundles) need no extra Android setup.
+
+## See also
+
+<Cards>
+  <Card
+    title="Setup"
+    href="/docs/guide/native/tauri"
+    description="Register the wvb-tauri plugin, sources, protocols, and remote."
+  />
+  <Card
+    title="Android"
+    href="/docs/guide/native/android"
+    description="Android platform specifics."
+  />
+  <Card title="iOS" href="/docs/guide/native/ios" description="iOS platform specifics." />
+</Cards>

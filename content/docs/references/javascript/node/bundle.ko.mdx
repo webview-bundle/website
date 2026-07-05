@@ -5,7 +5,7 @@ description: .wvb 아카이브를 읽고, 빌드하고, 검사하기 위한 @wvb
 
 `@wvb/node`는 메모리와 디스크에서 `.wvb` 아카이브를 다루는 소규모 클래스 집합을 제공합니다. `Bundle`과 `BundleBuilder`는 번들 전체를 읽고 씁니다. `BundleDescriptor`, `Header`, `Index`, `LoadedDescriptor`는 번들의 구조를 검사하고, 전체를 메모리에 올리지 않고도 개별 파일을 가져올 수 있게 합니다.
 
-소스, 프로토콜, 원격 클라이언트, 업데이터까지 패키지의 전체 표면은 [Node API 개요](/docs/references/javascript/node)를 참고하세요. 바이트가 디스크에 배치되는 방식은 [.wvb 번들 포맷](/docs/guide/bundle-format)을 참고하세요.
+소스, 프로토콜, 원격 클라이언트, 업데이터까지 패키지의 전체 표면은 [Node API 개요](/docs/references/javascript/node)를 참고하세요. 바이트가 디스크에 배치되는 방식은 [.wvb 번들 포맷](/docs/guide/core-concepts/webview-bundle)을 참고하세요.
 
 ## 번들 읽기와 파일 가져오기
 
@@ -78,7 +78,7 @@ type IndexEntry = {
   />
   <Card
     title="번들 포맷"
-    href="/docs/guide/bundle-format"
+    href="/docs/guide/core-concepts/webview-bundle"
     description=".wvb 아카이브가 체크섬과 무결성을 갖추어 디스크에 배치되는 방식."
   />
 </Cards>

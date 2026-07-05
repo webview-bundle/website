@@ -1,5 +1,88 @@
 ---
 title: 'Development'
+description: Run your framework's dev server and point the native Local Protocol at it so the webview loads your live, hot-reloading UI.
 ---
 
-<Callout>This page is a work in progress.</Callout>
+During development you don't want to pack a `.wvb` on every change. Instead, run your framework's dev server and point the native **Local Protocol** at it, so the webview loads your live, hot-reloading UI.
+
+## Run your dev server
+
+Start your framework's dev server as you normally would:
+
+```sh
+vite dev
+```
+
+Note the URL it prints (for example `http://localhost:5173`) — the native side proxies to it.
+
+## Point the Local Protocol at it
+
+The native app registers two schemes:
+
+- A **Bundle Protocol** that serves files from the packed `.wvb` bundle.
+- A **Local Protocol** that proxies requests to your dev server.
+
+You pick which one the webview loads based on whether the app is running in development or production:
+
+- **Development** — load the Local Protocol URL (e.g. `app-local://app.wvb`). Requests forward to your dev server, so hot reload works.
+- **Production** — load the Bundle Protocol URL (e.g. `app://app.wvb`). Files come straight from the bundle.
+
+The exact scheme names, the host-to-dev-server mapping, and the dev-vs-prod switch are native-side config. Set them up on your platform's Local development page:
+
+<Cards>
+  <Card
+    title="Electron"
+    href="/docs/guide/native/electron/local-development"
+    description="Proxy a scheme to your dev server with localProtocol."
+  />
+  <Card
+    title="Tauri"
+    href="/docs/guide/native/tauri/local-development"
+    description="Point the Tauri webview at your dev server."
+  />
+  <Card
+    title="Android"
+    href="/docs/guide/native/android/local-development"
+    description="Proxy the WebView to your dev server on Android."
+  />
+  <Card
+    title="iOS"
+    href="/docs/guide/native/ios/local-development"
+    description="Proxy the WKWebView to your dev server on iOS."
+  />
+  <Card
+    title="Deno"
+    href="/docs/guide/native/deno/local-development"
+    description="Proxy the Deno desktop webview to your dev server."
+  />
+</Cards>
+
+## Preview a packed bundle
+
+To check the production build — the packed `.wvb`, not the dev server — before shipping, serve it over HTTP with [`wvb serve`](/docs/references/cli/serve):
+
+```sh
+wvb serve ./build/app.wvb
+```
+
+This unpacks one bundle and serves it at `http://localhost:4312`, matching how the webview loads it at runtime.
+
+## Next steps
+
+<Cards>
+  <Card
+    title="Packing"
+    href="/docs/guide/frontend/packing"
+    description="Pack your built web assets into a .wvb bundle."
+  />
+  <Card
+    title="Protocol handling"
+    href="/docs/guide/core-concepts/protocol-handling"
+    description="How the bundle and local schemes reach the webview."
+  />
+  <Card
+    title="Upload"
+    href="/docs/guide/frontend/upload"
+    description="Push a packed bundle to your remote."
+  />
+</Cards>
