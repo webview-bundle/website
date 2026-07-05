@@ -20,11 +20,11 @@ The package binds the Rust core through a UniFFI-generated module named `WebView
 exposed under the `WebViewBundle` module. See [Platform integration](/docs/guide/core-concepts/glue-to-native)
 for how the shared core reaches each platform.
 
-Add the package as a dependency (the install script below wires in the native FFI):
+Add the package as a dependency:
 
 ```swift title="Package.swift"
 dependencies: [
-  .package(path: "../webview-bundle-ios"),
+  .package(url: "https://github.com/webview-bundle/webview-bundle-ios", from: "0.1.0"),
 ],
 targets: [
   .target(name: "App", dependencies: [
@@ -33,29 +33,7 @@ targets: [
 ]
 ```
 
-## Install the native FFI
-
-Resolve the native binary from a release before you build:
-
-```sh
-node scripts/install.mjs latest                 # highest ffi/* release
-node scripts/install.mjs 0.1.0                   # -> tag ffi/0.1.0
-node scripts/install.mjs ffi/0.1.0               # explicit release tag
-```
-
-The script reads the GitHub release for the resolved tag and:
-
-- Extracts the generated Swift bindings from the `apple.zip` asset into `Sources/WebViewBundle/`.
-- Resolves the SHA-256 checksum of the `WebViewBundleFFI.xcframework.zip` asset (preferring the digest
-  GitHub reports, falling back to downloading and hashing) and writes the checksum and tag into
-  `Package.swift`.
-
-It needs `unzip` on `PATH`. Override the source repo and authenticate for private repos:
-
-```sh
-export GITHUB_TOKEN=ghp_xxx                      # or GH_TOKEN, for a private source repo
-node scripts/install.mjs latest --repo webview-bundle/webview-bundle
-```
+In an Xcode app project, add the same URL through **File → Add Package Dependencies…** instead.
 
 ## Quick start
 

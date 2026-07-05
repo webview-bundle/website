@@ -20,11 +20,11 @@ description: webview-bundle-ios Swift 패키지로 WKWebView에서 Webview Bundl
 `WebViewBundle` 모듈로 노출됩니다. 공유 코어가 각 플랫폼에 어떻게 도달하는지는
 [플랫폼 통합](/docs/guide/core-concepts/glue-to-native)을 참고하세요.
 
-패키지를 의존성으로 추가하세요(네이티브 FFI는 아래 설치 스크립트가 연결합니다).
+패키지를 의존성으로 추가하세요.
 
 ```swift title="Package.swift"
 dependencies: [
-  .package(path: "../webview-bundle-ios"),
+  .package(url: "https://github.com/webview-bundle/webview-bundle-ios", from: "0.1.0"),
 ],
 targets: [
   .target(name: "App", dependencies: [
@@ -33,28 +33,7 @@ targets: [
 ]
 ```
 
-## 네이티브 FFI 설치하기
-
-빌드하기 전에 릴리스에서 네이티브 바이너리를 해석하세요.
-
-```sh
-node scripts/install.mjs latest                 # 가장 높은 ffi/* 릴리스
-node scripts/install.mjs 0.1.0                   # -> ffi/0.1.0 태그
-node scripts/install.mjs ffi/0.1.0               # 명시적 릴리스 태그
-```
-
-이 스크립트는 해석된 태그의 GitHub 릴리스를 읽어 다음을 수행합니다.
-
-- `apple.zip` 자산에서 생성된 Swift 바인딩을 추출해 `Sources/WebViewBundle/`에 넣습니다.
-- `WebViewBundleFFI.xcframework.zip` 자산의 SHA-256 체크섬을 해석하고(GitHub가 보고하는 다이제스트를
-  우선 사용하며, 없으면 직접 다운로드해 해시함), 그 체크섬과 태그를 `Package.swift`에 기록합니다.
-
-`PATH`에 `unzip`이 필요합니다. 소스 저장소를 재정의하고, 비공개 저장소는 인증하세요.
-
-```sh
-export GITHUB_TOKEN=ghp_xxx                      # 비공개 소스 저장소의 경우, 또는 GH_TOKEN
-node scripts/install.mjs latest --repo webview-bundle/webview-bundle
-```
+Xcode 앱 프로젝트라면 **File → Add Package Dependencies…** 메뉴에서 같은 URL을 추가하세요.
 
 ## 빠른 시작
 

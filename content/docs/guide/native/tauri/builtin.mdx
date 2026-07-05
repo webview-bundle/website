@@ -46,23 +46,3 @@ Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles")
   read directly. The plugin extracts them from the APK on first request, so the app must also
   register `tauri_plugin_fs::init()`. See [Tauri mobile](/docs/guide/native/tauri/mobile).
 </Callout>
-
-## See also
-
-<Cards>
-  <Card
-    title="Tauri setup"
-    href="/docs/guide/native/tauri"
-    description="Register the wvb-tauri plugin and point a window at the bundle scheme."
-  />
-  <Card
-    title="wvb builtin"
-    href="/docs/references/cli/builtin"
-    description="Every flag for installing builtin bundles."
-  />
-  <Card
-    title="Bundle source"
-    href="/docs/guide/core-concepts/bundle-source"
-    description="How builtin and remote bundles resolve at runtime."
-  />
-</Cards>

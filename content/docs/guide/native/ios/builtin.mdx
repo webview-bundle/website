@@ -28,23 +28,3 @@ To read from a different location, set `builtinDir` on `WebViewBundleConfig.sour
 ## Remote or local
 
 The install source is config-driven, not a flag: `builtin.target` is a discriminated union of `remote` (the default) and `local`. `--endpoint`, `--channel`, `--concurrency`, and `--progress` apply to the remote target only. See [wvb builtin](/docs/references/cli/builtin) for every option.
-
-## See also
-
-<Cards>
-  <Card
-    title="iOS setup"
-    href="/docs/guide/native/ios"
-    description="Configure the package, register a scheme, and serve bundles in a WKWebView."
-  />
-  <Card
-    title="wvb builtin"
-    href="/docs/references/cli/builtin"
-    description="Full flag reference for the builtin install command."
-  />
-  <Card
-    title="Bundle sources"
-    href="/docs/guide/core-concepts/bundle-source"
-    description="How builtin and remote sources work together."
-  />
-</Cards>

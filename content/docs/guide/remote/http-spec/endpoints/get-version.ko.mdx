@@ -79,28 +79,3 @@ HTTP/1.1 403 Forbidden
 $ curl -sI http://localhost:4313/bundles/app/9.9.9
 HTTP/1.1 404 Not Found
 ```
-
-## 관련 문서
-
-<Cards>
-  <Card
-    title="GET /bundles/{name}"
-    href="/docs/guide/remote/http-spec/endpoints/get-current"
-    description="현재 버전을 다운로드하며, 선택적으로 채널을 지정합니다."
-  />
-  <Card
-    title="오류"
-    href="/docs/guide/remote/http-spec/errors"
-    description="상태 코드와 JSON 오류 본문 형태."
-  />
-  <Card
-    title="원격 HTTP 명세"
-    href="/docs/guide/remote/http-spec"
-    description="모든 원격 서버가 구현하는 전체 계약."
-  />
-  <Card
-    title="로컬 프로바이더"
-    href="/docs/guide/remote/providers/local"
-    description="이 경로의 허용 여부를 결정하는 allowOtherVersions 옵션."
-  />
-</Cards>

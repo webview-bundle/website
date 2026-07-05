@@ -119,23 +119,3 @@ type RemoteBundleInfo = {
 ```
 
 The `integrity` and `signature` fields carry the values the remote advertises through the `Webview-Bundle-Integrity` and `Webview-Bundle-Signature` response headers. See [Errors](/docs/guide/remote/http-spec/errors) for how the client surfaces non-success responses such as `404` (not deployed) and `403` (forbidden).
-
-## Related
-
-<Cards>
-  <Card
-    title="Building a remote"
-    href="/docs/guide/remote"
-    description="Stand up a remote, test it locally, and choose a provider."
-  />
-  <Card
-    title="Remote HTTP Spec"
-    href="/docs/guide/remote/http-spec"
-    description="The HTTP contract every remote implements."
-  />
-  <Card
-    title="Types"
-    href="/docs/references/javascript/node/types"
-    description="Enums, option interfaces, and result types for @wvb/node."
-  />
-</Cards>

@@ -46,23 +46,3 @@ Source::new().builtin_dir_fn(|app| Ok(app.path().resource_dir()?.join("bundles")
   배포됩니다. 플러그인은 첫 요청 시 APK에서 번들을 추출하므로, 앱에서 `tauri_plugin_fs::init()`도
   함께 등록해야 합니다. [Tauri 모바일](/docs/guide/native/tauri/mobile)을 참고하세요.
 </Callout>
-
-## 함께 보기
-
-<Cards>
-  <Card
-    title="Tauri 설정"
-    href="/docs/guide/native/tauri"
-    description="wvb-tauri 플러그인을 등록하고 윈도우가 번들 스킴을 가리키도록 설정합니다."
-  />
-  <Card
-    title="wvb builtin"
-    href="/docs/references/cli/builtin"
-    description="빌트인 번들을 설치하기 위한 모든 플래그."
-  />
-  <Card
-    title="번들 소스"
-    href="/docs/guide/core-concepts/bundle-source"
-    description="빌트인 번들과 리모트 번들이 런타임에 해석되는 방식."
-  />
-</Cards>

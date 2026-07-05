@@ -36,23 +36,3 @@ The bridge only forwards these calls to the native host — the updater and its 
   If no updater is configured on the host, `updater` calls reject with a `BridgeError` whose `code`
   is `BridgeErrorCode.UpdaterNotInitialized`.
 </Callout>
-
-## See also
-
-<Cards>
-  <Card
-    title="Over-the-air updates"
-    href="/docs/guide/core-concepts/over-the-air"
-    description="How OTA updates, integrity, and signatures work."
-  />
-  <Card
-    title="Updater bridge reference"
-    href="/docs/references/javascript/bridge/updater"
-    description="updater.* methods and BundleUpdateInfo."
-  />
-  <Card
-    title="Remote bridge reference"
-    href="/docs/references/javascript/bridge/remote"
-    description="Query and download from the configured remote directly."
-  />
-</Cards>

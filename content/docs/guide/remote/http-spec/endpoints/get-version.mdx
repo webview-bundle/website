@@ -79,28 +79,3 @@ A version that is not deployed returns `404`:
 $ curl -sI http://localhost:4313/bundles/app/9.9.9
 HTTP/1.1 404 Not Found
 ```
-
-## Related
-
-<Cards>
-  <Card
-    title="GET /bundles/{name}"
-    href="/docs/guide/remote/http-spec/endpoints/get-current"
-    description="Download the current version, optionally for a channel."
-  />
-  <Card
-    title="Errors"
-    href="/docs/guide/remote/http-spec/errors"
-    description="Status codes and the JSON error body shape."
-  />
-  <Card
-    title="Remote HTTP Spec"
-    href="/docs/guide/remote/http-spec"
-    description="The full contract every remote server implements."
-  />
-  <Card
-    title="Local provider"
-    href="/docs/guide/remote/providers/local"
-    description="The allowOtherVersions option that gates this route."
-  />
-</Cards>
