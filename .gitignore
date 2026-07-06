@@ -16,15 +16,16 @@ node_modules
 #!.yarn/cache
 .pnp.*
 
-.tanstack/
 .source/
-dist/
+.next/
+.open-next/
+next-env.d.ts
 .wrangler/
 .dev.vars
 .idea
+*.tsbuildinfo
 
-# Local env files (e.g. VITE_SENTRY_DSN for production builds). Vite loads
-# `.env.production.local` automatically; keep the DSN out of this public repo.
+# Local env files (e.g. NEXT_PUBLIC_SENTRY_DSN). Keep secrets out of this public repo.
 .env*.local
 
 # macOS

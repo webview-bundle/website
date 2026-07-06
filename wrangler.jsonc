@@ -2,10 +2,14 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "webview-bundle-website",
   "compatibility_date": "2026-04-19",
-  "compatibility_flags": ["nodejs_compat"],
-  "main": "./src/server.ts",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "main": ".open-next/worker.js",
   "workers_dev": false,
   "preview_urls": true,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
   "observability": {
     "enabled": true
   }

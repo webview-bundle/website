@@ -1,6 +1,6 @@
 ---
 title: 현재 메타데이터 조회
-description: HEAD /bundles/{name}은 현재 배포된 버전의 메타데이터를 응답 헤더로 반환하며, 본문은 없습니다.
+description: HEAD /bundles/\{name\}은 현재 배포된 버전의 메타데이터를 응답 헤더로 반환하며, 본문은 없습니다.
 ---
 
 `HEAD /bundles/{name}`은 번들의 현재 배포된 버전의 메타데이터를 응답 헤더로 반환하며, 본문은 없습니다. 업데이터는 무언가를 다운로드하기 전에 이 요청을 호출하여 더 새로운 버전이 있는지 확인합니다.
@@ -39,7 +39,7 @@ HEAD /bundles/{name}
 클라이언트는 이 헤더들을 대소문자 구분 없이 읽으며, `Webview-Bundle-Name` 또는 `Webview-Bundle-Version`이 빠진 응답은 거부합니다.
 
 <Callout type="info">
-  이 경로는 메타데이터만 반환합니다. 번들 바이트를 가져오려면 [GET /bundles/{name}
+  이 경로는 메타데이터만 반환합니다. 번들 바이트를 가져오려면 [GET /bundles/\{name\}
   ](/docs/guide/remote/http-spec/endpoints/get-current)을 사용하세요.
 </Callout>
 
