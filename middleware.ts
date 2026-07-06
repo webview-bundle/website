@@ -1,5 +1,5 @@
-import { createI18nMiddleware } from 'fumadocs-core/i18n/middleware';
 import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { createI18nMiddleware } from 'fumadocs-core/i18n/middleware';
 import type { NextFetchEvent, NextRequest } from 'next/server';
 import { enforceAccess } from '@/lib/access';
 import { i18n } from '@/lib/i18n';
@@ -15,7 +15,10 @@ export default async function middleware(request: NextRequest, event: NextFetchE
   if (request.nextUrl.hostname.endsWith('.workers.dev')) {
     try {
       const { env } = await getCloudflareContext({ async: true });
-      const denied = await enforceAccess(request, env as unknown as Parameters<typeof enforceAccess>[1]);
+      const denied = await enforceAccess(
+        request,
+        env as unknown as Parameters<typeof enforceAccess>[1]
+      );
       if (denied != null) return denied;
     } catch (error) {
       console.error('Cloudflare Access enforcement failed:', error);

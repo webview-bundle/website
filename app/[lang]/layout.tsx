@@ -25,7 +25,7 @@ export default async function LangLayout({
   const locale = lang as Locale;
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning={true}>
       <body className="flex min-h-screen flex-col">
         <RootProvider
           i18n={{

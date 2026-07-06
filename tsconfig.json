@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "ESNext",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "module": "esnext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
@@ -27,12 +23,8 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "collections/*": [
-        "./.source/*"
-      ]
+      "@/*": ["./*"],
+      "collections/*": ["./.source/*"]
     }
   },
   "include": [
@@ -42,9 +34,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "scripts",
-    ".open-next"
-  ]
+  "exclude": ["node_modules", "scripts", ".open-next"]
 }
