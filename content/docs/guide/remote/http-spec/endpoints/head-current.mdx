@@ -1,6 +1,6 @@
 ---
 title: Get current metadata
-description: HEAD /bundles/{name} returns the current deployed version's metadata as response headers, with no body.
+description: HEAD /bundles/\{name\} returns the current deployed version's metadata as response headers, with no body.
 ---
 
 `HEAD /bundles/{name}` returns the metadata of a bundle's current deployed version as response headers, with no body. The updater calls it to check whether a newer version is available before downloading anything.
@@ -39,7 +39,7 @@ Success is `204 No Content`: the response carries metadata headers only and neve
 The client reads these headers case-insensitively and rejects a response that omits `Webview-Bundle-Name` or `Webview-Bundle-Version`.
 
 <Callout type="info">
-  This route returns metadata only. To fetch the bundle bytes, use [GET /bundles/{name}
+  This route returns metadata only. To fetch the bundle bytes, use [GET /bundles/\{name\}
   ](/docs/guide/remote/http-spec/endpoints/get-current).
 </Callout>
 
