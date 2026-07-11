@@ -22,6 +22,7 @@ dist/
 .wrangler/
 .dev.vars
 .idea
+*.env
 
 # Local env files (e.g. VITE_SENTRY_DSN for production builds). Vite loads
 # `.env.production.local` automatically; keep the DSN out of this public repo.
