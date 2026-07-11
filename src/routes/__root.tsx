@@ -28,6 +28,22 @@ export const Route = createRootRoute({
         href: 'https://static.wvb.dev',
       },
       {
+        rel: 'icon',
+        href: '/favicon.ico',
+        sizes: '32x32',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        href: '/favicon-96x96.png',
+        sizes: '96x96',
+      },
+      {
+        rel: 'apple-touch-icon',
+        href: '/apple-touch-icon.png',
+        sizes: '180x180',
+      },
+      {
         rel: 'stylesheet',
         href: styles,
       },

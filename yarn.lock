@@ -4289,24 +4289,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"garu-ko@npm:0.9.7":
-  version: 0.9.7
-  resolution: "garu-ko@npm:0.9.7"
-  checksum: 10c0/660f5e5d8bca42a2d4326c8add45dc25cbf1c066b9c0685fa285728665b80a31201768a37bb86dd744fad88540c49343cb5ff4474ee7677afc000e18417d365d
-  languageName: node
-  linkType: hard
-
-"garu-orama-tokenizer@npm:0.4.1":
-  version: 0.4.1
-  resolution: "garu-orama-tokenizer@npm:0.4.1"
-  dependencies:
-    garu-ko: "npm:^0.9.0"
-  peerDependencies:
-    "@orama/orama": ">=2.0.0"
-  checksum: 10c0/19d1e885dfb32430a7869e2549de6d5ff8a4fb8363cafc8d6ecbe4b413983c8c4ef3c0e185b5f228688ddc9925533f58f390b8330e829614be0eb0ca9c045e60
-  languageName: node
-  linkType: hard
-
 "gensync@npm:^1.0.0-beta.2":
   version: 1.0.0-beta.2
   resolution: "gensync@npm:1.0.0-beta.2"
@@ -7272,8 +7254,6 @@ __metadata:
     fumadocs-core: "npm:16.10.7"
     fumadocs-mdx: "npm:15.0.13"
     fumadocs-ui: "npm:16.10.7"
-    garu-ko: "npm:0.9.7"
-    garu-orama-tokenizer: "npm:0.4.1"
     jose: "npm:6.2.3"
     oxfmt: "npm:0.57.0"
     oxlint: "npm:1.72.0"

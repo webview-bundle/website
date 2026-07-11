@@ -46,6 +46,14 @@ export interface UiStrings {
     bundleFormatLink: string;
   };
   notFound: { title: string; message: string; home: string; docs: string };
+  error: {
+    eyebrow: string;
+    title: string;
+    message: string;
+    retry: string;
+    home: string;
+    eventId: string;
+  };
 }
 
 const en: UiStrings = {
@@ -146,6 +154,15 @@ const en: UiStrings = {
     message: "The page you're looking for doesn't exist or may have moved.",
     home: 'Go home',
     docs: 'Browse docs',
+  },
+  error: {
+    eyebrow: 'Error',
+    title: 'Something went wrong',
+    message:
+      'This page failed to load. The error has been reported to us — retrying often clears it.',
+    retry: 'Try again',
+    home: 'Go home',
+    eventId: 'Error ID',
   },
 };
 
@@ -249,6 +266,15 @@ const ko: UiStrings = {
     message: '요청하신 페이지가 없거나 이동되었을 수 있습니다.',
     home: '홈으로',
     docs: '문서 보기',
+  },
+  error: {
+    eyebrow: '오류',
+    title: '문제가 발생했습니다',
+    message:
+      '페이지를 불러오지 못했습니다. 오류는 자동으로 보고되었으며, 다시 시도하면 해결되는 경우가 많습니다.',
+    retry: '다시 시도',
+    home: '홈으로',
+    eventId: '오류 ID',
   },
 };
 
