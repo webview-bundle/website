@@ -66,5 +66,13 @@
     "typeAware": true,
     "typeCheck": true
   },
-  "ignorePatterns": [".yarn", "**/*.js", "**/*.cjs", "**/*.d.ts", "**/*.d.cts", "**/*.gen.ts"]
+  "ignorePatterns": [
+    ".yarn",
+    "**/*.js",
+    "**/*.cjs",
+    "**/*.d.ts",
+    "**/*.d.cts",
+    "**/*.gen.ts",
+    "**/*.mdx"
+  ]
 }
