@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/tanstackstart-react';
-import { type ErrorComponentProps, useRouterState } from '@tanstack/react-router';
+import { type ErrorComponentProps, useRouter, useRouterState } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { localeFromPathname, localizeHref, LocaleProvider, useLocale } from '../lib/locale';
 import { useUiStrings } from '../lib/ui-strings';
@@ -9,7 +9,7 @@ import { SiteHeader } from './SiteHeader';
 // catches anything a route's render or loader throws — including the docs
 // loaders — and, like `NotFound`, takes its locale from the path so a reader who
 // broke on `/ko/...` stays in Korean.
-export function ErrorPage({ error, info, reset }: ErrorComponentProps) {
+export function ErrorPage({ error, info }: ErrorComponentProps) {
   const pathname = useRouterState({ select: state => state.location.pathname });
   const locale = localeFromPathname(pathname);
 
@@ -18,24 +18,25 @@ export function ErrorPage({ error, info, reset }: ErrorComponentProps) {
       <div className="flex min-h-svh flex-col bg-fd-background text-fd-foreground">
         <SiteHeader className="sticky top-0" />
         <main className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
-          <ErrorBody error={error} info={info} reset={reset} />
+          <ErrorBody error={error} info={info} />
         </main>
       </div>
     </LocaleProvider>
   );
 }
 
-function ErrorBody({ error, info, reset }: ErrorComponentProps) {
+function ErrorBody({ error, info }: Omit<ErrorComponentProps, 'reset'>) {
   const t = useUiStrings();
   const locale = useLocale();
+  const router = useRouter();
   const [eventId, setEventId] = useState<string>();
   const reported = useRef<unknown>(undefined);
 
   // Report to Sentry once per error instance — the ref survives the re-renders
-  // and remounts that `reset` triggers, so a reader retrying a persistent
-  // failure doesn't send the same event repeatedly. `info.componentStack` is
-  // attached under the `react` context, the same key Sentry's React integration
-  // uses, so the stack shows up where the UI expects it.
+  // and remounts a retry triggers, so a reader retrying a persistent failure
+  // doesn't send the same event repeatedly. `info.componentStack` is attached
+  // under the `react` context, the same key Sentry's React integration uses, so
+  // the stack shows up where the UI expects it.
   //
   // Effects never run during SSR, so this fires on the client only. That is the
   // point: an error the router catches and renders here never propagates out of
@@ -71,9 +72,13 @@ function ErrorBody({ error, info, reset }: ErrorComponentProps) {
       )}
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        {/* `reset` alone only clears the error boundary, which for a loader
+            failure just re-renders the same stored error. `invalidate` re-runs
+            the loaders and bumps the router's `loadedAt`, which is the key the
+            boundary resets on — so this actually retries. */}
         <button
           type="button"
-          onClick={reset}
+          onClick={() => void router.invalidate()}
           className="inline-flex items-center justify-center gap-2 rounded-md bg-brand px-5 py-2.5 font-mono text-[14px] font-medium text-white transition-colors hover:bg-brand-hover"
         >
           {t.error.retry}

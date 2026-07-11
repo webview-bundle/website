@@ -161,8 +161,16 @@ export function createKoreanTokenizer(): Tokenizer {
   return {
     language: 'korean',
     normalizationCache: new Map<string, string>(),
-    tokenize(raw: string, language?: string, prop?: string, withCache?: boolean): string[] {
-      return [...new Set([...base.tokenize(raw, language, prop, withCache), ...koreanTokens(raw)])];
+    // The incoming `language` is deliberately dropped rather than forwarded:
+    // Orama's tokenizer throws LANGUAGE_NOT_SUPPORTED for any language that
+    // isn't its own, so handing our `korean` to an `english` base would blow up
+    // the moment a caller passes one (Orama leaves it undefined today, which is
+    // the only reason forwarding it appeared to work). `prop` and `withCache`
+    // still go through — they only drive the base's normalization cache.
+    tokenize(raw: string, _language?: string, prop?: string, withCache?: boolean): string[] {
+      return [
+        ...new Set([...base.tokenize(raw, undefined, prop, withCache), ...koreanTokens(raw)]),
+      ];
     },
   };
 }
