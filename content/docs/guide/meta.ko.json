@@ -30,6 +30,9 @@
     "remote/index",
     "remote/using-cli",
     "remote/providers",
-    "remote/http-spec"
+    "remote/http-spec",
+    "---AI---",
+    "external:[llms.txt](/ko/llms.txt)",
+    "external:[llms-full.txt](/ko/llms-full.txt)"
   ]
 }

@@ -9,9 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
+import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.]txt'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KoIndexRouteImport } from './routes/ko/index'
 import { Route as DocsIndexRouteImport } from './routes/docs/index'
+import { Route as KoLlmsDottxtRouteImport } from './routes/ko/llms[.]txt'
+import { Route as KoLlmsFullDottxtRouteImport } from './routes/ko/llms-full[.]txt'
 import { Route as DocsChangelogRouteImport } from './routes/docs/changelog'
 import { Route as DocsSplatRouteImport } from './routes/docs/$'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
@@ -19,6 +23,16 @@ import { Route as KoDocsIndexRouteImport } from './routes/ko/docs/index'
 import { Route as KoDocsChangelogRouteImport } from './routes/ko/docs/changelog'
 import { Route as KoDocsSplatRouteImport } from './routes/ko/docs/$'
 
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsFullDottxtRoute = LlmsFullDottxtRouteImport.update({
+  id: '/llms-full.txt',
+  path: '/llms-full.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -32,6 +46,16 @@ const KoIndexRoute = KoIndexRouteImport.update({
 const DocsIndexRoute = DocsIndexRouteImport.update({
   id: '/docs/',
   path: '/docs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KoLlmsDottxtRoute = KoLlmsDottxtRouteImport.update({
+  id: '/ko/llms.txt',
+  path: '/ko/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KoLlmsFullDottxtRoute = KoLlmsFullDottxtRouteImport.update({
+  id: '/ko/llms-full.txt',
+  path: '/ko/llms-full.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsChangelogRoute = DocsChangelogRouteImport.update({
@@ -67,9 +91,13 @@ const KoDocsSplatRoute = KoDocsSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/api/search': typeof ApiSearchRoute
   '/docs/$': typeof DocsSplatRoute
   '/docs/changelog': typeof DocsChangelogRoute
+  '/ko/llms-full.txt': typeof KoLlmsFullDottxtRoute
+  '/ko/llms.txt': typeof KoLlmsDottxtRoute
   '/docs/': typeof DocsIndexRoute
   '/ko/': typeof KoIndexRoute
   '/ko/docs/$': typeof KoDocsSplatRoute
@@ -78,9 +106,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/api/search': typeof ApiSearchRoute
   '/docs/$': typeof DocsSplatRoute
   '/docs/changelog': typeof DocsChangelogRoute
+  '/ko/llms-full.txt': typeof KoLlmsFullDottxtRoute
+  '/ko/llms.txt': typeof KoLlmsDottxtRoute
   '/docs': typeof DocsIndexRoute
   '/ko': typeof KoIndexRoute
   '/ko/docs/$': typeof KoDocsSplatRoute
@@ -90,9 +122,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/api/search': typeof ApiSearchRoute
   '/docs/$': typeof DocsSplatRoute
   '/docs/changelog': typeof DocsChangelogRoute
+  '/ko/llms-full.txt': typeof KoLlmsFullDottxtRoute
+  '/ko/llms.txt': typeof KoLlmsDottxtRoute
   '/docs/': typeof DocsIndexRoute
   '/ko/': typeof KoIndexRoute
   '/ko/docs/$': typeof KoDocsSplatRoute
@@ -103,9 +139,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/api/search'
     | '/docs/$'
     | '/docs/changelog'
+    | '/ko/llms-full.txt'
+    | '/ko/llms.txt'
     | '/docs/'
     | '/ko/'
     | '/ko/docs/$'
@@ -114,9 +154,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/api/search'
     | '/docs/$'
     | '/docs/changelog'
+    | '/ko/llms-full.txt'
+    | '/ko/llms.txt'
     | '/docs'
     | '/ko'
     | '/ko/docs/$'
@@ -125,9 +169,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/llms-full.txt'
+    | '/llms.txt'
     | '/api/search'
     | '/docs/$'
     | '/docs/changelog'
+    | '/ko/llms-full.txt'
+    | '/ko/llms.txt'
     | '/docs/'
     | '/ko/'
     | '/ko/docs/$'
@@ -137,9 +185,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   ApiSearchRoute: typeof ApiSearchRoute
   DocsSplatRoute: typeof DocsSplatRoute
   DocsChangelogRoute: typeof DocsChangelogRoute
+  KoLlmsFullDottxtRoute: typeof KoLlmsFullDottxtRoute
+  KoLlmsDottxtRoute: typeof KoLlmsDottxtRoute
   DocsIndexRoute: typeof DocsIndexRoute
   KoIndexRoute: typeof KoIndexRoute
   KoDocsSplatRoute: typeof KoDocsSplatRoute
@@ -149,6 +201,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms-full.txt': {
+      id: '/llms-full.txt'
+      path: '/llms-full.txt'
+      fullPath: '/llms-full.txt'
+      preLoaderRoute: typeof LlmsFullDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -168,6 +234,20 @@ declare module '@tanstack/react-router' {
       path: '/docs'
       fullPath: '/docs/'
       preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ko/llms.txt': {
+      id: '/ko/llms.txt'
+      path: '/ko/llms.txt'
+      fullPath: '/ko/llms.txt'
+      preLoaderRoute: typeof KoLlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ko/llms-full.txt': {
+      id: '/ko/llms-full.txt'
+      path: '/ko/llms-full.txt'
+      fullPath: '/ko/llms-full.txt'
+      preLoaderRoute: typeof KoLlmsFullDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs/changelog': {
@@ -217,9 +297,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LlmsFullDottxtRoute: LlmsFullDottxtRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   ApiSearchRoute: ApiSearchRoute,
   DocsSplatRoute: DocsSplatRoute,
   DocsChangelogRoute: DocsChangelogRoute,
+  KoLlmsFullDottxtRoute: KoLlmsFullDottxtRoute,
+  KoLlmsDottxtRoute: KoLlmsDottxtRoute,
   DocsIndexRoute: DocsIndexRoute,
   KoIndexRoute: KoIndexRoute,
   KoDocsSplatRoute: KoDocsSplatRoute,
