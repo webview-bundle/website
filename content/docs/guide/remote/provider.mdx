@@ -1,0 +1,202 @@
+---
+title: 'Providers'
+description:
+  'Provision an AWS or Cloudflare remote and connect its publishing client.'
+---
+
+Create a remote server to host bundles and update documents. This guide uses the
+supplied Pulumi components for AWS and Cloudflare, then connects the publishing
+client used by `wvb upload` and `wvb deploy`.
+
+## Before you begin
+
+Prepare a
+[Pulumi TypeScript project](https://www.pulumi.com/docs/iac/get-started/) with
+an initialized stack, Node.js, and credentials for the chosen cloud account.
+Keep infrastructure code in its own directory. Run publishing commands from your
+app project, using that account's upload credentials.
+
+## AWS
+
+The component creates an S3 bucket, a CloudFront distribution, and an
+origin-request Lambda@Edge function. The Lambda is created in `us-east-1`; the
+bucket can use the configured AWS region.
+
+### 1. Add the infrastructure component
+
+In the Pulumi project, install the component and its peer dependencies:
+
+```sh
+yarn add @wvb/remote-aws @pulumi/aws@^7 @pulumi/pulumi@^3
+```
+
+Create the remote and export the values needed for publishing:
+
+```ts title="index.ts"
+import { WebviewBundleRemoteProvider } from '@wvb/remote-aws/pulumi';
+
+const remote = new WebviewBundleRemoteProvider('updates', {
+  bucketName: 'BUCKET_NAME',
+  region: 'us-east-1',
+});
+
+export const baseUrl = remote.cloudfrontDistributionDomainName.apply(
+  domain => `https://${domain}`
+);
+export const bucketName = remote.bucketName;
+export const distributionId = remote.cloudfrontDistributionId;
+```
+
+Replace `BUCKET_NAME` with a globally unique, lowercase S3 bucket name.
+Authenticate with the
+[Pulumi AWS provider](https://www.pulumi.com/registry/packages/aws/installation-configuration/)
+before the next step.
+
+### 2. Provision the server
+
+Review the proposed resources, then apply the stack:
+
+```sh
+pulumi preview
+pulumi up
+```
+
+Wait for CloudFront deployment to finish. Save the `baseUrl`, `bucketName`, and
+`distributionId` outputs.
+
+### 3. Configure publishing
+
+In the app project, install `@wvb/remote-aws` and merge this `remote` block into
+`wvb.config.ts`:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { awsRemote } from '@wvb/remote-aws';
+
+export default defineConfig({
+  remote: {
+    baseUrl: 'REMOTE_BASE_URL',
+    integrity: { algorithm: 'sha256' },
+    ...awsRemote({
+      bucket: 'BUCKET_NAME',
+      deployer: { invalidate: { distributionId: 'DISTRIBUTION_ID' } },
+    }),
+  },
+});
+```
+
+Replace `REMOTE_BASE_URL`, `BUCKET_NAME`, and `DISTRIBUTION_ID` with the stack
+outputs. AWS credentials and the bucket region come from the AWS SDK credential
+and region configuration. The publishing identity needs access to the bucket
+and, for this example, CloudFront invalidation.
+
+## Cloudflare
+
+The component creates an R2 bucket, a KV namespace, and a Worker version and
+deployment. R2 holds `.wvb` files; KV holds update documents and current-update
+pointers.
+
+### 1. Add the infrastructure component
+
+In a Cloudflare Pulumi project, install:
+
+```sh
+yarn add @wvb/remote-cloudflare @pulumi/cloudflare@^6 @pulumi/pulumi@^3
+```
+
+Create the component and export its resource identifiers:
+
+```ts title="index.ts"
+import { WebviewBundleRemoteProvider } from '@wvb/remote-cloudflare/pulumi';
+
+const remote = new WebviewBundleRemoteProvider('updates', {
+  accountId: 'ACCOUNT_ID',
+  worker: { name: 'webview-bundle' },
+});
+
+export const bucketName = remote.bucketName;
+export const kvNamespaceId = remote.kvNamespaceId;
+export const workerId = remote.workerId;
+```
+
+Replace `ACCOUNT_ID` with your Cloudflare account ID. Configure the
+[Pulumi Cloudflare provider](https://www.pulumi.com/registry/packages/cloudflare/)
+with an API token that can create the Worker, R2 bucket, and KV namespace.
+
+### 2. Provision the server and expose its URL
+
+Review and apply the stack:
+
+```sh
+pulumi preview
+pulumi up
+```
+
+In the Cloudflare dashboard, open the `webview-bundle` Worker and enable its
+[workers.dev route](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/)
+under **Settings > Domains & Routes**, or attach a custom domain. Save that
+HTTPS address as the remote base URL. The Pulumi component does not export a
+public URL or create a custom domain.
+
+### 3. Configure publishing
+
+In the app project, install `@wvb/remote-cloudflare`. The publisher needs R2
+S3-compatible credentials and a Cloudflare API token for KV. Read them from
+environment variables:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { cloudflareRemote } from '@wvb/remote-cloudflare';
+
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing environment variable: ${name}`);
+  return value;
+}
+
+export default defineConfig({
+  remote: {
+    baseUrl: 'REMOTE_BASE_URL',
+    integrity: { algorithm: 'sha256' },
+    ...cloudflareRemote({
+      accountId: 'ACCOUNT_ID',
+      bucket: 'BUCKET_NAME',
+      kvNamespaceId: 'KV_NAMESPACE_ID',
+      aws: {
+        region: 'auto',
+        credentials: {
+          accessKeyId: required('R2_ACCESS_KEY_ID'),
+          secretAccessKey: required('R2_SECRET_ACCESS_KEY'),
+        },
+      },
+      cloudflareConfig: {
+        apiToken: required('CLOUDFLARE_API_TOKEN'),
+      },
+    }),
+  },
+});
+```
+
+Replace `REMOTE_BASE_URL` with the Worker URL, `ACCOUNT_ID` with the account ID,
+and `BUCKET_NAME` and `KV_NAMESPACE_ID` with the stack outputs. Set
+`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, and `CLOUDFLARE_API_TOKEN` in the
+local or CI publishing environment.
+
+## Verify the remote
+
+Request an update from the deployed URL:
+
+```sh
+curl -i 'REMOTE_BASE_URL/update' \
+  -H 'wvb-update-protocol-version: 1' \
+  -H 'wvb-runtime-version: 1' \
+  -H 'wvb-update-channel: stable'
+```
+
+Replace `REMOTE_BASE_URL` with the HTTPS base URL. An empty channel returns
+`204`; after publishing to `stable`, it returns `200` with an update document. A
+`404` on `/update` means the URL or routing is wrong.
+
+Continue with [Releasing](/docs/guide/releasing) to upload and deploy the first
+bundle. For a custom server, see
+[Remote specification](/docs/guide/remote/spec).

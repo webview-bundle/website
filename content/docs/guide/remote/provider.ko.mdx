@@ -1,0 +1,199 @@
+---
+title: '제공자'
+description: 'AWS 또는 Cloudflare 리모트를 만들고 배포 클라이언트를 연결하세요.'
+---
+
+번들과 업데이트 문서를 제공할 리모트 서버를 만듭니다. AWS·Cloudflare용 Pulumi
+컴포넌트로 리소스를 생성하고, `wvb upload`와 `wvb deploy`가 사용하는 배포
+클라이언트를 연결합니다.
+
+## 시작 전 준비
+
+스택을 초기화한
+[Pulumi TypeScript 프로젝트](https://www.pulumi.com/docs/iac/get-started/),
+Node.js, 선택한 클라우드 계정의 자격 증명을 준비하세요. 인프라 코드는 별도
+디렉터리에서 관리합니다. 번들 배포 명령은 해당 계정의 업로드 자격 증명을 사용해
+앱 프로젝트에서 실행합니다.
+
+## AWS
+
+컴포넌트는 S3 버킷, CloudFront 배포, origin-request Lambda@Edge 함수를
+생성합니다. Lambda는 `us-east-1`에 생성하고, 버킷은 설정한 AWS 리전을 사용할 수
+있습니다.
+
+### 1. 인프라 컴포넌트 추가
+
+Pulumi 프로젝트에서 컴포넌트와 피어 의존성을 설치하세요:
+
+```sh
+yarn add @wvb/remote-aws @pulumi/aws@^7 @pulumi/pulumi@^3
+```
+
+리모트를 생성하고 배포에 필요한 값을 출력하세요:
+
+```ts title="index.ts"
+import { WebviewBundleRemoteProvider } from '@wvb/remote-aws/pulumi';
+
+const remote = new WebviewBundleRemoteProvider('updates', {
+  bucketName: 'BUCKET_NAME',
+  region: 'us-east-1',
+});
+
+export const baseUrl = remote.cloudfrontDistributionDomainName.apply(
+  domain => `https://${domain}`
+);
+export const bucketName = remote.bucketName;
+export const distributionId = remote.cloudfrontDistributionId;
+```
+
+`BUCKET_NAME`은 전역에서 고유한 소문자 S3 버킷 이름으로 바꾸세요. 다음 단계 전에
+[Pulumi AWS 제공자](https://www.pulumi.com/registry/packages/aws/installation-configuration/)에
+인증하세요.
+
+### 2. 서버 생성
+
+생성할 리소스를 확인한 뒤 스택을 적용하세요:
+
+```sh
+pulumi preview
+pulumi up
+```
+
+CloudFront 배포가 완료될 때까지 기다리세요. 출력한 `baseUrl`, `bucketName`,
+`distributionId`를 보관하세요.
+
+### 3. 배포 클라이언트 설정
+
+앱 프로젝트에 `@wvb/remote-aws`를 설치하고 `wvb.config.ts`에 다음 `remote`
+설정을 병합하세요:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { awsRemote } from '@wvb/remote-aws';
+
+export default defineConfig({
+  remote: {
+    baseUrl: 'REMOTE_BASE_URL',
+    integrity: { algorithm: 'sha256' },
+    ...awsRemote({
+      bucket: 'BUCKET_NAME',
+      deployer: { invalidate: { distributionId: 'DISTRIBUTION_ID' } },
+    }),
+  },
+});
+```
+
+`REMOTE_BASE_URL`, `BUCKET_NAME`, `DISTRIBUTION_ID`를 스택 출력값으로 바꾸세요.
+AWS 자격 증명과 버킷 리전은 AWS SDK의 자격 증명·리전 설정에서 읽습니다. 배포
+주체에는 버킷 접근 권한과 이 예제에서 사용하는 CloudFront 무효화 권한이
+필요합니다.
+
+## Cloudflare
+
+컴포넌트는 R2 버킷, KV 네임스페이스, Worker 버전과 배포를 생성합니다. R2에는
+`.wvb` 파일을, KV에는 업데이트 문서와 현재 업데이트 포인터를 저장합니다.
+
+### 1. 인프라 컴포넌트 추가
+
+Cloudflare Pulumi 프로젝트에서 다음 의존성을 설치하세요:
+
+```sh
+yarn add @wvb/remote-cloudflare @pulumi/cloudflare@^6 @pulumi/pulumi@^3
+```
+
+컴포넌트를 생성하고 리소스 식별자를 출력하세요:
+
+```ts title="index.ts"
+import { WebviewBundleRemoteProvider } from '@wvb/remote-cloudflare/pulumi';
+
+const remote = new WebviewBundleRemoteProvider('updates', {
+  accountId: 'ACCOUNT_ID',
+  worker: { name: 'webview-bundle' },
+});
+
+export const bucketName = remote.bucketName;
+export const kvNamespaceId = remote.kvNamespaceId;
+export const workerId = remote.workerId;
+```
+
+`ACCOUNT_ID`는 Cloudflare 계정 ID로 바꾸세요. Worker, R2 버킷, KV 네임스페이스를
+생성할 수 있는 API 토큰으로
+[Pulumi Cloudflare 제공자](https://www.pulumi.com/registry/packages/cloudflare/)를
+설정하세요.
+
+### 2. 서버 생성과 URL 연결
+
+스택을 검토하고 적용하세요:
+
+```sh
+pulumi preview
+pulumi up
+```
+
+Cloudflare 대시보드에서 `webview-bundle` Worker를 열고 **Settings > Domains &
+Routes**에서
+[workers.dev 경로](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/)를
+활성화하거나 사용자 정의 도메인을 연결하세요. 해당 HTTPS 주소를 리모트 기본
+URL로 사용합니다. Pulumi 컴포넌트는 공개 URL을 출력하거나 사용자 정의 도메인을
+생성하지 않습니다.
+
+### 3. 배포 클라이언트 설정
+
+앱 프로젝트에 `@wvb/remote-cloudflare`를 설치하세요. 배포 클라이언트에는 R2의 S3
+호환 자격 증명과 KV용 Cloudflare API 토큰이 필요합니다. 환경 변수에서 읽도록
+설정하세요:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { cloudflareRemote } from '@wvb/remote-cloudflare';
+
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing environment variable: ${name}`);
+  return value;
+}
+
+export default defineConfig({
+  remote: {
+    baseUrl: 'REMOTE_BASE_URL',
+    integrity: { algorithm: 'sha256' },
+    ...cloudflareRemote({
+      accountId: 'ACCOUNT_ID',
+      bucket: 'BUCKET_NAME',
+      kvNamespaceId: 'KV_NAMESPACE_ID',
+      aws: {
+        region: 'auto',
+        credentials: {
+          accessKeyId: required('R2_ACCESS_KEY_ID'),
+          secretAccessKey: required('R2_SECRET_ACCESS_KEY'),
+        },
+      },
+      cloudflareConfig: {
+        apiToken: required('CLOUDFLARE_API_TOKEN'),
+      },
+    }),
+  },
+});
+```
+
+`REMOTE_BASE_URL`은 Worker URL, `ACCOUNT_ID`는 계정 ID, `BUCKET_NAME`과
+`KV_NAMESPACE_ID`는 스택 출력값으로 바꾸세요. 로컬 또는 CI 배포 환경에
+`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `CLOUDFLARE_API_TOKEN`을 설정하세요.
+
+## 리모트 확인
+
+생성한 URL에서 업데이트를 조회하세요:
+
+```sh
+curl -i 'REMOTE_BASE_URL/update' \
+  -H 'wvb-update-protocol-version: 1' \
+  -H 'wvb-runtime-version: 1' \
+  -H 'wvb-update-channel: stable'
+```
+
+`REMOTE_BASE_URL`은 HTTPS 기본 URL로 바꾸세요. 배포한 업데이트가 없는 채널은
+`204`를 반환하고, `stable`에 배포한 후에는 업데이트 문서와 함께 `200`을
+반환합니다. `/update`에서 `404`가 나오면 URL과 라우팅을 확인하세요.
+
+첫 번들 업로드·배포는 [릴리즈](/docs/guide/releasing)에서 진행하세요. 서버를
+직접 구현하려면 [리모트 기술 사양](/docs/guide/remote/spec)을 참고하세요.

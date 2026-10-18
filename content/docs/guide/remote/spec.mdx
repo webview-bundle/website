@@ -1,0 +1,162 @@
+---
+title: "Remote specification"
+description: "Implement the HTTP contract for update discovery and bundle downloads."
+---
+
+This specification is for developers implementing a remote server compatible with the Webview Bundle client. It defines protocol version `1`: update discovery, response documents, signatures, and downloads. Upload credentials and provider management APIs are outside this contract.
+
+## Conformance
+
+**MUST** identifies a compatibility requirement; **SHOULD** identifies a recommended implementation behavior; **MAY** identifies an optional feature. The document structure follows the client/request/response approach of [Expo Updates v1](https://docs.expo.dev/technical-specs/expo-updates-1/). Webview Bundle uses its own headers and document format.
+
+## Client workflow
+
+1. Request `GET /update` with the supported protocol and runtime versions, and an optional channel.
+2. On `200`, verify the requested signature against the response bytes before parsing JSON.
+3. Compare the advertised bundles with the active source versions.
+4. Download required bundles and verify their advertised integrity.
+5. Stage successful downloads, then install them when the application chooses to activate them.
+
+An update document describes a set of bundles. Installation results are reported per bundle; publishing one document does not make client installation an all-or-nothing transaction.
+
+## Update request
+
+The client MUST send `GET /update` relative to the configured base URL. Request headers are:
+
+| Header | Required | Value |
+| --- | --- | --- |
+| `wvb-update-protocol-version` | Yes | `1` |
+| `wvb-runtime-version` | Yes | Positive integer; the client runtime uses `1` |
+| `accept` | Sent by the client | `application/json` |
+| `wvb-update-channel` | No | Channel name, such as `stable`; omit for the default channel |
+| `if-none-match` | No | The previously accepted update ETag |
+| `wvb-expect-signature` | No | Structured dictionary with string members `key_id` and `alg` |
+
+Runtime version is managed by the library and is separate from npm, SDK, app, and bundle versions. A channel is carried in a header, not a `channel` query parameter.
+
+For example, an unsigned request for the `stable` channel is:
+
+```http
+GET /update HTTP/1.1
+Host: updates.example.com
+Accept: application/json
+wvb-update-protocol-version: 1
+wvb-runtime-version: 1
+wvb-update-channel: stable
+```
+
+## Update response
+
+The server selects an update for the requested runtime and channel. It MUST use these response meanings:
+
+| Status | Meaning | Body |
+| --- | --- | --- |
+| `200` | An update document is available | Update JSON |
+| `204` | No update is available | Empty |
+| `304` | The selected document matches `If-None-Match` | Empty |
+| `400` | Invalid protocol/runtime/signature request, or a required signature is missing | Error JSON |
+| `404` | A requested download or route is absent | Provider-specific error or empty body |
+| `500` | Server failure | Error JSON |
+
+A `200` response MUST contain `Content-Type: application/json`. It SHOULD include an ETag for conditional requests. `Remote.getUpdate()` returns no document for both `204` and `304`. The updater can reuse a previously accepted cached document after `304`; `204` does not authorize cached updates.
+
+The body is the update data itself, without the provider's storage envelope. A minimal example is:
+
+```json
+{
+  "id": "0199ba38-8ba0-7000-8000-000000000001",
+  "createdAt": "2026-10-17T00:00:00Z",
+  "runtimeVersion": 1,
+  "bundles": [
+    { "name": "app", "version": "1.1.0" }
+  ]
+}
+```
+
+The document fields are:
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `id` | string | Yes | Unique update identifier; providers generate UUIDs |
+| `createdAt` | string | Yes | Creation timestamp in ISO 8601 format |
+| `runtimeVersion` | integer | Yes | Compatible library runtime version |
+| `bundles` | array | Yes | Bundle versions selected by the deployment |
+| `metadata` | object | No | String-to-string metadata |
+
+Each bundle entry contains:
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| `name` | string | Yes | Bundle name |
+| `version` | string | Yes | Version identifier; clients compare identities, not semantic version order |
+| `integrity` | string | No | File hash, such as `sha256:BASE64_DIGEST` |
+| `downloadUrl` | string | No | Custom absolute download URL supported by the core client |
+| `metadata` | object | No | String-to-string metadata |
+
+`BASE64_DIGEST` is the Base64-encoded hash of the complete `.wvb` file. The supplied providers emit the default download route and do not preserve `downloadUrl` in their shared storage schema. Use a custom server if you need that field.
+
+## Conditional requests and caching
+
+The server MUST select the runtime and channel before evaluating `If-None-Match`. A matching ETag returns `304`. The shared server supports weak ETags, comma-separated tags, and `*` for an existing update.
+
+Keep cache entries separate by runtime, channel, and signature request. Configure a CDN to forward these headers and avoid serving stale `/update` responses. Bundle version URLs SHOULD remain immutable. Providers store a new update document before moving its current pointer.
+
+## Signatures
+
+When the client requires a signature, it sends a structured dictionary such as:
+
+```http
+wvb-expect-signature: key_id="release", alg="ed25519"
+```
+
+The server selects that key ID and algorithm and returns:
+
+```http
+wvb-signature: key_id="release", alg="ed25519", sig="BASE64_SIGNATURE"
+```
+
+Replace `BASE64_SIGNATURE` with the Base64-encoded signature. The signature MUST cover the exact UTF-8 response body bytes. The client verifies those bytes before parsing; reordering keys, adding whitespace, or serializing again can invalidate the signature. The app configures the trusted public key separately.
+
+The shared server has three policies:
+
+- `optional` (default): require a matching signature when the client requests one.
+- `strict`: require a matching signature for an available update.
+- `off`: do not reject an update for a missing signature.
+
+`204` responses are empty and bypass signature validation. Signature selection precedes ETag matching for an available update.
+
+<Callout type="warn" title="Provider signing limitation">
+In the 0.3.0 provider implementation, signing sorts JSON object keys, but the shared HTTP handler serializes the stored object independently. Those byte sequences can differ. A custom signed server must serve the exact serialized bytes it signed. Verify that behavior before enabling signature-required clients. The `wvb deploy` CLI also does not pass configured signatures to the deployer; signing requires the programmatic deployment API.
+</Callout>
+
+## Bundle download
+
+Without `downloadUrl`, the client requests `GET /bundles/NAME/VERSION`. Replace `NAME` and `VERSION` with the identifiers in the update document. This URL has no `.wvb` suffix even though the stored object does.
+
+The server MUST return the exact bundle bytes. Use `Content-Type: application/webview-bundle`; include `Content-Length` when known. A missing bundle returns `404`. The update document, rather than download-specific metadata headers, supplies the name, version, and integrity.
+
+For example:
+
+```http
+GET /bundles/app/1.1.0 HTTP/1.1
+Host: updates.example.com
+```
+
+## Errors and verification
+
+Shared-server errors use a JSON object with a `message` field, for example:
+
+```json
+{ "message": "Unsupported update protocol version: 2" }
+```
+
+Check these cases before using a custom server:
+
+1. A valid request to an empty channel returns `204` without a body.
+2. A deployed update returns `200` with the runtime and bundles you published.
+3. Repeating the request with the ETag returns `304`.
+4. An incompatible protocol or invalid runtime returns `400`.
+5. A downloaded file matches the advertised integrity hash.
+6. A signature verifies against the exact received bytes; changing one byte fails verification.
+
+For the reference implementation, see [server request handling](https://github.com/webview-bundle/webview-bundle/blob/main/packages/remote/base/src/server/factory.ts) and [the Rust client](https://github.com/webview-bundle/webview-bundle/blob/main/packages/core/src/remote/remote.rs). For a managed setup, see [Providers](/docs/guide/remote/provider).
