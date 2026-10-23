@@ -1,0 +1,21 @@
+---
+title: 'BundleBuilder'
+description: 'Builds a Bundle from a set of entries.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Builds a [`Bundle`](/docs/references/api/deno/bundle) from a set of entries. Owns a native handle — call `BundleBuilder.free`
+(or `using builder = new BundleBuilder()`) when done.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/bundle.ts#L131)
+
+## Constructor
+
+```ts
+new BundleBuilder();
+```
+
+## Methods
+
+<TypeTable type={{"[dispose]":{"type":"() => void","required":true,"returns":"void"},"build":{"type":"(options?: BundleBuilderOptions) => Bundle","description":"Builds the bundle from the current entries.","required":true,"parameters":[{"name":"options?","description":"BundleBuilderOptions"}],"returns":"Bundle"},"containsEntry":{"type":"(path: string) => boolean","description":"Whether an entry exists at path.","required":true,"parameters":[{"name":"path","description":"string"}],"returns":"boolean"},"entryPaths":{"type":"() => string[]","description":"All entry paths currently in the builder.","required":true,"returns":"string[]"},"free":{"type":"() => void","required":true,"returns":"void"},"insertEntry":{"type":"(path: string, data: Uint8Array<ArrayBuffer>, contentType?: string, headers?: Record<string, string>) => boolean","description":"Adds or replaces the entry at path. contentType defaults to a type guessed from the path's extension (contentTypeForPath). Returns true when an existing entry was replaced.","required":true,"parameters":[{"name":"path","description":"string"},{"name":"data","description":"Uint8Array<ArrayBuffer>"},{"name":"contentType?","description":"string"},{"name":"headers?","description":"Record<string, string>"}],"returns":"boolean"},"removeEntry":{"type":"(path: string) => boolean","description":"Removes the entry at path. Returns true when an entry existed and was removed.","required":true,"parameters":[{"name":"path","description":"string"}],"returns":"boolean"}}} />

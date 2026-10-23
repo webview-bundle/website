@@ -1,0 +1,170 @@
+---
+title: 'iOS'
+---
+
+Add Webview Bundle to a Swift iOS app. Forward a custom URL scheme to the
+development server, then serve builtin resources at the same URL. This guide
+uses UIKit and an existing view controller.
+
+## Before you begin
+
+Use iOS 16 or later and an Xcode toolchain with Swift tools 6.1 or later.
+Prepare an app project and a `web` frontend, and generate `web/dist/index.html`
+with a static build. The CLI requires Node.js 20.19 or later in the 20.x line,
+or 22.12 or later.
+
+Use this layout at the project root:
+
+<Files>
+  <Folder name="App" defaultOpen>
+    <File name="ViewController.swift" icon={<IconSwift />} />
+  </Folder>
+  <Folder name="web" defaultOpen>
+    <Folder name="dist">
+      <File name="index.html" icon={<IconHtml />} />
+    </Folder>
+    <File name="wvb.config.ts" icon={<IconTypeScript />} />
+  </Folder>
+  <Folder name="bundles" />
+  <File name="wvb.config.ts" icon={<IconTypeScript />} />
+</Files>
+
+## 1. Install dependencies
+
+In Xcode, select **File > Add Package Dependencies** and add
+`https://github.com/webview-bundle/webview-bundle-ios.git` with version `0.3.0`
+or later. Link the `WebViewBundle` product to the app target.
+
+If you manage dependencies in `Package.swift`, use the following declaration:
+
+```swift
+.package(
+    url: "https://github.com/webview-bundle/webview-bundle-ios.git",
+    from: "0.3.0"
+)
+```
+
+## 2. Create an instance and connect the development server
+
+Configure the shared instance on the main actor. The iOS proxy API is
+`.local(scheme:hosts:)`. Install the handler before creating the `WKWebView`:
+
+```swift title="App/ViewController.swift"
+import UIKit
+import WebKit
+import WebViewBundle
+
+@MainActor
+final class ViewController: UIViewController {
+    override func loadView() {
+        do {
+            let instance = try wvb(WebViewBundleConfig(
+                protocols: [
+                    .local(
+                        scheme: "app",
+                        hosts: ["app.wvb": "http://localhost:5173"]
+                    )
+                ]
+            ))
+            let webView = instance.makeWebView()
+            view = webView
+            webView.load(URLRequest(url: URL(string: "app://app.wvb/")!))
+        } catch {
+            let label = UILabel()
+            label.numberOfLines = 0
+            label.text = error.localizedDescription
+            view = label
+        }
+    }
+}
+```
+
+Use this controller from your existing app entry point. Start the frontend
+server on port `5173` and run the iOS simulator. On a physical device, replace
+`localhost` with a network address that reaches your computer, and allow local
+network access when prompted.
+
+Use a custom scheme such as `app`. WKWebView handles `http` and `https` itself.
+Don't register the same scheme more than once.
+
+## 3. Install the CLI
+
+Install the CLI at the project root:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @wvb/cli
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/cli
+```
+
+  </Tab>
+</Tabs>
+
+## 4. Install the local build as a builtin bundle
+
+Configure the web workspace to package its `dist` directory as bundle `app`,
+version `1.0.0`:
+
+```ts title="web/wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: { srcDir: './dist' },
+  remote: { bundleName: 'app', version: '1.0.0' },
+});
+```
+
+At the native project root, point `builtin.target` at the web workspace:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './bundles',
+    target: { type: 'local', workspaces: ['./web'] },
+  },
+});
+```
+
+Run your existing frontend build command. After `web/dist/index.html` is
+created, run the following command from the native project root:
+
+```sh
+yarn wvb builtin
+```
+
+The CLI packages the web build output and creates `./bundles/manifest.json` and
+`./bundles/app/1.0.0.wvb`. It doesn't build the frontend.
+
+Add `bundles` to the app target as a folder reference that preserves the
+directory structure. Check that it appears in **Build Phases > Copy Bundle
+Resources**. The built app's resource directory must contain
+`bundles/manifest.json` and `bundles/app/1.0.0.wvb`.
+
+## 5. Run and verify the builtin bundle
+
+Replace the development protocol with the following configuration:
+
+```swift
+protocols: [.bundle(scheme: "app")]
+```
+
+Stop the frontend server, then rebuild and run the app. The page should load at
+`app://app.wvb/` from the packaged resources. `wvb(...)` keeps one configuration
+per process, so restart the app after changing it.

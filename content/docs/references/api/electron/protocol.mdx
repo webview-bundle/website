@@ -1,18 +1,14 @@
 ---
 title: 'Protocol'
-description: 'Protocol — API reference.'
+description: 'A scheme, handler, and registration options managed by Webview Bundle.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/electron/src/protocol.ts#L30)
+A scheme, handler, and registration options managed by Webview Bundle.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/electron/src/protocol.ts#L62)
 
 ## Properties
 
-<TypeTable
-  type={{
-    handler: { type: 'ProtocolHandler | ProtocolHandlerBuild', required: true },
-    options: { type: 'ProtocolOptions', required: false },
-    scheme: { type: 'string', required: true },
-  }}
-/>
+<TypeTable type={{"handler":{"type":"ProtocolHandler | ProtocolHandlerBuild","description":"Ready handler or async factory for one.","required":true},"options":{"type":"ProtocolOptions","description":"Optional Electron registration settings.","required":false},"scheme":{"type":"string","description":"URI scheme without ://.","required":true}}} />

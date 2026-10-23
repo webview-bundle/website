@@ -1,0 +1,23 @@
+---
+title: 'resolveSourceConfig'
+description: 'The SourceConfig the defaults resolve to.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+The `SourceConfig` the defaults resolve to. Split out from [`bundleSource`](/docs/references/api/deno-desktop/bundle-source) so a host
+can reuse the directories it picked — the updater's default update filepath sits next to them.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/desktop/source.ts#L28)
+
+```ts
+function resolveSourceConfig(config: BundleSourceConfig = {}): SourceConfig;
+```
+
+## Parameters
+
+<TypeTable type={{"config":{"type":"BundleSourceConfig","required":false,"default":"{}"}}} />
+
+## Returns
+
+`SourceConfig`

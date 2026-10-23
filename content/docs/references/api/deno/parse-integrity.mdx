@@ -1,0 +1,28 @@
+---
+title: 'parseIntegrity'
+description: 'Parses a serialized integrity string (e.g.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Parses a serialized integrity string (e.g. `"sha256:n4bQ..."`).
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/integrity.ts#L79)
+
+```ts
+function parseIntegrity(integrity: string): Integrity;
+```
+
+## Parameters
+
+<TypeTable type={{"integrity":{"type":"string","required":true}}} />
+
+## Returns
+
+`Integrity`
+
+## Examples
+
+```ts
+const isValid = parseIntegrity(advertised).validate(data);
+```

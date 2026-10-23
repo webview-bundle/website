@@ -9,7 +9,6 @@
     "electron-builder",
     "electron-forge",
     "deno",
-    "deno-desktop",
     "remotes"
   ]
 }

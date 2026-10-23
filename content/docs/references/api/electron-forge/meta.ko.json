@@ -2,6 +2,7 @@
   "title": "@wvb/electron-forge",
   "pages": [
     "---클래스---",
+    "default",
     "webview-bundle-plugin",
     "---인터페이스---",
     "webview-bundle-plugin-config",

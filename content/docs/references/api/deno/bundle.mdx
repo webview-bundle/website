@@ -1,0 +1,16 @@
+---
+title: 'Bundle'
+description: 'A .wvb bundle loaded into memory: its header, index and every entry''s (compressed) data.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A `.wvb` bundle loaded into memory: its header, index and every entry's (compressed) data. Use it
+to read multiple entries without re-parsing, or as the input to [`writeBundle`](/docs/references/api/deno/write-bundle). Owns a native
+handle — call `Bundle.free` (or `using bundle = ...`) when done.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/bundle.ts#L70)
+
+## Methods
+
+<TypeTable type={{"[dispose]":{"type":"() => void","required":true,"returns":"void"},"free":{"type":"() => void","required":true,"returns":"void"},"getData":{"type":"(path: string) => Uint8Array<ArrayBuffer> | null","description":"Decompressed contents of the entry at path, or null if it does not exist.","required":true,"parameters":[{"name":"path","description":"string"}],"returns":"Uint8Array<ArrayBuffer> | null"},"getDataChecksum":{"type":"(path: string) => number | null","description":"The stored xxHash-32 checksum of the entry at path, or null if it does not exist.","required":true,"parameters":[{"name":"path","description":"string"}],"returns":"number | null"},"header":{"type":"() => BundleHeader","description":"The bundle header (format version + index geometry).","required":true,"returns":"BundleHeader"},"index":{"type":"() => BundleIndex","description":"The bundle index: every file path mapped to its IndexEntry.","required":true,"returns":"BundleIndex"}}} />

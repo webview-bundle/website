@@ -1,0 +1,68 @@
+---
+title: '@wvb/deno/desktop'
+description: '@wvb/deno/desktop 설치 방법과 API 레퍼런스.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+`@wvb/deno/desktop`의 설치 방법과 내보내는 API를 확인하세요.
+
+## 설치
+
+`@wvb/deno/desktop`은 `@wvb/deno` 패키지의 하위 경로입니다. 설치할 때는 패키지 이름을 사용하세요.
+
+프로젝트에 JSR 패키지를 추가하세요:
+
+```sh
+deno add jsr:@wvb/deno
+```
+
+실행할 플랫폼의 네이티브 라이브러리를 다운로드하세요:
+
+```sh
+deno run --allow-net --allow-read --allow-write @wvb/deno/install
+```
+
+라이브러리는 `.wvb/lib`에 저장됩니다. 실행 권한과 패키징 설정은 [Deno Desktop 가이드](/docs/guide/deno-desktop)를 참고하세요.
+
+## 함수
+
+<Cards>
+  <Card title="appDataDir" href="/docs/references/api/deno-desktop/app-data-dir" description="The OS application-data base directory where downloaded bundles persist: macOS ~/Library/Application Support, Windows %APPDATA%, Linux $XDG_DATA_HOME (or ~/.…" />
+  <Card title="bundleSource" href="/docs/references/api/deno-desktop/bundle-source" />
+  <Card title="loadFromGitHub" href="/docs/references/api/deno-desktop/load-from-git-hub" description="Download the platform cdylib from a release from github release." />
+  <Card title="loadLib" href="/docs/references/api/deno-desktop/load-lib" description="Load the native library from an explicit path." />
+  <Card title="registerBindings" href="/docs/references/api/deno-desktop/register-bindings" description="Register the @wvb/bridge transport on a Deno desktop window." />
+  <Card title="remote" href="/docs/references/api/deno-desktop/remote" />
+  <Card title="resolveSourceConfig" href="/docs/references/api/deno-desktop/resolve-source-config" description="The SourceConfig the defaults resolve to." />
+  <Card title="webviewBundle" href="/docs/references/api/deno-desktop/webview-bundle" description="Creates a Deno.serve-compatible Webview Bundle host." />
+</Cards>
+
+## 인터페이스
+
+<Cards>
+  <Card title="BridgeErrorData" href="/docs/references/api/deno-desktop/bridge-error-data" description="Error payload returned to @wvb/bridge." />
+  <Card title="BundleRoute" href="/docs/references/api/deno-desktop/bundle-route" description="Serves a bundle from the source." />
+  <Card title="BundleSourceConfig" href="/docs/references/api/deno-desktop/bundle-source-config" />
+  <Card title="HttpResponse" href="/docs/references/api/deno-desktop/http-response" />
+  <Card title="ProxyRoute" href="/docs/references/api/deno-desktop/proxy-route" description="Proxies to another HTTP server — typically a dev server with hot reload." />
+  <Card title="WebviewBundle" href="/docs/references/api/deno-desktop/webview-bundle-interface" description="Deno Desktop facade that mounts bundles and optionally manages remote updates." />
+  <Card title="WebviewBundleConfig" href="/docs/references/api/deno-desktop/webview-bundle-config" description="Configuration used to build a Deno Desktop request handler." />
+  <Card title="WebviewBundleUpdaterConfig" href="/docs/references/api/deno-desktop/webview-bundle-updater-config" description="Remote update options owned by a Deno Desktop host." />
+</Cards>
+
+## 타입
+
+<Cards>
+  <Card title="ErrorResponse" href="/docs/references/api/deno-desktop/error-response" description="The response for a request the protocol failed to serve (default: 500 with the message)." />
+  <Card title="RemoteConfig" href="/docs/references/api/deno-desktop/remote-config" description="@wvb/node's RemoteConfig minus onDownload: Deno FFI cannot call back into JS from the worker thread a nonblocking symbol runs on, so download progress is not…" />
+  <Card title="Route" href="/docs/references/api/deno-desktop/route" />
+  <Card title="Routes" href="/docs/references/api/deno-desktop/routes" description="Mount path → what is served there." />
+  <Card title="UriPathResolver" href="/docs/references/api/deno-desktop/uri-path-resolver" description="How the file path in the bundle is resolved from the request uri." />
+</Cards>
+
+## 변수
+
+<Cards>
+  <Card title="wvb" href="/docs/references/api/deno-desktop/wvb" description="Short alias for webviewBundle." />
+</Cards>

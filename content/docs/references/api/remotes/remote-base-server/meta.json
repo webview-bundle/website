@@ -1,0 +1,20 @@
+{
+  "title": "@wvb/remote-base/server",
+  "pages": [
+    "---Classes---",
+    "exception",
+    "---Functions---",
+    "build-server",
+    "---Interfaces---",
+    "config",
+    "download-params",
+    "error-context",
+    "exception-context",
+    "get-update-params",
+    "---Type Aliases---",
+    "exception-data",
+    "exception-data-of",
+    "exception-type",
+    "signature-policy"
+  ]
+}

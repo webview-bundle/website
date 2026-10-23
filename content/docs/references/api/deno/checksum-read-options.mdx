@@ -1,0 +1,18 @@
+---
+title: 'ChecksumReadOptions'
+description: 'How a bundle section''s xxHash checksum is verified when that section is read.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+How a bundle section's xxHash checksum is verified when that section is read. The same options
+apply to the header, the index and each entry's data.
+
+This detects corruption, not tampering: the seed is not secret, so whatever can rewrite the
+bytes can rewrite the checksum.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/bindings.ts#L57)
+
+## Properties
+
+<TypeTable type={{"seed":{"type":"number | null","description":"The seed the checksum was built with. Default: 0.","required":false},"verify":{"type":"boolean | null","description":"Verify the section's checksum when it is read. Default: true.","required":false}}} />

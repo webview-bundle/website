@@ -1,0 +1,22 @@
+---
+title: 'Integrity'
+description: 'A digest over some bytes, serialized as <algorithm>:<base64> (e.g.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A digest over some bytes, serialized as `<algorithm>:<base64>` (e.g. `"sha256:n4bQ..."`).
+
+Created by [`computeIntegrity`](/docs/references/api/node/compute-integrity) or [`parseIntegrity`](/docs/references/api/node/parse-integrity).
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/node/binding.d.cts#L434)
+
+## Constructor
+
+```ts
+new Integrity();
+```
+
+## Methods
+
+<TypeTable type={{"serialize":{"type":"() => string","description":"Serializes to <algorithm>:<base64>.","required":true,"returns":"string — The serialized integrity string"},"validate":{"type":"(data: Buffer) => boolean","description":"Whether data digests to this integrity.","required":true,"parameters":[{"name":"data","description":"Buffer — Bytes to check"}],"returns":"boolean — true when the bytes match"},"value":{"type":"() => Buffer","description":"The raw digest bytes.","required":true,"returns":"Buffer — The digest"}}} />

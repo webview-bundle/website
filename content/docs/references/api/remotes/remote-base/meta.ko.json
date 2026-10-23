@@ -1,0 +1,21 @@
+{
+  "title": "@wvb/remote-base",
+  "pages": [
+    "---함수---",
+    "generate-update-data-etag",
+    "generate-update-data-signatures",
+    "---타입---",
+    "bundle-update",
+    "current",
+    "update",
+    "update-data",
+    "update-signature",
+    "---변수---",
+    "bundle-update-schema",
+    "current-schema",
+    "update-data-schema",
+    "update-schema",
+    "update-signature-schema",
+    "../remote-base-server"
+  ]
+}

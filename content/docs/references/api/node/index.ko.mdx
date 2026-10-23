@@ -1,0 +1,160 @@
+---
+title: '@wvb/node'
+description: '@wvb/node 설치 방법과 API 레퍼런스.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+`@wvb/node`의 설치 방법과 내보내는 API를 확인하세요.
+
+## 설치
+
+Node.js 버전 요구사항: `>= 18`.
+
+프로젝트에 의존성으로 추가하세요:
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/node
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/node
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/node
+```
+
+  </Tab>
+</Tabs>
+
+## 클래스
+
+<Cards>
+  <Card title="Bundle" href="/docs/references/api/node/bundle" description="A complete bundle including metadata and file data." />
+  <Card title="BundleBuilder" href="/docs/references/api/node/bundle-builder" description="Builder for creating bundle files." />
+  <Card title="BundleDescriptor" href="/docs/references/api/node/bundle-descriptor" description="Bundle metadata including header and index information." />
+  <Card title="BundleProtocol" href="/docs/references/api/node/bundle-protocol" description="Protocol handler for serving files from bundle sources." />
+  <Card title="Cancellation" href="/docs/references/api/node/cancellation" />
+  <Card title="Header" href="/docs/references/api/node/header" description="Bundle header containing format metadata." />
+  <Card title="Index" href="/docs/references/api/node/index-class" description="Bundle index mapping file paths to their metadata." />
+  <Card title="Integrity" href="/docs/references/api/node/integrity" description="A digest over some bytes, serialized as &lt;algorithm&gt;:&lt;base64&gt; (e.g." />
+  <Card title="LoadedDescriptor" href="/docs/references/api/node/loaded-descriptor" />
+  <Card title="ProxyProtocol" href="/docs/references/api/node/proxy-protocol" description="Protocol handler that proxies requests to other servers." />
+  <Card title="Remote" href="/docs/references/api/node/remote" description="HTTP client for getting updates and downloading bundles from a remote server." />
+  <Card title="Source" href="/docs/references/api/node/source" />
+  <Card title="Updater" href="/docs/references/api/node/updater" />
+</Cards>
+
+## 함수
+
+<Cards>
+  <Card title="computeIntegrity" href="/docs/references/api/node/compute-integrity" description="Computes the integrity of data with algorithm." />
+  <Card title="isWebviewBundleError" href="/docs/references/api/node/is-webview-bundle-error" description="Whether value is an error thrown by this binding." />
+  <Card title="parseIntegrity" href="/docs/references/api/node/parse-integrity" description="Parses a serialized integrity string (e.g." />
+  <Card title="readBundle" href="/docs/references/api/node/read-bundle" description="Reads a bundle from a file asynchronously." />
+  <Card title="readBundleFromBuffer" href="/docs/references/api/node/read-bundle-from-buffer" description="Reads a bundle from a buffer synchronously." />
+  <Card title="writeBundle" href="/docs/references/api/node/write-bundle" description="Writes a bundle to a file asynchronously." />
+  <Card title="writeBundleIntoBuffer" href="/docs/references/api/node/write-bundle-into-buffer" description="Writes a bundle to a buffer synchronously." />
+</Cards>
+
+## 인터페이스
+
+<Cards>
+  <Card title="BundleBuilderOptions" href="/docs/references/api/node/bundle-builder-options" description="Options for building a bundle." />
+  <Card title="BundleProtocolOptions" href="/docs/references/api/node/bundle-protocol-options" description="Options for the bundle protocol." />
+  <Card title="BundleSourceVersion" href="/docs/references/api/node/bundle-source-version" />
+  <Card title="BundleUpdate" href="/docs/references/api/node/bundle-update" description="One bundle advertised by an update document." />
+  <Card title="ChecksumReadOptions" href="/docs/references/api/node/checksum-read-options" description="Checksum verification for the data section." />
+  <Card title="ChecksumWriteOptions" href="/docs/references/api/node/checksum-write-options" description="Checksum generation for a bundle section." />
+  <Card title="DataReadOptions" href="/docs/references/api/node/data-read-options" description="How entry data is read out of a bundle's data section." />
+  <Card title="HeaderReadOptions" href="/docs/references/api/node/header-read-options" description="How a bundle's header is read." />
+  <Card title="HeaderWriterOptions" href="/docs/references/api/node/header-writer-options" description="Options for bundle header generation." />
+  <Card title="HttpOptions" href="/docs/references/api/node/http-options" />
+  <Card title="HttpResponse" href="/docs/references/api/node/http-response" />
+  <Card title="IndexEntry" href="/docs/references/api/node/index-entry" description="Metadata for a single file in the bundle." />
+  <Card title="IndexReadOptions" href="/docs/references/api/node/index-read-options" description="How a bundle's index is read." />
+  <Card title="IndexWriterOptions" href="/docs/references/api/node/index-writer-options" description="Options for bundle index generation." />
+  <Card title="ManifestBundleItem" href="/docs/references/api/node/manifest-bundle-item" />
+  <Card title="ManifestBundleSet" href="/docs/references/api/node/manifest-bundle-set" />
+  <Card title="ManifestData" href="/docs/references/api/node/manifest-data" />
+  <Card title="ManifestPruneResult" href="/docs/references/api/node/manifest-prune-result" />
+  <Card title="ManifestRemoveData" href="/docs/references/api/node/manifest-remove-data" />
+  <Card title="ManifestRemoveResult" href="/docs/references/api/node/manifest-remove-result" />
+  <Card title="ManifestSetCurrentVersionResult" href="/docs/references/api/node/manifest-set-current-version-result" />
+  <Card title="ManifestStageData" href="/docs/references/api/node/manifest-stage-data" />
+  <Card title="ManifestStageResult" href="/docs/references/api/node/manifest-stage-result" />
+  <Card title="ManifestVersionData" href="/docs/references/api/node/manifest-version-data" />
+  <Card title="RemoteConfig" href="/docs/references/api/node/remote-config" description="Options used to construct a Remote client." />
+  <Card title="RemoteGetUpdateOptions" href="/docs/references/api/node/remote-get-update-options" description="Options for requesting the current update document." />
+  <Card title="RemoteOnDownloadData" href="/docs/references/api/node/remote-on-download-data" description="Download progress data." />
+  <Card title="RemoteUpdateResponse" href="/docs/references/api/node/remote-update-response" description="A validated update response returned by Remote::get_update." />
+  <Card title="SignatureKey" href="/docs/references/api/node/signature-key" description="Configuration for signature verification." />
+  <Card title="SignatureKeyData" href="/docs/references/api/node/signature-key-data" description="Public key configuration for signature verification." />
+  <Card title="SignatureVerifyKey" href="/docs/references/api/node/signature-verify-key" />
+  <Card title="SourceConfig" href="/docs/references/api/node/source-config" />
+  <Card title="SourceIntegrityOptions" href="/docs/references/api/node/source-integrity-options" />
+  <Card title="SourceListItem" href="/docs/references/api/node/source-list-item" />
+  <Card title="SourceOptions" href="/docs/references/api/node/source-options" />
+  <Card title="Update" href="/docs/references/api/node/update" description="An atomically published set of bundle updates." />
+  <Card title="UpdaterDownloadOptions" href="/docs/references/api/node/updater-download-options" />
+  <Card title="UpdaterDownloadResult" href="/docs/references/api/node/updater-download-result" />
+  <Card title="UpdaterGetUpdateOptions" href="/docs/references/api/node/updater-get-update-options" />
+  <Card title="UpdaterInstallResult" href="/docs/references/api/node/updater-install-result" />
+  <Card title="UpdaterInstallTarget" href="/docs/references/api/node/updater-install-target" />
+  <Card title="UpdaterIntegrityOptions" href="/docs/references/api/node/updater-integrity-options" />
+  <Card title="UpdaterOptions" href="/docs/references/api/node/updater-options" />
+  <Card title="UpdaterRollbackResult" href="/docs/references/api/node/updater-rollback-result" />
+  <Card title="UpdaterRollbackTarget" href="/docs/references/api/node/updater-rollback-target" />
+  <Card title="UpdaterSignatureOptions" href="/docs/references/api/node/updater-signature-options" />
+  <Card title="UpdateSignature" href="/docs/references/api/node/update-signature" description="Signature metadata for an update response." />
+  <Card title="WebviewBundleError" href="/docs/references/api/node/webview-bundle-error" />
+</Cards>
+
+## 열거형
+
+<Cards>
+  <Card title="ManifestVersion" href="/docs/references/api/node/manifest-version" />
+</Cards>
+
+## 타입
+
+<Cards>
+  <Card title="ErrorCode" href="/docs/references/api/node/error-code" description="The stable code every error thrown by this binding carries (WebviewBundleError.code)." />
+  <Card title="HostnameSegment" href="/docs/references/api/node/hostname-segment" description="Which hostname segment is used as the bundle name." />
+  <Card title="HttpMethod" href="/docs/references/api/node/http-method" />
+  <Card title="IntegrityAlgorithm" href="/docs/references/api/node/integrity-algorithm" description="Hash algorithm for bundle integrity verification." />
+  <Card title="IntegrityPolicy" href="/docs/references/api/node/integrity-policy" description="Policy for enforcing integrity verification during bundle operations." />
+  <Card title="ManifestBundleItemStatus" href="/docs/references/api/node/manifest-bundle-item-status" />
+  <Card title="ManifestRemoveResultKind" href="/docs/references/api/node/manifest-remove-result-kind" />
+  <Card title="ManifestSetCurrentVersionResultKind" href="/docs/references/api/node/manifest-set-current-version-result-kind" />
+  <Card title="ManifestStageResultKind" href="/docs/references/api/node/manifest-stage-result-kind" />
+  <Card title="SignatureAlgorithm" href="/docs/references/api/node/signature-algorithm" description="Digital signature algorithm for bundle verification." />
+  <Card title="SignatureKeyFormat" href="/docs/references/api/node/signature-key-format" description="Format of the public key used for signature verification." />
+  <Card title="SourceIntegrityCheckMode" href="/docs/references/api/node/source-integrity-check-mode" />
+  <Card title="SourceKind" href="/docs/references/api/node/source-kind" />
+  <Card title="UpdaterDownloadResultKind" href="/docs/references/api/node/updater-download-result-kind" />
+  <Card title="UpdaterInstallResultKind" href="/docs/references/api/node/updater-install-result-kind" />
+  <Card title="UpdaterRollbackResultKind" href="/docs/references/api/node/updater-rollback-result-kind" />
+  <Card title="UriBundleResolver" href="/docs/references/api/node/uri-bundle-resolver" description="Options for resolving the bundle name from the request uri." />
+  <Card title="UriPathResolver" href="/docs/references/api/node/uri-path-resolver" description="How the file path in the bundle is resolved from the request uri." />
+  <Card title="Version" href="/docs/references/api/node/version" />
+</Cards>
+
+## 변수
+
+<Cards>
+  <Card title="EXTENSION" href="/docs/references/api/node/extension" />
+  <Card title="MIME_TYPE" href="/docs/references/api/node/mime-type" />
+  <Card title="RUNTIME_VERSION" href="/docs/references/api/node/runtime-version" />
+  <Card title="UPDATE_PROTOCOL_VERSION" href="/docs/references/api/node/update-protocol-version" />
+</Cards>

@@ -1,0 +1,158 @@
+---
+title: 'Deno Desktop'
+description: 'Serve a development server or builtin bundles through Deno Desktop routes.'
+---
+
+<Badge>Experimental</Badge>
+
+Connect a web frontend to Deno Desktop and package builtin bundles with the
+native FFI library. This guide uses path-based request handling through
+`Deno.serve()`.
+
+## Before you begin
+
+Use Deno 2.9, which provides the `desktop` command and `deno.desktop` types. The
+repository examples use Deno 2.9.7. `@wvb/cli` requires Node.js 20.19 or later
+in the 20.x line, or 22.12 or later. Put the frontend in `web`.
+
+The app uses the following files:
+
+<Files>
+  <File name="main.ts" icon={<IconTypeScript />} />
+  <File name="deno.json" icon={<IconJson />} />
+  <File name="wvb.config.ts" icon={<IconTypeScript />} />
+  <Folder name="web">
+    <File name="wvb.config.ts" icon={<IconTypeScript />} />
+  </Folder>
+  <Folder name="bundles" />
+  <Folder name=".wvb/lib" />
+</Files>
+
+## 1. Install dependencies
+
+Add imports, types, and desktop settings to `deno.json`:
+
+```json title="deno.json"
+{
+  "imports": {
+    "@wvb/deno/desktop": "jsr:@wvb/deno@0.3.0/desktop",
+    "@wvb/deno/install": "jsr:@wvb/deno@0.3.0/install"
+  },
+  "compilerOptions": { "lib": ["deno.desktop"] },
+  "desktop": {
+    "app": { "name": "MyApp", "identifier": "com.example.app" },
+    "backend": "webview"
+  }
+}
+```
+
+Download the native library for your build machine:
+
+```sh
+deno run --allow-net --allow-read --allow-write @wvb/deno/install
+```
+
+The installer saves the platform library under `.wvb/lib`. The library included
+in the app must match the target operating system and architecture.
+
+## 2. Create an instance and connect the development server
+
+Create the host with a proxy route:
+
+```ts title="main.ts"
+import { registerBindings, webviewBundle } from '@wvb/deno/desktop';
+
+const instance = webviewBundle({
+  lib: new URL(`./.wvb/lib/${Deno.build.target}/`, import.meta.url),
+  source: { appName: 'com.example.app' },
+  routes: { '/': { proxy: 'http://localhost:5173' } },
+});
+
+const win = new Deno.BrowserWindow({
+  title: 'My app',
+  width: 800,
+  height: 600,
+});
+registerBindings(win, instance);
+Deno.serve(instance.fetch);
+```
+
+Deno Desktop uses a `{ proxy: ... }` route instead of `proxyProtocol()`. Start
+the frontend server on port `5173`, then run the app:
+
+```sh
+deno desktop --hmr   --allow-ffi --allow-read --allow-write --allow-env --allow-net   --include .wvb/lib main.ts
+```
+
+## 3. Install the CLI
+
+Install the build-time CLI at the app root.
+
+If the native project root doesn't have a `package.json`, create one before
+installing the CLI:
+
+```json title="package.json"
+{ "name": "native-app", "private": true, "type": "module" }
+```
+
+Then install the CLI:
+
+```sh
+yarn add -D @wvb/cli
+```
+
+## 4. Install the local build as a builtin bundle
+
+Configure the web workspace to package its `dist` directory as bundle `app`,
+version `1.0.0`:
+
+```ts title="web/wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: { srcDir: './dist' },
+  remote: { bundleName: 'app', version: '1.0.0' },
+});
+```
+
+At the native project root, point `builtin.target` at the web workspace:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './bundles',
+    target: { type: 'local', workspaces: ['./web'] },
+  },
+});
+```
+
+Run your existing frontend build command. After `web/dist/index.html` is
+created, run the following command from the native project root:
+
+```sh
+yarn wvb builtin
+```
+
+The CLI packages the web build output and creates `./bundles/manifest.json` and
+`./bundles/app/1.0.0.wvb`. It doesn't build the frontend.
+
+## 5. Run and verify the builtin bundle
+
+Replace the proxy route in `main.ts` with the following configuration:
+
+```ts
+routes: { '/': { bundle: 'app' } },
+```
+
+Stop the frontend server and run the app with both resource directories
+included:
+
+```sh
+deno desktop   --allow-ffi --allow-read --allow-write --allow-env --allow-net   --include bundles --include .wvb/lib main.ts
+```
+
+Check that the page loads without the development server. Deno Desktop reads
+builtin files next to the entry module. In a compiled app, it extracts the
+included builtins to disk. Downloaded updates use separate writable app storage.

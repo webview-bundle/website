@@ -1,0 +1,10 @@
+{
+  "title": "@wvb/remote-aws/pulumi",
+  "pages": [
+    "---Classes---",
+    "webview-bundle-remote-provider",
+    "wvb-remote-provider",
+    "---Interfaces---",
+    "webview-bundle-remote-provider-config"
+  ]
+}

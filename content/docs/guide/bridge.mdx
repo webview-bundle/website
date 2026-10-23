@@ -1,0 +1,441 @@
+---
+title: 'Bridge'
+---
+
+`@wvb/bridge` lets your web application call Webview Bundle features in the
+native host. Use it to inspect installed bundles, fetch update information,
+download new versions, and activate or roll back updates. The native host
+performs the filesystem and network operations; the bridge provides a shared
+JavaScript API for Electron, Tauri, Deno Desktop, Android, and iOS.
+
+## Set up the bridge
+
+Install the package in your frontend project:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/bridge
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/bridge
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/bridge
+```
+
+  </Tab>
+</Tabs>
+
+Register the native bindings before calling the bridge. Follow the guide for
+[Electron](/docs/guide/electron), [Tauri](/docs/guide/tauri),
+[Deno Desktop](/docs/guide/deno-desktop), [Android](/docs/guide/android), or
+[iOS](/docs/guide/ios). The native host must also configure the remote and
+updater before you use their commands.
+
+Call the API from the WebView, for example to display the active version:
+
+```ts
+import { source } from '@wvb/bridge';
+
+const current = await source.getVersion('app');
+console.log(current?.version ?? 'Bundle not installed');
+```
+
+All commands return promises. Rejected calls throw `BridgeError`. Some
+operations return a result for each bundle instead of rejecting the whole call.
+
+## `source`
+
+Import `source` from `@wvb/bridge` to inspect local bundle state and manage the
+remote manifest. A source is either `builtin` (packaged with the app) or
+`remote` (downloaded onto the device).
+
+### `listBundles()`
+
+Returns entries from both builtin and remote manifests as `SourceListItem[]`.
+Each entry contains `source` and `item`; `item` has `name`, `version`, `status`,
+and `data`. Status is `current`, `previous`, `staged`, or `orphan`. Data
+contains optional `integrity` and string-valued `metadata`.
+
+The list includes recorded versions, not only the version selected for serving.
+Use `getVersion()` to find the active version of a bundle.
+
+### `listBuiltinBundles()`
+
+Returns the same entry shape as `listBundles()`, limited to builtin bundles.
+
+### `listRemoteBundles()`
+
+Returns the same entry shape as `listBundles()`, limited to locally recorded
+remote bundles. It does not query the remote server.
+
+### `getVersion(bundleName)`
+
+Returns `{ source, version }` for the current remote version, falling back to
+the current builtin version. Returns `null` if neither exists.
+
+### `getRemoteStagedVersion(bundleName)`
+
+Returns the staged remote version string, or `null` if none is staged. A staged
+version is prepared for installation but is not yet selected for serving.
+
+### `getRemotePreviousVersion(bundleName)`
+
+Returns the previous remote version string, or `null` if none is recorded. This
+is the version available to the updater for rollback.
+
+### `getBuiltinVersionData(bundleName, version)`
+
+Returns the builtin manifest's `{ integrity?, metadata? }` for the specified
+version, or `null` if the version has no record.
+
+### `getRemoteVersionData(bundleName, version)`
+
+Returns the remote manifest's `{ integrity?, metadata? }` for the specified
+version, or `null` if the version has no record.
+
+### `updateRemoteVersion(bundleName, version)`
+
+Sets a recorded remote version as current in the manifest. Returns
+`{ name, version, kind }`, where `kind` is `settled`, `not_exists`, or
+`version_not_exists`. It does not download or verify an archive; use
+`updater.install()` to activate a staged update with verification.
+
+### `updateRemoteVersions(items)`
+
+Batch form of `updateRemoteVersion()`. Pass a map from bundle name to version,
+such as `{ app: '2.0.0', settings: '1.1.0' }`. Returns one result per requested
+bundle; check each result's `kind`.
+
+### `stageRemoteBundle(bundleName, data)`
+
+Records a staged version and optional version data. For example, `data` can be
+`{ version: '2.0.0', data: { metadata: { release: 'beta' } } }`. Returns
+`{ name, version, kind }`, with `kind` equal to `staged` or `in_use`. The
+current version cannot be staged.
+
+This command updates the manifest only. It does not download an archive or
+verify that the file exists. Use `updater.download()` to download and stage
+bundles together.
+
+### `stageRemoteBundles(items)`
+
+Batch form of `stageRemoteBundle()`. Pass a map from bundle name to stage data,
+such as `{ app: { version: '2.0.0' } }`. Returns a stage result for each bundle.
+
+### `removeRemoteBundle(bundleName, version, force?)`
+
+Removes a version from the remote manifest and attempts to delete its archive.
+Returns `{ name, version, kind }`, where `kind` is `removed`, `not_exists`,
+`version_not_exists`, or `in_use`.
+
+`force` defaults to `false`. Set it to `true` only when you intend to remove the
+current remote version as well. Builtin bundles are not removed.
+
+### `removeRemoteBundles(items)`
+
+Batch removal with a map from bundle name to `{ versions, force? }`, such as
+`{ app: { versions: ['1.0.0', '1.1.0'] } }`. Returns one result per requested
+version. Inspect the results for versions that were retained.
+
+### `pruneRemoteBundle(bundleName)`
+
+Removes orphan versions and attempts to delete their archives. Keeps versions
+marked current, previous, or staged. Returns `{ name, prunedVersions }`.
+
+### `pruneRemoteBundles(bundleNames)`
+
+Prunes orphan versions for each name in an array, such as `['app', 'settings']`.
+Returns an array of `{ name, prunedVersions }` results.
+
+### `resolveFilepath(bundleName)`
+
+Returns the native filesystem path for the active version, preferring remote
+over builtin. Rejects if the bundle has no active version. The result is a
+filesystem path, not a URL to navigate to in the WebView.
+
+### `getBuiltinBundleFilepath(bundleName, version)`
+
+Returns the native archive path for a builtin bundle version. Resolving a path
+does not verify that an archive exists there.
+
+### `getRemoteBundleFilepath(bundleName, version)`
+
+Returns the native archive path for a remote bundle version. Use it when a
+lower-level download workflow needs a destination path. The command does not
+create the archive or stage the version.
+
+### `unload(bundleName)`
+
+Removes the bundle's cached descriptor from the native source. Returns `true` if
+a cached descriptor was removed, otherwise `false`. It does not delete the
+archive, change manifest versions, or reload the WebView.
+
+## `remote`
+
+### `getUpdate(options?)`
+
+Fetches the remote update document. Options accept `channel` to select a release
+channel and `etag` to send the previous response's ETag as `If-None-Match`.
+Returns `{ update, etag?, signature? }`, or `null` for HTTP `204 No Content` or
+`304 Not Modified`.
+
+`update` contains `id`, `createdAt`, `runtimeVersion`, `bundles`, and
+`metadata`. Each bundle has `name`, `version`, and optional `downloadUrl`,
+`integrity`, and `metadata`.
+
+This command returns the server's bundle list without filtering out versions
+already installed locally. For example:
+
+```ts
+import { remote } from '@wvb/bridge';
+
+const response = await remote.getUpdate({ channel: 'beta' });
+if (response !== null) {
+  console.log(response.update.bundles);
+}
+```
+
+### `download(url, filepath)`
+
+Downloads a URL to a native filesystem path and resolves without a value. It
+does not stage or activate the downloaded file. Prefer `updater.download()` when
+downloading bundles from an update document.
+
+## `updater`
+
+### `getUpdate(options?)`
+
+Returns an `Update` whose `bundles` contain versions that differ from the active
+local versions, or `null` when there is no applicable update. The native updater
+manages the stored update and ETag, checks runtime compatibility, and uses the
+channel configured by the native host.
+
+Pass `{ expectSignatureKeyId: 'release' }` to require the update signature for
+that key ID. The matching verification key must be configured on the native
+updater; the bridge does not accept public key material in this option.
+
+### `download(bundleUpdates, options?)`
+
+Downloads and stages the supplied `BundleUpdate[]`. Options accept `concurrency`
+(default `3`) and `timeout` (updater lock wait time in milliseconds, not a
+network request timeout).
+
+Returns an array containing each bundle's `name`, `version`, optional integrity
+and metadata, and `result`. Inspect every `result.type`: `downloaded` indicates
+success; `error` includes `code` and `message`. A per-bundle failure does not
+necessarily reject the call. Call-level failures can still throw `BridgeError`.
+
+### `install(targets)`
+
+Verifies and activates staged versions. Each target is `{ name, version? }`.
+Omit `version` to use the staged version recorded in the manifest, or supply it
+to require an exact match.
+
+Each result contains `name`, optional `targetVersion` and `installVersion`, and
+one of these `result.type` values:
+
+| Result                       | Meaning                                                |
+| ---------------------------- | ------------------------------------------------------ |
+| `installed`                  | The staged version was activated.                      |
+| `staged_version_not_matched` | The requested version differs from the staged version. |
+| `staged_bundle_not_exists`   | No staged bundle is available to install.              |
+| `verify_failed`              | The staged bundle failed verification.                 |
+| `error`                      | The operation failed; inspect `code` and `message`.    |
+
+Install only successfully downloaded versions and inspect the installation
+results before reloading. For example:
+
+```ts
+import { updater } from '@wvb/bridge';
+
+const update = await updater.getUpdate();
+if (update !== null) {
+  const downloads = await updater.download(update.bundles);
+  const targets = downloads
+    .filter(item => item.result.type === 'downloaded')
+    .map(({ name, version }) => ({ name, version }));
+
+  const installed = await updater.install(targets);
+  const complete = installed.every(item => item.result.type === 'installed');
+
+  if (complete) {
+    window.location.reload();
+  } else {
+    console.error('Update incomplete', { downloads, installed });
+  }
+}
+```
+
+### `rollback(targets)`
+
+Restores each bundle's previous remote version. Each target is
+`{ name, version? }`; an explicit version must match the recorded previous
+version. Returns `name`, optional `targetVersion` and `rollbackVersion`, and one
+of these `result.type` values:
+
+| Result                         | Meaning                                                  |
+| ------------------------------ | -------------------------------------------------------- |
+| `rolled_back`                  | The previous version was restored.                       |
+| `previous_version_not_matched` | The requested version differs from the previous version. |
+| `previous_bundle_not_exists`   | No previous remote bundle is available.                  |
+| `verify_failed`                | The previous bundle failed verification.                 |
+| `error`                        | The operation failed; inspect `code` and `message`.      |
+
+For example, `await updater.rollback([{ name: 'app' }])` attempts to restore the
+recorded previous version. A first remote installation may have no previous
+remote version; rollback does not automatically restore the builtin bundle.
+
+## Other APIs
+
+### `platform`
+
+Detects the native bridge exposed to the page. `platform.type` is `electron`,
+`tauri`, `deno`, `android`, `ios`, or `undefined` when no supported host is
+detected. Boolean getters are `isElectron`, `isTauri`, `isDeno`, `isAndroid`,
+and `isIos`.
+
+Use this to choose host-specific UI. Detection alone does not confirm that the
+host initialized a remote or updater. A regular browser without bindings cannot
+execute native commands unless you install test mocks.
+
+### `invoke(name, params?)`
+
+Calls a native command directly and returns `Promise<T>`. Prefer the typed
+`source`, `remote`, and `updater` methods for built-in commands. For example,
+the following is the lower-level equivalent of `source.getVersion('app')`:
+
+```ts
+import { invoke, type BundleSourceVersion } from '@wvb/bridge';
+
+const current = await invoke<BundleSourceVersion | null>('sourceGetVersion', {
+  bundleName: 'app',
+});
+```
+
+The type parameter describes the expected result; it does not validate the
+native response at runtime. Command names must be supported by the native host.
+
+### `BridgeError`
+
+Error class used for rejected bridge calls. Read `message` and optional `code`
+to handle failures. `BridgeError.of(code, message?)` creates a coded error;
+`BridgeError.from(value)` normalizes an unknown error while retaining an
+existing `BridgeError`.
+
+### `isBridgeError(value)`
+
+Type guard for handling a rejected call as a `BridgeError`. For example:
+
+```ts
+import { isBridgeError, source } from '@wvb/bridge';
+
+try {
+  await source.getVersion('app');
+} catch (error) {
+  if (isBridgeError(error)) {
+    console.error(error.code, error.message);
+  } else {
+    throw error;
+  }
+}
+```
+
+### `isBridgeErrorData(value)`
+
+Checks the serialized `{ message: string, code?: string }` error shape. Use it
+when working with raw error data rather than an error instance. See the
+[bridge API reference](/docs/references/api/bridge) for exported types.
+
+## Test with `@wvb/bridge/testing`
+
+Use this entry point to test frontend behavior without launching a native host.
+
+### Mock a command with `mockInvoke()`
+
+Register a handler using the public method name, such as `source.getVersion`.
+The handler receives the method's positional arguments and can return its result
+synchronously or asynchronously. TypeScript checks the arguments and return
+value against the bridge API.
+
+For example, use it with Vitest:
+
+```ts title="bridge.test.ts"
+import { BridgeError, source } from '@wvb/bridge';
+import { clearInvokeMocks, mockInvoke } from '@wvb/bridge/testing';
+import { afterEach, expect, test } from 'vitest';
+
+afterEach(clearInvokeMocks);
+
+test('reads the active version', async () => {
+  mockInvoke('source.getVersion', bundleName => {
+    expect(bundleName).toBe('app');
+    return { source: 'remote', version: '2.0.0' };
+  });
+
+  await expect(source.getVersion('app')).resolves.toEqual({
+    source: 'remote',
+    version: '2.0.0',
+  });
+});
+
+test('preserves a native error code', async () => {
+  mockInvoke('source.getVersion', () => {
+    throw BridgeError.of('test_failure', 'Simulated native failure');
+  });
+
+  await expect(source.getVersion('app')).rejects.toMatchObject({
+    name: 'BridgeError',
+    code: 'test_failure',
+  });
+});
+```
+
+### Group mocks with `mockBridge()`
+
+Create a group of command mocks, optionally with a platform override. Chain
+`mockInvoke()` calls or register them on the returned object. Use `using` to
+clean up when the scope exits:
+
+```ts title="platform.test.ts"
+import { platform, source } from '@wvb/bridge';
+import { mockBridge } from '@wvb/bridge/testing';
+import { expect, test } from 'vitest';
+
+test('shows the iOS bundle version', async () => {
+  using bridge = mockBridge({ platform: 'ios' });
+  bridge.mockInvoke('source.getVersion', () => ({
+    source: 'builtin',
+    version: '1.0.0',
+  }));
+
+  expect(platform.isIos).toBe(true);
+  await expect(source.getVersion('app')).resolves.toEqual({
+    source: 'builtin',
+    version: '1.0.0',
+  });
+});
+```
+
+### Override detection with `mockPlatform()`
+
+`mockPlatform('android')` overrides platform detection without registering
+command handlers. It returns a `Disposable`: use `using` or call its
+`[Symbol.dispose]()` method to restore the previous platform.
+
+### Clean up with `clearInvokeMocks()`
+
+Clears all command handlers. An individual `mockInvoke()` also returns a
+disposable handle with `.clear()` for removing just that handler. Neither method
+restores platform overrides or removes the installed interception function.
+Dispose the platform mock separately when applicable.

@@ -1,8 +1,7 @@
 // Localization for the generated reference docs.
 //
-// The generated API pages themselves are English (code and type signatures are
-// language-neutral); what gets translated is the *sidebar structure* — the
-// `---separator---` group labels in each `meta.json` / `meta.<locale>.json`.
+// Package landing pages and sidebar labels are localized. Individual symbol
+// pages retain the English source JSDoc and language-neutral type signatures.
 //
 // To add a language: add its code to `Locale` + `LOCALES`, then fill in the
 // column for it in `LABELS`. Nothing else in the generator needs to change.

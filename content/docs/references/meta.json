@@ -3,14 +3,12 @@
   "title": "References",
   "pages": [
     "index",
-    "cli",
-    "configuration",
     "---Rust---",
     "[wvb (docs.rs)](https://docs.rs/wvb)",
     "[wvb-tauri (docs.rs)](https://docs.rs/wvb-tauri)",
     "---JavaScript---",
     "...api",
-    "---Native---",
+    "---Android/iOS---",
     "[Android (javadoc.io)](https://javadoc.io/doc/dev.wvb/webview-bundle-android)",
     "[iOS (Swift Package Index)](https://swiftpackageindex.com/webview-bundle/webview-bundle-ios)"
   ]

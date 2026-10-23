@@ -1,32 +1,20 @@
 ---
 title: 'WebviewBundleRemoteConfig'
-description: 'WebviewBundleRemoteConfig — API reference.'
+description: 'Remote endpoint and options used by the optional updater.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/electron/src/webview-bundle.ts#L7)
+Remote endpoint and options used by the optional updater.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/electron/src/webview-bundle.ts#L9)
 
 **Extends:** `RemoteOptions`
 
 ## Properties
 
-<TypeTable
-  type={{
-    endpoint: { type: 'string', required: true },
-    http: { type: 'HttpOptions', required: false },
-  }}
-/>
+<TypeTable type={{"baseUrl":{"type":"string","description":"Base URL of the update service.","required":true},"http":{"type":"HttpOptions","description":"Optional HTTP client configuration.","required":false}}} />
 
 ## Methods
 
-<TypeTable
-  type={{
-    onDownload: {
-      type: '(data: RemoteOnDownloadData) => void',
-      required: false,
-      parameters: [{ name: 'data', description: 'RemoteOnDownloadData' }],
-      returns: 'void',
-    },
-  }}
-/>
+<TypeTable type={{"onDownload":{"type":"(data: RemoteOnDownloadData) => void","description":"Callback invoked as a bundle download progresses.","required":false,"parameters":[{"name":"data","description":"RemoteOnDownloadData"}],"returns":"void"}}} />

@@ -1,0 +1,17 @@
+---
+title: 'ProxyResolver'
+description: 'Resolves the proxy target for a request uri (null to not proxy).'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Resolves the proxy target for a request uri (`null` to not proxy). The path and query of the
+request are appended to whatever it returns.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/electron/src/protocol.ts#L143)
+
+## Type
+
+```ts
+type ProxyResolver = (uri: string) => Promise<string | null>;
+```

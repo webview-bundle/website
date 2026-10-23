@@ -1,0 +1,203 @@
+---
+title: 'Android'
+---
+
+Add Webview Bundle to a Kotlin Android app. Connect a development server to
+`WebView`, install builtin bundles in the app resources, and check that the page
+loads offline.
+
+## Before you begin
+
+Prepare an Android project with `minSdk` 24 or later, `compileSdk` 35 or later,
+and JVM 17 compatibility. The example uses an emulator, an `app` application
+module, and a `web` frontend. The CLI requires Node.js 20.19 or later in the
+20.x line, or 22.12 or later.
+
+The files used in this guide are:
+
+<Files>
+  <Folder name="app" defaultOpen>
+    <File name="build.gradle.kts" icon={<IconKotlin />} />
+    <Folder name="src/main" defaultOpen>
+      <File name="AndroidManifest.xml" />
+      <Folder name="assets/bundles" />
+      <File name="java/com/example/app/MainActivity.kt" icon={<IconKotlin />} />
+    </Folder>
+  </Folder>
+  <Folder name="web">
+    <File name="wvb.config.ts" icon={<IconTypeScript />} />
+  </Folder>
+  <File name="wvb.config.ts" icon={<IconTypeScript />} />
+</Files>
+
+## 1. Install dependencies
+
+Ensure your dependency repositories include `mavenCentral()`. Add the SDK to the
+application module:
+
+```kotlin title="app/build.gradle.kts"
+dependencies {
+    implementation("dev.wvb:webview-bundle-android:0.3.0")
+}
+```
+
+## 2. Create an instance and connect the development server
+
+Create the shared instance and install it on the webview before loading the URL.
+The Android proxy API is `WebViewBundleProtocol.local()`:
+
+```kotlin title="app/src/main/java/com/example/app/MainActivity.kt"
+package com.example.app
+
+import android.app.Activity
+import android.os.Bundle
+import android.webkit.WebView
+import dev.wvb.WebViewBundleConfig
+import dev.wvb.WebViewBundleProtocol
+import dev.wvb.wvb
+
+class MainActivity : Activity() {
+    private lateinit var webView: WebView
+    private var bridge: AutoCloseable? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val instance = wvb(
+            this,
+            WebViewBundleConfig(
+                protocols = listOf(
+                    WebViewBundleProtocol.local(
+                        mapOf("app.wvb" to "http://10.0.2.2:5173")
+                    )
+                )
+            )
+        )
+        webView = WebView(this).apply {
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+        }
+        bridge = instance.install(webView)
+        setContentView(webView)
+        webView.loadUrl("https://app.wvb/")
+    }
+
+    override fun onDestroy() {
+        bridge?.close()
+        webView.destroy()
+        super.onDestroy()
+    }
+}
+```
+
+Replace `com.example.app` with your app's package name. The emulator reaches
+your development computer at `10.0.2.2`. On a physical device, use a network
+address that reaches your computer. Run the frontend on port `5173`.
+
+Declare network permission in the main manifest. If you use an HTTP development
+server, allow cleartext traffic only in the debug manifest:
+
+```xml title="app/src/main/AndroidManifest.xml"
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+```xml title="app/src/debug/AndroidManifest.xml"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:usesCleartextTraffic="true" />
+</manifest>
+```
+
+Place the permission inside the existing `<manifest>` element. Run the app and
+check that the development page loads at `https://app.wvb/`. If your app uses a
+network security configuration, also adjust it to allow the development host in
+debug builds.
+
+## 3. Install the CLI
+
+Install the CLI at the Android project root:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @wvb/cli
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/cli
+```
+
+  </Tab>
+</Tabs>
+
+## 4. Install the local build as a builtin bundle
+
+Configure the web workspace to package its `dist` directory as bundle `app`,
+version `1.0.0`:
+
+```ts title="web/wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: { srcDir: './dist' },
+  remote: { bundleName: 'app', version: '1.0.0' },
+});
+```
+
+At the native project root, point `builtin.target` at the web workspace:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './app/src/main/assets/bundles',
+    target: { type: 'local', workspaces: ['./web'] },
+  },
+});
+```
+
+Run your existing frontend build command. After `web/dist/index.html` is
+created, run the following command from the native project root:
+
+```sh
+yarn wvb builtin
+```
+
+The CLI packages the web build output and creates
+`./app/src/main/assets/bundles/manifest.json` and
+`./app/src/main/assets/bundles/app/1.0.0.wvb`.
+
+Prevent the APK from compressing `.wvb` files again:
+
+```kotlin title="app/build.gradle.kts"
+android {
+    androidResources {
+        noCompress += "wvb"
+    }
+}
+```
+
+The SDK copies `assets/bundles` to app-private storage when it creates the
+source. The Rust core reads bundles from the copied file paths.
+
+## 5. Run and verify the builtin bundle
+
+Replace the development protocol list with the following configuration:
+
+```kotlin
+protocols = listOf(WebViewBundleProtocol.bundle())
+```
+
+Requests to `app.wvb` are served from the bundle; other hosts use the network.
+Stop the development server, rebuild and install the APK, and restart the app.
+The page should load at `https://app.wvb/` without the server.

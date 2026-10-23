@@ -1,0 +1,23 @@
+{
+  "title": "@wvb/cli/api",
+  "pages": [
+    "---Functions---",
+    "builtin",
+    "local-remote",
+    "pack",
+    "remote-upload",
+    "serve",
+    "unpack",
+    "---Interfaces---",
+    "builtin-params",
+    "local-remote-params",
+    "pack-params",
+    "pack-result",
+    "remote-upload-params",
+    "serve-instance",
+    "serve-params",
+    "unpack-params",
+    "---Type Aliases---",
+    "local-remote-instance"
+  ]
+}

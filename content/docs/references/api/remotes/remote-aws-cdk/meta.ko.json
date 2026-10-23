@@ -1,0 +1,10 @@
+{
+  "title": "@wvb/remote-aws/cdk",
+  "pages": [
+    "---클래스---",
+    "webview-bundle-remote",
+    "wvb-remote",
+    "---인터페이스---",
+    "webview-bundle-remote-props"
+  ]
+}

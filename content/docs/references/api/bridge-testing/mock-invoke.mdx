@@ -1,0 +1,42 @@
+---
+title: 'mockInvoke'
+description: 'Registers a mock handler that responds a single bridge invoke command.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Registers a mock handler that responds a single bridge `invoke` command.
+
+Returns a `MockInvoke` (a `Disposable`): declare it with `using` to clear the mock
+automatically when the scope exits, call `.clear()` to remove it manually, or let it
+persist until [`clearInvokeMocks`](/docs/references/api/bridge-testing/clear-invoke-mocks).
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/bridge/src/testing/index.ts#L33)
+
+```ts
+function mockInvoke<K extends "source.listBundles" | "source.listBuiltinBundles" | "source.listRemoteBundles" | "source.getVersion" | "source.getRemoteStagedVersion" | "source.getRemotePreviousVersion" | "source.getBuiltinVersionData" | "source.getRemoteVersionData" | "source.updateRemoteVersion" | "source.updateRemoteVersions" | "source.stageRemoteBundle" | "source.stageRemoteBundles" | "source.removeRemoteBundle" | "source.removeRemoteBundles" | "source.pruneRemoteBundle" | "source.pruneRemoteBundles" | "source.resolveFilepath" | "source.getBuiltinBundleFilepath" | "source.getRemoteBundleFilepath" | "source.unload" | "remote.getUpdate" | "remote.download" | "updater.getUpdate" | "updater.download" | "updater.install" | "updater.rollback">(command: K, handler: MockInvokeHandler<K>): MockInvoke;
+```
+
+## Parameters
+
+<TypeTable type={{"command":{"type":"K","required":true},"handler":{"type":"MockInvokeHandler<K>","required":true}}} />
+
+## Returns
+
+`MockInvoke`
+
+## Examples
+
+```ts
+import { source } from '@wvb/bridge';
+import { mockInvoke } from '@wvb/bridge/testing';
+import { expect, test } from 'vitest';
+
+test('reads the current version', async () => {
+  using _mock = mockInvoke('source.getVersion', bundleName => {
+    expect(bundleName).toBe('app');
+    return { source: 'remote', version: '1.0.0' };
+  });
+  await expect(source.getVersion('app')).resolves.toEqual({ source: 'remote', version: '1.0.0' });
+});
+```

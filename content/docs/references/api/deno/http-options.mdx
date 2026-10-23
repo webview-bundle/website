@@ -1,26 +1,14 @@
 ---
 title: 'HttpOptions'
-description: "HTTP client options (mirrors @wvb/node's HttpOptions; defaultHeaders not yet supported)."
+description: 'HTTP client options for a remote.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-HTTP client options (mirrors `@wvb/node`'s `HttpOptions`; `defaultHeaders` not yet supported).
+HTTP client options for a remote.
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/remote.ts#L5)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/bindings.ts#L100)
 
 ## Properties
 
-<TypeTable
-  type={{
-    connectTimeout: { type: 'number', required: false },
-    hickoryDns: { type: 'boolean', required: false },
-    poolIdleTimeout: { type: 'number', required: false },
-    poolMaxIdlePerHost: { type: 'number', required: false },
-    readTimeout: { type: 'number', required: false },
-    referer: { type: 'boolean', required: false },
-    tcpNodelay: { type: 'boolean', required: false },
-    timeout: { type: 'number', required: false },
-    userAgent: { type: 'string', required: false },
-  }}
-/>
+<TypeTable type={{"connectTimeout":{"type":"number | null","description":"Connection-establishment timeout in milliseconds.","required":false},"defaultHeaders":{"type":"Partial<{ [key in string]: string }> | null","description":"Headers sent with every request.","required":false},"poolIdleTimeout":{"type":"number | null","description":"Idle lifetime in milliseconds for pooled connections.","required":false},"poolMaxIdlePerHost":{"type":"number | null","description":"Maximum idle connections retained for one host.","required":false},"readTimeout":{"type":"number | null","description":"Response-body read timeout in milliseconds.","required":false},"referer":{"type":"boolean | null","description":"Whether redirect requests include a Referer header.","required":false},"tcpNodelay":{"type":"boolean | null","description":"Whether TCP sockets disable Nagle's algorithm.","required":false},"timeout":{"type":"number | null","description":"Total request timeout in milliseconds.","required":false},"userAgent":{"type":"string | null","description":"User-Agent sent with every request.","required":false}}} />

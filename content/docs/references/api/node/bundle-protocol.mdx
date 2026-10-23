@@ -8,55 +8,28 @@ description: 'Protocol handler for serving files from bundle sources.'
 Protocol handler for serving files from bundle sources.
 
 Serves web resources from `.wvb` bundle files, supporting:
-
 - GET and HEAD HTTP methods
 - HTTP Range requests for streaming
 - Content-Type and custom HTTP headers
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L265)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/node/binding.d.cts#L265)
 
 ## Constructor
 
 ```ts
-new BundleProtocol(source: BundleSource);
+new BundleProtocol(source: Source, options?: BundleProtocolOptions | null);
 ```
 
-<TypeTable
-  type={{
-    source: {
-      type: 'BundleSource',
-      description: 'Bundle source to serve files from',
-      required: true,
-    },
-  }}
-/>
+<TypeTable type={{"source":{"type":"Source","description":"Bundle source to serve files from","required":true},"options":{"type":"BundleProtocolOptions | null","description":"How the request uri is resolved","required":false}}} />
 
 ## Methods
 
-<TypeTable
-  type={{
-    handle: {
-      type: '(method: HttpMethod, uri: string, headers?: Record<string, string> | null) => Promise<HttpResponse>',
-      description:
-        'Handles an HTTP request and returns a response. Processes requests in the format scheme://bundle_name/path/to/file.',
-      required: true,
-      parameters: [
-        { name: 'method', description: 'HttpMethod — HTTP method (GET or HEAD)' },
-        { name: 'uri', description: 'string — Request URI (e.g., "bundle://app/index.html")' },
-        {
-          name: 'headers?',
-          description: 'Record<string, string> | null — Optional request headers',
-        },
-      ],
-      returns: 'Promise<HttpResponse> — HTTP response',
-    },
-  }}
-/>
+<TypeTable type={{"handle":{"type":"(method: HttpMethod, uri: string, headers?: Record<string, string> | null, body?: Buffer<ArrayBufferLike> | null) => Promise<HttpResponse>","description":"Handles an HTTP request and returns a response. Processes requests in the format scheme://bundle_name/path/to/file.","required":true,"parameters":[{"name":"method","description":"HttpMethod — HTTP method (GET or HEAD)"},{"name":"uri","description":"string — Request URI (e.g., \"bundle://app/index.html\")"},{"name":"headers?","description":"Record<string, string> | null — Optional request headers"},{"name":"body?","description":"Buffer<ArrayBufferLike> | null — Optional request body (accepted, but unused: only GET/HEAD are served)"}],"returns":"Promise<HttpResponse> — HTTP response"}}} />
 
 ## Examples
 
 ```typescript
-const source = new BundleSource({
+const source = new Source({
   builtinDir: './bundles/builtin',
   remoteDir: './bundles/remote',
 });
@@ -72,9 +45,27 @@ console.log(`Content-Type: ${response.headers['content-type']}`);
 ### constructor
 
 ```typescript
-const source = new BundleSource({
+const source = new Source({
   builtinDir: './bundles',
   remoteDir: './remote',
+});
+const protocol = new BundleProtocol(source);
+```
+
+```typescript
+// `https://cdn.example.com/my-app/about` -> "/about/index.html" of the "my-app" bundle
+const protocol = new BundleProtocol(source, {
+  bundleResolver: { type: 'pathname' },
+});
+```
+
+```typescript
+// Entry checksum verification is inherited from the source's read options; to serve
+// without checking entry checksums, configure it on the source instead.
+const source = new Source({
+  builtinDir: './bundles',
+  remoteDir: './remote',
+  options: { dataRead: { checksum: { verify: false } } },
 });
 const protocol = new BundleProtocol(source);
 ```

@@ -1,0 +1,67 @@
+---
+title: '소개'
+---
+
+웹뷰 번들은 웹뷰 기반 프레임워크 및 플랫폼을 위한 "오프라인 우선(Offline First)"
+방식의 웹 리소스 배포 시스템입니다.
+
+웹뷰 번들을 사용하면 [Electron](https://electronjs.org),
+[Tauri](https://tauri.app), Android, iOS, 그리고
+[Deno Desktop (실험적)](https://docs.deno.com/runtime/desktop/)에서 동일한 웹
+애플리케이션 코드를 서빙할 수 있습니다.
+
+## 어떻게 동작하나요?
+
+### 웹뷰 번들 포맷 (`.wvb`)
+
+`.wvb` 파일은 HTML, JavaScript, CSS와 같은 웹 리소스를 기기에 저장합니다.
+네이티브 호스트가 파일을 로컬에서 읽으므로, 번들에 포함된 리소스를 불러올 때
+네트워크 연결이 필요하지 않습니다.
+
+**빌트인 번들**은 네이티브 앱에 포함해 배포합니다. **리모트 번들**은 나중에
+원격으로 부터 다운로드받아 설치할 수 있습니다. 더 자세한 내용은
+[웹뷰 번들 (.wvb)](/docs/guide/concepts/webview-bundle)을 참고하세요.
+
+### 네이티브 측 구현
+
+네이티브는 번들 소스를 관리하고, 웹뷰의 리소스 요청에 응답하고, 리모트 번들을
+다운로드·설치합니다. 공통 로직은 Rust로 작성했습니다. Node.js는
+[napi-rs](https://napi.rs), Android와 iOS는
+[UniFFI](https://mozilla.github.io/uniffi-rs), Deno는
+[외부 함수 인터페이스(FFI)](https://docs.deno.com/runtime/fundamentals/ffi/)로
+코어를 호출합니다. 더 자세한 내용은
+[네이티브 측 구현](/docs/guide/concepts/native)을 참고하세요.
+
+### 원격 업데이트
+
+원격 업데이트(OTA, Over the Air)는 네이티브 앱을 다시 배포하지 않고 웹뷰 번들을
+교체하는 기능입니다. 번들을 업로드하고 버전을 배포하면, 클라이언트에서
+다운로드하고 설치할 수 있습니다.
+
+AWS와 Cloudflare용 제공자를 지원합니다.
+[리모트 기술 사양](/docs/guide/remote/spec)에 맞춰 서버를 직접 구현할 수도
+있습니다. 전체 흐름은 [원격 업데이트](/docs/guide/concepts/remote)를 참고하세요.
+
+## 왜 웹뷰 번들을 사용해야 하나요?
+
+이 프로젝트는 웹 앱을 오프라인 우선으로 제공하려는 필요에서 시작했습니다.
+네트워크 없이 UI를 렌더하려면 화면에 필요한 웹 리소스를 기기에 저장하고, 웹
+브라우저가 이를 로컬에서 불러와 렌더에 사용할 수 있어야 합니다.
+
+웹 앱을 오프라인에서 사용하기 위해
+[WICG Web Packaging](https://github.com/WICG/webpackage) 기술 논의나
+[Isolated Web Apps(IWA)](https://developer.chrome.com/docs/iwa)와 같은 기술이
+존재합니다. 다만, 아직 표준화되지 않았거나 특정 브라우저에서만 사용 가능한
+제약이 존재합니다.
+
+웹뷰 번들은 플랫폼/프레임워크 상관없이 범용적으로 사용하기 위해 만들어졌습니다.
+오프라인 지원을 위한 아주 단순한 자체 파일 포맷과, 각 네이티브 연동을 제공하여
+동일한 웹 앱 코드를 여러 플랫폼(Android, iOS, Windows, macOS) 및
+프레임워크(Electron, Tauri, Deno Desktop)에서 사용할 수 있게 됩니다.
+
+## 다음 단계
+
+- 웹뷰 번들을 사용하기 위해 [시작하기](/docs/guide/get-started)를 참고하세요.
+- 웹뷰 번들 개념을 이해하기 위해
+  [웹뷰 번들 (.wvb)](/docs/guide/concepts/webview-bundle)를 참고하세요.
+- 어떤 API가 있는지 궁금하다면 [레퍼런스](/docs/references)를 참고하세요.

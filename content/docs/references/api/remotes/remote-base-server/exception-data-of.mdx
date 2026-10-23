@@ -1,0 +1,14 @@
+---
+title: 'ExceptionDataOf'
+description: 'ExceptionDataOf — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/remote/base/src/server/exception.ts#L24)
+
+## Type
+
+```ts
+type ExceptionDataOf<T extends ExceptionType> = { [K in ExceptionType]: Extract<ExceptionData, { type: K }> extends never ? null : Omit<Extract<ExceptionData, { type: K }>, "type"> }[T];
+```

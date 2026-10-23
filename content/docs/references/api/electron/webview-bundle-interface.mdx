@@ -1,31 +1,20 @@
 ---
 title: 'WebviewBundle'
-description: 'WebviewBundle — API reference.'
+description: 'Host-process facade for bundle sources, custom protocols, and optional remote updates.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/electron/src/webview-bundle.ts#L21)
+Host-process facade for bundle sources, custom protocols, and optional remote updates.
+
+Await `WebviewBundle.ready` before serving requests or exposing its IPC API to renderers.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/electron/src/webview-bundle.ts#L37)
 
 ## Properties
 
-<TypeTable
-  type={{
-    protocolSchemes: { type: 'readonly string[]', required: true },
-    remote: { type: 'Remote | null', required: true },
-    source: { type: 'BundleSource', required: true },
-    updater: { type: 'Updater | null', required: true },
-  }}
-/>
+<TypeTable type={{"protocolSchemes":{"type":"readonly string[]","description":"Schemes registered for this instance.","required":true},"remote":{"type":"Remote | null","description":"Remote client, or null when updates were not configured.","required":true},"source":{"type":"Source","description":"Local builtin and remote bundle source.","required":true},"updater":{"type":"Updater | null","description":"Updater, or null when updates were not configured.","required":true}}} />
 
 ## Methods
 
-<TypeTable
-  type={{
-    whenProtocolRegistered: {
-      type: '() => Promise<void>',
-      required: true,
-      returns: 'Promise<void>',
-    },
-  }}
-/>
+<TypeTable type={{"ready":{"type":"() => Promise<void>","description":"Resolves after all configured Electron protocols have been registered.","required":true,"returns":"Promise<void>"}}} />

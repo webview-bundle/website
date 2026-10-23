@@ -26,7 +26,7 @@ async function syntheticTsconfig(
         module: 'esnext',
         target: 'esnext',
         skipLibCheck: true,
-        strict: false,
+        strict: true,
         types: [],
       },
       include: [path.join(pkg.dir, '**/*.ts')],
@@ -35,12 +35,16 @@ async function syntheticTsconfig(
   return { file, cleanup: () => rm(tmp, { recursive: true, force: true }) };
 }
 
-export async function convertPackage(pkg: PackageTarget): Promise<any> {
+export async function convertPackage(pkg: PackageTarget, packages: PackageTarget[]): Promise<any> {
   const synthetic = pkg.tsconfig == null ? await syntheticTsconfig(pkg) : null;
   try {
     const app = await Application.bootstrapWithPlugins({
       entryPoints: [pkg.entry],
       tsconfig: pkg.tsconfig ?? synthetic!.file,
+      // CI installs dependencies without building workspace dist files.
+      compilerOptions: {
+        paths: Object.fromEntries(packages.map(target => [target.name, [target.entry]])),
+      },
       readme: 'none',
       excludePrivate: true,
       excludeInternal: true,
@@ -48,8 +52,10 @@ export async function convertPackage(pkg: PackageTarget): Promise<any> {
       skipErrorChecking: true,
       logLevel: 'Error',
     });
+    if (app.logger.hasErrors()) throw new Error(`TypeDoc configuration failed for ${pkg.name}`);
     const project = await app.convert();
-    if (project == null) throw new Error(`TypeDoc failed to convert ${pkg.name}`);
+    if (project == null || app.logger.hasErrors())
+      throw new Error(`TypeDoc failed to convert ${pkg.name}`);
     return project;
   } finally {
     await synthetic?.cleanup();

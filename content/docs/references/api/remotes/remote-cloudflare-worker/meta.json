@@ -1,0 +1,14 @@
+{
+  "title": "@wvb/remote-cloudflare/worker",
+  "pages": [
+    "---Functions---",
+    "webview-bundle-worker",
+    "wvb-worker",
+    "---Interfaces---",
+    "worker-bindings",
+    "worker-env",
+    "---Type Aliases---",
+    "webview-bundle-worker-type-alias",
+    "worker-config"
+  ]
+}

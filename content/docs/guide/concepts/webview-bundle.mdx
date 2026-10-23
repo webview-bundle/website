@@ -1,0 +1,124 @@
+---
+title: 'Webview Bundle (.wvb)'
+---
+
+A `.wvb` file stores web resources together with their HTTP response metadata.
+This page explains the data the native host reads and how it selects an
+installed version. For the steps to create and serve a bundle, see your
+platform's guide.
+
+## Data structure
+
+The format consists of a header, an index, and individually compressed resource
+data. The header specifies the index size, and each index entry identifies a
+resource's location.
+
+![The header and index have checksums. Each compressed resource in the data section has its own checksum.](/diagrams/wvb-structure.svg)
+
+### Header
+
+The header occupies the first 17 bytes. It contains an eight-byte magic value
+(`0xF09F8C90F09F8E81`, the UTF-8 encoding of 🌐🎁), a one-byte format version
+(`1`), a four-byte index size, and a four-byte xxHash-32 checksum of the
+preceding 13 bytes. Values are stored in big-endian order.
+
+The index size excludes the index's four-byte checksum.
+
+### Index
+
+The index maps each resource path to an offset and compressed length in the data
+section. Entries also contain the content type, original length, and optional
+HTTP response headers. Paths are serialized in sorted order, and a four-byte
+xxHash-32 checksum follows the index.
+
+![Look up a request path in the index to find the offset and length of its resource.](/diagrams/wvb-index-lookup.svg)
+
+Index data is serialized and deserialized with
+[bincode](https://sr.ht/~stygianentity/bincode/).
+
+### Data
+
+Each resource is compressed individually with [LZ4](https://github.com/lz4/lz4)
+and prefixed with its uncompressed size. A four-byte xxHash-32 checksum follows
+each compressed entry. The reader seeks to the indexed offset, reads and
+verifies the entry, then decompresses the resource.
+
+For an entry with offset `0` and length `768`, the payload occupies bytes `0`
+through `767` relative to the data section. The following four bytes contain the
+entry's checksum.
+
+## Why create a new format?
+
+Webview Bundle focuses on looking up request paths and returning resources with
+their HTTP metadata. A simple shared format also makes resource readers easier
+to implement and maintain across native platforms.
+
+The main characteristics are:
+
+- **Random access:** an index lookup identifies the byte range of the requested
+  resource.
+- **HTTP response metadata:** content types and response headers are stored with
+  their resources.
+- **Low decompression cost:** [LZ4](https://github.com/lz4/lz4) provides fast
+  decompression. Because resources are read locally, the format prioritizes
+  access and decompression costs over reducing archive size.
+
+## Sources
+
+A source manages bundles stored on the device. **Builtin** bundles ship with the
+native app and are read-only. **Remote** bundles are downloaded into writable
+app storage.
+
+An active remote version takes priority over the builtin version. A downloaded
+version does not become active until it is installed. If no remote version is
+active, the source selects the builtin version.
+
+For details on using remote bundles, see [Releasing](/docs/guide/releasing).
+
+### Disk layout
+
+Builtin and remote directories each contain a manifest and a directory for each
+bundle. The following structure stores two versions of the `app` bundle:
+
+<Files>
+  <Folder name="bundles" defaultOpen>
+    <File name="manifest.json" icon={<IconJson />} />
+    <Folder name="app" defaultOpen>
+      <File name="1.0.0.wvb" />
+      <File name="1.1.0.wvb" />
+    </Folder>
+  </Folder>
+</Files>
+
+The path is `SOURCE_DIR/BUNDLE_NAME/VERSION.wvb`. Replace `SOURCE_DIR` with the
+builtin or remote directory, `BUNDLE_NAME` with the bundle name, and `VERSION`
+with its version.
+
+### Manifest
+
+The manifest records stored versions and their activation state. In this
+example, version `1.0.0` is active and `1.1.0` is staged for installation:
+
+```json title="manifest.json"
+{
+  "manifestVersion": 1,
+  "bundles": {
+    "app": {
+      "versions": { "1.0.0": {}, "1.1.0": {} },
+      "currentVersion": "1.0.0",
+      "stagedVersion": "1.1.0"
+    }
+  }
+}
+```
+
+Each bundle records the following state:
+
+- `versions`: stored versions with optional `integrity` and `metadata`, a map of
+  string keys to string values (`HashMap<string, string>{:rust}`).
+- `currentVersion`: the active version.
+- `previousVersion`: the previously active version used for rollback.
+- `stagedVersion`: the downloaded version waiting to be installed.
+
+The source retains versions needed for the current, previous, and staged states.
+For state transitions, see [Remote updates](/docs/guide/concepts/remote).

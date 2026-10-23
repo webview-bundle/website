@@ -23,10 +23,7 @@ export function Platforms() {
             {t.platforms.eyebrow}
           </div>
           <a
-            href={localizeHref(
-              '/docs/guide/getting-started/platform-and-framework-support',
-              locale
-            )}
+            href={localizeHref('/docs/guide/platform-support', locale)}
             className="font-mono text-[11.5px] text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
           >
             {t.platforms.matrix}

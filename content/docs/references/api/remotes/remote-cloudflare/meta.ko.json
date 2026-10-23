@@ -5,9 +5,16 @@
     "bundle-already-uploaded-error",
     "---함수---",
     "cloudflare-remote",
+    "cloudflare-remote-deployer",
+    "cloudflare-remote-uploader",
     "is-bundle-already-uploaded-error",
     "---인터페이스---",
     "cloudflare-remote-interface",
-    "cloudflare-remote-config"
+    "cloudflare-remote-config",
+    "cloudflare-remote-deployer-interface",
+    "cloudflare-remote-deployer-config",
+    "cloudflare-remote-uploader-config",
+    "../remote-cloudflare-pulumi",
+    "../remote-cloudflare-worker"
   ]
 }

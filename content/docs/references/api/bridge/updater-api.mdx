@@ -5,40 +5,8 @@ description: 'UpdaterApi — API reference.'
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/bridge/src/updater.ts#L40)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/bridge/src/updater.ts#L111)
 
 ## Methods
 
-<TypeTable
-  type={{
-    download: {
-      type: '(bundleName: string, version?: string) => Promise<RemoteBundleInfo>',
-      required: true,
-      parameters: [
-        { name: 'bundleName', description: 'string' },
-        { name: 'version?', description: 'string' },
-      ],
-      returns: 'Promise<RemoteBundleInfo>',
-    },
-    getUpdate: {
-      type: '(bundleName: string) => Promise<BundleUpdateInfo>',
-      required: true,
-      parameters: [{ name: 'bundleName', description: 'string' }],
-      returns: 'Promise<BundleUpdateInfo>',
-    },
-    install: {
-      type: '(bundleName: string, version: string) => Promise<void>',
-      required: true,
-      parameters: [
-        { name: 'bundleName', description: 'string' },
-        { name: 'version', description: 'string' },
-      ],
-      returns: 'Promise<void>',
-    },
-    listRemotes: {
-      type: '() => Promise<ListRemoteBundleInfo[]>',
-      required: true,
-      returns: 'Promise<ListRemoteBundleInfo[]>',
-    },
-  }}
-/>
+<TypeTable type={{"download":{"type":"(bundleUpdates: BundleUpdate[], options?: UpdaterDownloadOptions) => Promise<UpdaterDownloadResult[]>","description":"Downloads the given bundle updates. This only stages them on disk — UpdaterApi.install is what activates them for the protocol to serve. A bundle that failed to download is reported in its own result rather than failing the call, so check each result.type.","required":true,"parameters":[{"name":"bundleUpdates","description":"BundleUpdate[]"},{"name":"options?","description":"UpdaterDownloadOptions"}],"returns":"Promise<UpdaterDownloadResult[]>"},"getUpdate":{"type":"(options?: UpdaterGetUpdateOptions) => Promise<Update | null>","description":"The bundles the app is missing, or null when it is already up to date.","required":true,"parameters":[{"name":"options?","description":"UpdaterGetUpdateOptions"}],"returns":"Promise<Update | null>"},"install":{"type":"(targets: UpdaterInstallTarget[]) => Promise<UpdaterInstallResult[]>","description":"Activates the staged version of each target.","required":true,"parameters":[{"name":"targets","description":"UpdaterInstallTarget[]"}],"returns":"Promise<UpdaterInstallResult[]>"},"rollback":{"type":"(targets: UpdaterRollbackTarget[]) => Promise<UpdaterRollbackResult[]>","description":"Puts each target back on the previous version recorded for it.","required":true,"parameters":[{"name":"targets","description":"UpdaterRollbackTarget[]"}],"returns":"Promise<UpdaterRollbackResult[]>"}}} />

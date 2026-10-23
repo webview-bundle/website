@@ -1,21 +1,17 @@
 ---
 title: 'SignatureAlgorithm'
-description: 'Digital signature algorithm for bundle verification (mirrors @wvb/node).'
+description: 'Digital signature algorithm for bundle verification.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-Digital signature algorithm for bundle verification (mirrors `@wvb/node`).
+Digital signature algorithm for bundle verification. The wire strings match `@wvb/node`'s
+`SignatureAlgorithm`.
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/updater.ts#L11)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/bindings.ts#L226)
 
 ## Type
 
 ```ts
-type SignatureAlgorithm =
-  | 'ecdsaSecp256R1'
-  | 'ecdsaSecp384R1'
-  | 'ed25519'
-  | 'rsaPkcs1V15'
-  | 'rsaPss';
+type SignatureAlgorithm = "rsa-pkcs1-v1_5-sha256" | "rsa-pss-sha256" | "ecdsa-secp256r1" | "ecdsa-secp384r1" | "ed25519";
 ```

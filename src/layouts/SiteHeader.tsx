@@ -24,7 +24,7 @@ export function SiteHeader({ className }: { className?: string }) {
   return (
     <header
       className={cn(
-        'z-30 border-b border-zinc-200/70 bg-white/85 backdrop-blur-md dark:border-zinc-900 dark:bg-[#09090a]/85',
+        'z-30 mx-auto w-full max-w-[var(--fd-layout-width,97rem)] border-b border-zinc-200/70 bg-white/85 backdrop-blur-md dark:border-zinc-900 dark:bg-[#09090a]/85',
         className
       )}
     >

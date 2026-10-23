@@ -5,24 +5,8 @@ description: 'ServeConfig — API reference.'
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/config/src/serve.ts#L1)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/config/src/serve.ts#L3)
 
 ## Properties
 
-<TypeTable
-  type={{
-    file: {
-      type: 'string',
-      description:
-        'Webview Bundle file to use for serving with http server. If not provided, the file at the "outFile" path is used by default.',
-      required: false,
-    },
-    port: {
-      type: 'number',
-      description: 'Specify a port number on which to start the http server.',
-      required: false,
-      default: '4312',
-    },
-    silent: { type: 'boolean', description: 'Disable log output.', required: false },
-  }}
-/>
+<TypeTable type={{"file":{"type":"string","description":"Webview Bundle file to use for serving with http server. If not provided, the file at the \"outFile\" path is used by default.","required":false},"pathResolver":{"type":"UriPathResolver","description":"How the request path is resolved to an entry path of the bundle. ; \"exact\": use the request path as-is (only percent-decoded).; \"directoryIndex\": / -> /index.html and /about -> /about/index.html. (static-site / MPA style; e.g. Astro format: 'directory' / Next trailingSlash: true); \"htmlExtension\": / -> /index.html and /about -> /about.html. (flat-file style; e.g. Astro format: 'file' / GitHub Pages / Next trailingSlash: false)","required":false,"default":"\"directoryIndex\""},"port":{"type":"number","description":"Specify a port number on which to start the http server.","required":false,"default":"4312"},"silent":{"type":"boolean","description":"Disable log output.","required":false}}} />

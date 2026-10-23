@@ -1,0 +1,48 @@
+---
+title: 'Remote updates'
+---
+
+Over-the-air (OTA) updates replace webview bundles without rebuilding the native
+app.
+
+## Update workflow
+
+Upload the web build output as a bundle, deploy the version to make it
+available, then download and install it on the client.
+
+![Build web resources, upload a .wvb file, deploy an update, then check, download, and install it on the client.](/diagrams/remote-workflow.svg)
+
+### Bundle upload
+
+After building the frontend, package and upload its static output under a bundle
+name and version. You can store an integrity hash of the `.wvb` bytes alongside
+the bundle.
+
+### Version deployment
+
+When a release is ready, deploy the uploaded version. The provider creates an
+update document containing bundle versions and integrity metadata, then changes
+the current update for the selected runtime and channel.
+
+You can sign the update document during deployment and verify it on the client.
+This helps prevent clients from accepting update documents from untrusted
+sources and improves the security of the update model. For details, see
+[Signature requirements](/docs/guide/remote/spec#signatures).
+
+### Download and installation
+
+The client retrieves the update document, identifies the bundles it needs, and
+downloads those versions. Downloaded bundles are staged for installation.
+Installation activates the staged version.
+
+Your app decides when to check for updates and reload the UI. Check each
+bundle's download and installation results before reloading. The updater
+provides an explicit rollback operation to return to a previous remote version.
+
+## Remote server setup
+
+The AWS provider uses S3, CloudFront, and Lambda@Edge. The Cloudflare provider
+uses R2, Workers, and KV.
+
+To create a server, see [Providers](/docs/guide/remote/provider). To implement
+your own server, follow the [remote specification](/docs/guide/remote/spec).

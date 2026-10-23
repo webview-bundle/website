@@ -1,0 +1,466 @@
+---
+title: 'CLI'
+---
+
+`@wvb/cli`로 프론트엔드 빌드 결과를 패키징하고, 번들을 검사하고, 업데이트를
+배포하고, 네이티브 앱에 포함할 빌트인 번들을 준비합니다. 이 문서는 각 명령의
+사용법, 옵션, 실행 결과를 설명합니다. 전체 배포 흐름은
+[릴리즈](/docs/guide/releasing)를 참고하세요.
+
+## 설치와 실행
+
+Node.js 20.x의 20.19 이상 또는 22.12 이상을 사용하세요. 번들을 관리하는
+프로젝트에 CLI를 설치하세요:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+    ```sh
+    npm install --save-dev @wvb/cli
+    ```
+
+  </Tab>
+  <Tab value="yarn">
+
+    ```sh
+    yarn add -D @wvb/cli
+    ```
+
+  </Tab>
+  <Tab value="pnpm">
+
+    ```sh
+    pnpm add -D @wvb/cli
+    ```
+
+  </Tab>
+</Tabs>
+
+## 명령 목록
+
+필요한 결과에 따라 명령을 선택하세요:
+
+| 명령             | 실행 결과                                               |
+| ---------------- | ------------------------------------------------------- |
+| `pack`           | 디렉터리의 파일로 `.wvb` 아카이브를 생성합니다.         |
+| `unpack`         | 아카이브 항목을 표시하고 파일을 추출합니다.             |
+| `serve`          | 로컬에서 검사할 수 있도록 아카이브를 HTTP로 제공합니다. |
+| `upload`         | 설정한 업로더로 번들 버전을 업로드합니다.               |
+| `deploy`         | 업로드한 버전을 업데이트로 배포합니다.                  |
+| `download`       | 현재 업데이트에 포함된 번들을 다운로드합니다.           |
+| `remote current` | 배포된 번들 하나의 메타데이터를 표시합니다.             |
+| `remote list`    | 현재 업데이트의 번들 목록을 JSON으로 출력합니다.        |
+| `remote local`   | 개발용 로컬 리모트 서버를 실행합니다.                   |
+| `builtin`        | 네이티브 앱에 포함할 번들과 매니페스트를 설치합니다.    |
+
+## 설정과 공통 옵션
+
+설정을 읽는 명령은 작업 디렉터리에서 `wvb.config.*` 또는
+`webview-bundle.config.*` 파일을 찾습니다. JavaScript·TypeScript 계열 확장자와
+`wvb.config.json`, `wvb.config.jsonc`를 지원합니다. 예를 들어 패키징할
+디렉터리와 아카이브 경로를 설정하세요:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+    outFile: './out/app.wvb',
+  },
+});
+```
+
+경로와 설정 파일은 다음 옵션으로 지정합니다:
+
+| 옵션                       | 적용 명령                                   | 동작                                                                                  |
+| -------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `--cwd DIR`                | `remote local`을 제외한 모든 명령           | 상대 경로의 기준이 되는 작업 디렉터리입니다. 기본값은 프로세스의 작업 디렉터리입니다. |
+| `--config FILE`, `-C FILE` | `unpack`, `remote local`을 제외한 모든 명령 | 지정한 설정 파일을 읽습니다. 작업 디렉터리 기준 상대 경로나 절대 경로를 사용합니다.   |
+
+옵션 표의 `DIR`, `FILE` 등 대문자 자리표시자를 실제 값으로 바꾸세요. 불리언
+옵션은 `--no-write`처럼 부정형으로 지정할 수 있습니다. 각 명령의 표에 나열된
+옵션만 해당 명령에서 사용할 수 있습니다.
+
+모든 명령에서 다음 출력 옵션을 사용할 수 있습니다:
+
+| 옵션                | 동작                                                                                                     |
+| ------------------- | -------------------------------------------------------------------------------------------------------- |
+| `--color MODE`      | `auto`, `on`, `off` 중 선택합니다. 기본값은 `auto`이며 `COLOR` 환경 변수도 읽습니다.                     |
+| `--log-level LEVEL` | `debug`, `info`, `warning`, `error` 중 선택합니다. 기본값은 `info`이며 `LOG_LEVEL` 환경 변수도 읽습니다. |
+| `--log-verbose`     | 로그에 시각, 범주, 오류 상세 정보를 추가합니다. 기본값은 `false`입니다.                                  |
+| `-h`, `--help`      | 지정한 명령의 도움말을 표시합니다.                                                                       |
+
+명령 실행이 성공하면 종료 코드 `0`, 실패하면 `1`을 반환합니다.
+
+## `pack`
+
+디렉터리의 파일로 `.wvb` 아카이브를 생성합니다. 사용법:
+
+```bash
+wvb pack [SRC_DIR] [OPTIONS]
+```
+
+`SRC_DIR`의 기본값은 `pack.srcDir`, 그다음 `./dist`입니다. 출력 경로는
+`pack.outFile`, 그다음 `.wvb/NAME.wvb`를 사용합니다. `NAME`은 가장 가까운
+`package.json`의 이름에서 npm 스코프를 제외한 값입니다. 둘 다 없으면
+`--outfile`을 지정하세요.
+
+옵션:
+
+| 옵션                                             | 동작                                                                                                            |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `--outfile FILE`, `--out-file FILE`, `-O FILE`   | 아카이브 경로입니다. `.wvb` 확장자를 생략하면 자동으로 붙입니다.                                                |
+| `--ignore GLOB`                                  | 일치하는 파일을 제외합니다. 반복해서 패턴을 추가할 수 있으며 `pack.ignore`와 함께 적용됩니다.                   |
+| `--header GLOB NAME VALUE`, `-H GLOB NAME VALUE` | 일치하는 항목에 응답 헤더를 추가합니다. 반복할 수 있으며 CLI 값이 설정 파일의 동일 헤더보다 우선합니다.         |
+| `--write`                                        | 아카이브를 저장합니다. 기본값은 `true`입니다. `--no-write`는 메모리에서 번들을 생성하고 파일 목록을 표시합니다. |
+| `--overwrite`                                    | 기존 아카이브를 덮어씁니다. 기본값은 `pack.overwrite`, 그다음 `true`입니다.                                     |
+
+소스 맵을 제외하고 HTML 항목에 캐시 헤더를 추가해 `dist`를 패키징하세요:
+
+```sh
+yarn wvb pack ./dist --outfile ./out/app.wvb \
+  --ignore '**/*.map' --header '**/*.html' cache-control no-cache
+```
+
+포함된 파일, 출력 경로, 아카이브 크기를 출력합니다. 패키징할 파일이 없으면
+실패합니다.
+
+## `unpack`
+
+아카이브의 포맷 버전, 항목 경로, 크기, 콘텐츠 유형, 헤더를 표시한 뒤 파일을
+추출합니다. 사용법:
+
+```bash
+wvb unpack FILE [OPTIONS]
+```
+
+`FILE`은 필수입니다. 출력 디렉터리의 기본값은 `.wvb/NAME`이며, `NAME`은 아카이브
+파일명에서 `.wvb`를 제외한 값입니다.
+
+옵션:
+
+| 옵션                     | 동작                                                                                                            |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `--outdir DIR`, `-O DIR` | 파일을 추출할 디렉터리입니다.                                                                                   |
+| `--write`                | 파일을 추출합니다. 기본값은 `true`입니다. `--no-write`는 아카이브 정보만 표시합니다.                            |
+| `--clean`                | 기존 출력 디렉터리를 삭제한 뒤 추출합니다. 기본값은 `false`이며, 이때 디렉터리가 이미 있으면 오류가 발생합니다. |
+
+파일을 추출하지 않고 아카이브를 검사하세요:
+
+```bash
+wvb unpack ./out/app.wvb --no-write
+```
+
+## `serve`
+
+아카이브 하나의 리소스를 제공하는 HTTP 서버를 실행합니다. 사용법:
+
+```bash
+wvb serve [FILE] [OPTIONS]
+```
+
+`FILE`의 기본값은 `serve.file`, 그다음 `pack`이 해석하는 출력 경로입니다.
+
+옵션:
+
+| 옵션                         | 동작                                                                                                                       |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `--hostname HOST`, `-H HOST` | 수신 주소입니다. `HOSTNAME` 환경 변수도 읽습니다. 로컬 컴퓨터에서만 접근하려면 `127.0.0.1`을 지정하세요.                   |
+| `--port PORT`, `-P PORT`     | 포트 번호입니다. `PORT` 환경 변수, 그다음 `4312`를 기본값으로 사용합니다.                                                  |
+| `--silent`                   | 요청 로그를 끕니다. 기본값은 `serve.silent`, 그다음 `false`입니다.                                                         |
+| `--path-resolver MODE`       | `exact`, `directory_index`, `html_extension` 중 선택합니다. 기본값은 `serve.pathResolver`, 그다음 `directory_index`입니다. |
+
+`exact`는 요청 경로를 그대로 사용합니다. 확장자가 없는 경로에 대해
+`directory_index`는 `/about`을 `/about/index.html`로, `html_extension`은
+`/about.html`로 해석합니다. 뒤의 두 모드 모두 `/`를 `/index.html`로 해석합니다.
+일치하는 항목이 없으면 `404`를 응답합니다.
+
+로컬 컴퓨터에서 아카이브를 제공하세요:
+
+```bash
+wvb serve ./out/app.wvb --hostname 127.0.0.1 --port 4312
+```
+
+`http://127.0.0.1:4312/`에서 내용을 확인하고 `Ctrl+C`로 서버를 종료하세요.
+포트는 `--port`나 `PORT`로 지정하세요. CLI의 기본값이 설정 파일의
+`serve.port`보다 우선합니다.
+
+## `upload`
+
+`remote.uploader`로 번들 버전 하나를 업로드합니다. 실행 전에
+[리모트 프로바이더](/docs/guide/remote/provider)를 설정하세요. 사용법:
+
+```bash
+wvb upload [BUNDLE] [OPTIONS]
+```
+
+`BUNDLE`의 기본값은 `remote.bundleName`, 스코프를 제외한 패키지 이름, 아카이브
+파일명 순서입니다. 버전은 `remote.version`, 그다음 패키지 버전을 사용합니다. 두
+설정 필드 모두 값을 해석하는 함수를 지정할 수도 있습니다.
+
+옵션:
+
+| 옵션                              | 동작                                                                                                 |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `--version VERSION`, `-V VERSION` | 번들 버전입니다.                                                                                     |
+| `--file FILE`, `-F FILE`          | 아카이브 경로입니다. 기본값은 `pack`이 해석하는 출력 경로입니다.                                     |
+| `--pack`, `-P`                    | 업로드 전에 소스 디렉터리를 패키징합니다. 기본값은 `remote.packBeforeUpload`, 그다음 `true`입니다.   |
+| `--skip-integrity`                | 해시 생성을 생략합니다. 생략하지 않으면 `remote.integrity`를 사용하며 기본 알고리즘은 SHA-256입니다. |
+| `--channel CHANNEL`               | 옵션을 받지만 업로드에는 영향을 주지 않습니다. 채널은 `deploy`에서 선택하세요.                       |
+
+기존 아카이브를 다시 패키징하지 않고 업로드하세요:
+
+```bash
+wvb upload app --version 1.2.0 --file ./out/app.wvb --no-pack
+```
+
+업로드한 번들 이름, 버전, 크기, 무결성 해시를 출력합니다. 업로드만으로
+클라이언트에 제공되는 버전이 바뀌지는 않습니다. `deploy`로 배포하세요.
+
+자동 패키징은 `pack.srcDir`, `pack.outFile`, `pack.overwrite`를 사용하지만
+`pack.ignore`와 `pack.headers`는 적용하지 않습니다. 해당 설정을 적용하려면
+`pack`을 먼저 실행한 뒤 `--no-pack`으로 업로드하세요.
+
+## `deploy`
+
+`remote.deployer`로 업로드한 번들 버전을 배포합니다. 사용법:
+
+```bash
+wvb deploy [BUNDLE] [OPTIONS]
+```
+
+`BUNDLE`의 기본값은 `remote.bundleName`, 그다음 스코프를 제외한 패키지
+이름입니다. 버전은 `remote.version`, 그다음 패키지 버전을 사용합니다. 설정한
+배포기에 번들 이름·버전 한 쌍과 선택한 채널을 전달합니다.
+
+옵션:
+
+| 옵션                              | 동작                                                |
+| --------------------------------- | --------------------------------------------------- |
+| `--version VERSION`, `-V VERSION` | 배포할 업로드 버전입니다.                           |
+| `--channel CHANNEL`               | 릴리즈 채널입니다. 생략하면 기본 채널을 사용합니다. |
+
+업로드한 버전을 `beta` 채널에 업로드하기:
+
+```bash
+wvb deploy app --version 1.2.0 --channel beta
+wvb remote current app --channel beta
+```
+
+조회 명령에는 `remote.baseUrl` 또는 `--base-url`이 필요합니다. 배포 명령은 번들
+이름, 버전, 채널을 출력합니다. CLI는 `remote.signature`를 배포기에 전달하지
+않습니다. 클라이언트가 서명된 업데이트를 요구한다면
+[서명](/docs/guide/remote/spec#서명)을 참고하세요.
+
+## `download`
+
+선택한 채널의 현재 업데이트에 포함된 번들을 다운로드합니다. 사용법:
+
+```bash
+wvb download [BUNDLE] VERSION [OPTIONS]
+```
+
+`VERSION`은 필수 위치 인자입니다. `BUNDLE`의 기본값은 `remote.bundleName`,
+그다음 스코프를 제외한 패키지 이름입니다. 요청한 버전이 현재 업데이트의 번들
+버전과 일치해야 합니다. 임의의 과거 버전을 조회하는 명령은 아닙니다.
+
+옵션:
+
+| 옵션                    | 동작                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `--base-url URL`        | 리모트 기본 URL입니다. 기본값은 `remote.baseUrl`이며 둘 중 하나가 필요합니다.                                 |
+| `--channel CHANNEL`     | 업데이트 채널입니다. 생략하면 기본 채널을 사용합니다.                                                         |
+| `--out FILE`, `-O FILE` | 저장 경로입니다. 기본값은 작업 디렉터리의 `BUNDLE.wvb`입니다.                                                 |
+| `--write`               | 번들을 저장합니다. 기본값은 `true`입니다. `--no-write`는 현재 업데이트에 일치하는 항목이 있는지만 확인합니다. |
+| `--overwrite`           | 기존 파일을 덮어씁니다. 기본값은 `false`입니다.                                                               |
+| `--progress`            | 다운로드 진행률을 표시합니다. 기본값은 `true`이며 `--no-progress`로 끌 수 있습니다.                           |
+
+
+예제:
+
+```bash
+wvb download app 1.2.0 --base-url https://updates.example.com \
+  --channel beta --out ./downloads/app.wvb
+```
+
+예제 URL을 사용하는 리모트의 기본 URL로 바꾸세요. 출력 경로와 파일 크기를
+표시합니다. 번들이 없거나 버전이 일치하지 않으면 오류가 발생합니다.
+`--no-write`를 사용해도 저장 경로에 파일이 이미 있는지 검사합니다.
+
+## `remote current`
+
+아카이브를 다운로드하지 않고 현재 업데이트에 포함된 번들 하나의 메타데이터를
+표시합니다. 사용법:
+
+```bash
+wvb remote current [BUNDLE] [OPTIONS]
+```
+
+`BUNDLE`의 기본값은 `remote.bundleName`, 그다음 스코프를 제외한 패키지
+이름입니다.
+
+옵션:
+
+| 옵션                | 동작                                                                          |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `--base-url URL`    | 리모트 기본 URL입니다. 기본값은 `remote.baseUrl`이며 둘 중 하나가 필요합니다. |
+| `--channel CHANNEL` | 업데이트 채널입니다. 생략하면 기본 채널을 사용합니다.                         |
+
+설정한 기본 URL에서 배포 버전을 확인하세요:
+
+```bash
+wvb remote current app --channel beta
+```
+
+버전, 업데이트 ETag, 무결성 해시, 다운로드 URL을 출력합니다. 현재 업데이트에
+해당 번들이 없으면 실패합니다. 무결성 해시를 표시하는 것만으로 아카이브의 실제
+바이트를 검증하지는 않습니다.
+
+## `remote list`
+
+현재 업데이트의 번들 항목을 JSON 배열로 출력합니다. `remote ls`로도 실행할 수
+있습니다. 사용법:
+
+```bash
+remote list [OPTIONS]
+```
+
+옵션:
+
+| 옵션                | 동작                                                                          |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `--base-url URL`    | 리모트 기본 URL입니다. 기본값은 `remote.baseUrl`이며 둘 중 하나가 필요합니다. |
+| `--channel CHANNEL` | 업데이트 채널입니다. 생략하면 기본 채널을 사용합니다.                         |
+
+## `remote local`
+
+개발과 업데이트 테스트를 위해 로컬 디렉터리를 저장소로 사용하는 리모트 서버를
+실행합니다. 사용법:
+
+```bash
+wvb remote local [OPTIONS]
+```
+
+옵션:
+
+| 옵션                         | 동작                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| `--base-dir DIR`             | 저장 디렉터리입니다. 기본값은 `~/.wvb/local`입니다.                       |
+| `--hostname HOST`, `-H HOST` | 수신 주소입니다. `HOSTNAME` 환경 변수도 읽습니다.                         |
+| `--port PORT`, `-P PORT`     | 포트 번호입니다. `PORT` 환경 변수, 그다음 `4313`을 기본값으로 사용합니다. |
+
+예제:
+
+```bash
+wvb remote local --base-dir ./.wvb/local \
+  --hostname 127.0.0.1 --port 4313
+```
+
+수신 URL을 출력하며 `Ctrl+C`로 종료할 수 있습니다. 이 명령은 `wvb.config.*`를
+읽지 않으며 `--config`와 `--cwd`를 지원하지 않습니다.
+
+이 서버의 저장 디렉터리에 배포하려면 로컬 프로바이더를 설치하세요:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+    ```sh
+    npm install --save-dev @wvb/remote-local
+    ```
+
+  </Tab>
+  <Tab value="yarn">
+
+    ```sh
+    yarn add -D @wvb/remote-local
+    ```
+
+  </Tab>
+  <Tab value="pnpm">
+
+    ```sh
+    pnpm add -D @wvb/remote-local
+    ```
+
+  </Tab>
+</Tabs>
+
+설정에 프로바이더와 기본 URL을 추가하세요. 저장 디렉터리는 서버의 `--base-dir`와
+같아야 합니다:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { localRemote } from '@wvb/remote-local';
+
+export default defineConfig({
+  remote: {
+    ...localRemote({ baseDir: './.wvb/local' }),
+    baseUrl: 'http://127.0.0.1:4313',
+  },
+});
+```
+
+## `builtin`
+
+네이티브 앱에 포함할 번들을 디렉터리에 설치합니다. 사용법:
+
+```bash
+wvb builtin [OPTIONS]
+```
+
+`builtin.target`으로 가져올 소스를 선택합니다:
+
+- `remote`(기본값): 현재 업데이트의 번들을 다운로드합니다.
+- `local`: 설정한 `workspaces`의 기존 빌드 결과를 패키징합니다.
+
+옵션:
+
+| 옵션                  | 동작                                                                                                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--out DIR`, `-O DIR` | 설치 디렉터리입니다. 플랫폼 프리셋, `builtin.outDir`, `.wvb/builtin/bundles` 순서로 기본값을 결정합니다.                                     |
+| `--base-url URL`      | `builtin.target.baseUrl`이 없을 때 사용할 URL입니다. 생략하면 `remote.baseUrl`을 사용합니다. 리모트 대상에만 적용됩니다.                     |
+| `--channel CHANNEL`   | 현재 업데이트의 채널입니다. 리모트 대상에만 적용됩니다.                                                                                      |
+| `--include GLOB`      | 패턴과 일치하는 번들 이름을 포함합니다. 반복할 수 있으며 `builtin.include`와 함께 적용됩니다.                                                |
+| `--exclude GLOB`      | 패턴과 일치하는 번들 이름을 제외합니다. 반복할 수 있으며 `builtin.exclude`와 함께 적용됩니다. 제외 조건이 우선합니다.                        |
+| `--write`             | 번들과 매니페스트를 저장합니다. 기본값은 `true`입니다. `--no-write`는 설치를 생략하지만 리모트 번들을 임시 파일로 다운로드할 수 있습니다.    |
+| `--clean`             | 설치 전에 대상 디렉터리를 삭제합니다. 기본값은 `builtin.clean`, 그다음 `true`입니다.                                                         |
+| `--concurrency COUNT` | 리모트 동시 다운로드 수입니다. 기본값은 사용 가능한 CPU 병렬 처리 수이며 최대 8, 최소 1입니다.                                               |
+| `--progress`          | 리모트 다운로드 진행률을 표시합니다. 기본값은 `true`입니다.                                                                                  |
+| `--android[=DIR]`     | Android 앱 모듈을 찾거나 지정한 모듈을 사용합니다. 기본 설치 경로는 모듈의 `src/main/assets/bundles`이며 `.wvb` 압축 설정을 확인합니다.      |
+| `--ios[=DIR]`         | iOS 프로젝트를 찾거나 지정한 프로젝트를 사용합니다. 기본 설치 경로는 프로젝트의 `bundles`이며 `Project.swift`에 폴더 참조 추가를 시도합니다. |
+
+플랫폼 프리셋은 하나만 사용하세요. `--android`는 Gradle 설정을 검사하며 파일을
+수정하지 않습니다. `--ios`는 Tuist의 `Project.swift`를 수정할 수 있습니다. Xcode
+프로젝트에는 리소스를 직접 추가해야 합니다.
+
+예제:
+
+```bash
+wvb builtin --out ./bundles --include app --channel beta
+```
+
+로컬 빌드 결과를 사용하려면 네이티브 프로젝트에 다음 대상을 설정하세요:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './bundles',
+    target: { type: 'local', workspaces: ['./web'] },
+  },
+});
+```
+
+각 워크스페이스에는 번들 설정 파일이 필요합니다. 번들 이름과 버전은 대상의
+`bundleName`, `version` 해석기 또는 워크스페이스의 `package.json`에서
+가져옵니다. `web`을 빌드한 뒤 실행하세요:
+
+```bash
+wvb builtin
+```
+
+설치 디렉터리에는 `manifest.json`과 `BUNDLE/VERSION.wvb` 파일이 생성됩니다. 예를
+들어 이름이 `app`이고 버전이 `1.2.0`인 번들은 `app/1.2.0.wvb`에 저장됩니다.
+플랫폼 가이드에 따라 디렉터리 전체를 네이티브 앱에 포함하세요.

@@ -1,0 +1,30 @@
+{
+  "title": "@wvb/config/remote",
+  "pages": [
+    "---Functions---",
+    "get-signature-value",
+    "make-integrity",
+    "sign-signature",
+    "---Interfaces---",
+    "base-deployer",
+    "base-uploader",
+    "deploy-bundle-data",
+    "deploy-params",
+    "integrity-make-config",
+    "remote-config",
+    "signature-config",
+    "upload-params",
+    "upload-progress",
+    "---Type Aliases---",
+    "integrity-algorithm",
+    "integrity-make-fn",
+    "integrity-maker",
+    "resolved-signature-config",
+    "signature-algorithm",
+    "signature-sign-config",
+    "signature-signer",
+    "signature-sign-fn",
+    "signature-signing-key-config",
+    "signing-key-format"
+  ]
+}

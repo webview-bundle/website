@@ -1,0 +1,16 @@
+---
+title: 'BundleDescriptor'
+description: 'A bundle''s metadata (header + index) without its data, backed by a .wvb file on disk.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A bundle's metadata (header + index) without its data, backed by a `.wvb` file on disk. Reads
+entry data lazily via `BundleDescriptor.getData`, reopening the file each call. Owns a native
+handle — call `BundleDescriptor.free` when done.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/bundle.ts#L218)
+
+## Methods
+
+<TypeTable type={{"[dispose]":{"type":"() => void","required":true,"returns":"void"},"free":{"type":"() => void","required":true,"returns":"void"},"getData":{"type":"(filepath: string, path: string) => Promise<Uint8Array<ArrayBuffer> | null>","description":"Decompressed contents of the entry at path, read from filepath, or null if absent.","required":true,"parameters":[{"name":"filepath","description":"string"},{"name":"path","description":"string"}],"returns":"Promise<Uint8Array<ArrayBuffer> | null>"},"getDataChecksum":{"type":"(filepath: string, path: string) => Promise<number | null>","description":"The stored checksum of the entry at path, read from filepath, or null if absent.","required":true,"parameters":[{"name":"filepath","description":"string"},{"name":"path","description":"string"}],"returns":"Promise<number | null>"},"header":{"type":"() => BundleHeader","required":true,"returns":"BundleHeader"},"index":{"type":"() => BundleIndex","required":true,"returns":"BundleIndex"}}} />

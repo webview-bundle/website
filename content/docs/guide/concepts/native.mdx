@@ -1,0 +1,98 @@
+---
+title: 'Native implementations'
+---
+
+This page explains how native integrations use the Webview Bundle format on each
+platform.
+
+## Rust core
+
+The Rust core ([wvb](https://docs.rs/wvb)) reads `.wvb` files, manages
+builtin and remote sources, handles resource requests, and downloads and
+installs updates. Sharing this logic keeps format handling and version selection
+consistent across hosts.
+
+## Platform and runtime support
+
+Each integration calls the core through the following interface:
+
+| Host               | Core interface          | Webview integration                          |
+| ------------------ | ----------------------- | -------------------------------------------- |
+| Node.js / Electron | napi-rs native addon    | Electron protocols and preload communication |
+| Tauri              | Rust crate              | Tauri plugin and custom URI schemes          |
+| Android            | UniFFI Kotlin bindings  | `WebViewClient` request interception         |
+| iOS                | UniFFI Swift bindings   | `WKURLSchemeHandler`                         |
+| Deno Desktop       | Deno FFI shared library | Routes served with `Deno.serve()`            |
+
+## Protocol handling
+
+For an `app://app.wvb/index.html` request, the default bundle resolver uses the
+first hostname segment, `app`, as the bundle name, and the path resolver selects
+`/index.html`. The native host reads the entry's data, content type, and headers
+from the bundle and returns an HTTP response to the webview.
+
+### Bundle resolver (`UriBundleResolver`)
+
+The bundle resolver supports the following modes:
+
+- `hostname`: uses the URI's hostname.
+  - `segment`: the segment type or index to select from the hostname. Defaults
+    to `first`.
+  - `allowWvbSuffixOnly`: accepts only hostnames ending in `.wvb`. Defaults to
+    `false`.
+- `pathname`: uses the URI's pathname.
+  - `segmentIndex`: the index of the pathname segment to use. Defaults to `0`.
+
+For example, select a bundle by hostname or pathname:
+
+```typescript
+import type { UriBundleResolver } from '@wvb/node';
+
+// `https://app.wvb/index.html` -> bundle "app"
+const byHostname: UriBundleResolver = { type: 'hostname' };
+
+// `https://cdn.example.com/my-app/index.html` -> bundle "my-app"
+const byPathname: UriBundleResolver = { type: 'pathname', segmentIndex: 0 };
+```
+
+### Path resolver (`UriPathResolver`)
+
+The path resolver supports the following modes:
+
+- `exact`: uses the URI's pathname as-is.
+- `directory_index`: appends `/index.html` to extensionless paths.
+  - Examples: `/` → `/index.html`, `/about` → `/about/index.html`.
+  - Used for static sites or multi-page applications (MPAs).
+  - Matches Astro's `format: 'directory'{:js}` and Next.js's
+    `trailingSlash: true{:js}` options.
+- `html_extension`: appends `.html` to extensionless paths.
+  - Examples: `/` → `/index.html`, `/about` → `/about.html`.
+  - Matches Astro's `format: 'file'{:js}` and Next.js's
+    `trailingSlash: false{:js}` options.
+
+---
+
+During development, a proxy handler forwards HTTP requests to the frontend
+server. In a deployed app, a bundle handler reads local resources.
+
+| Integration  | Development server              | Bundle resources                 |
+| ------------ | ------------------------------- | -------------------------------- |
+| Electron     | `proxyProtocol()`               | `bundleProtocol()`               |
+| Tauri        | `ProtocolConfig::proxy()`       | `ProtocolConfig::bundle()`       |
+| Android      | `WebViewBundleProtocol.local()` | `WebViewBundleProtocol.bundle()` |
+| iOS          | `.local(scheme:hosts:)`         | `.bundle(scheme:)`               |
+| Deno Desktop | `{ proxy: URL }` route          | `{ bundle: NAME }` route         |
+
+### Android and Deno Desktop protocols
+
+Android uses `http` or `https`. Android WebView restricts resource requests and
+link resolution for custom URL schemes. To maintain compatibility with web
+standards, bundle resources are also served through HTTP(S) URLs that work with
+the same-origin policy. For details, see Android's documentation on
+[handling custom URLs](https://developer.android.com/develop/ui/views/layout/webapps/webview#handling-custom-urls)
+and
+[loading in-app content](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content).
+
+Deno Desktop uses route-based request handling with `Deno.serve()` to match its
+available APIs. The route configuration selects the bundle, and the request
+URL's `pathname` determines the resource path within that bundle.

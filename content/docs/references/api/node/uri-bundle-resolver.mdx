@@ -1,0 +1,32 @@
+---
+title: 'UriBundleResolver'
+description: 'Options for resolving the bundle name from the request uri.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Options for resolving the bundle name from the request uri.
+
+- `hostname`: from the uri hostname.
+  - `segment` - Hostname segment to use, or the nth segment (default: 'first')
+  - `allowWvbSuffixOnly` - Only resolve hosts ending in `.wvb` (default: false)
+- `pathname`: from the uri pathname.
+  - `segmentIndex` - Path segment index, 0-based over non-empty segments (default: 0)
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/node/binding.d.cts#L1296)
+
+## Type
+
+```ts
+type UriBundleResolver = { allowWvbSuffixOnly?: boolean; segment?: HostnameSegment | number; type: "hostname" } | { segmentIndex?: number; type: "pathname" };
+```
+
+## Examples
+
+```typescript
+// `https://app.wvb/index.html` -> bundle "app"
+const byHostname: UriBundleResolver = { type: 'hostname' };
+
+// `https://cdn.example.com/my-app/index.html` -> bundle "my-app"
+const byPathname: UriBundleResolver = { type: 'pathname', segmentIndex: 0 };
+```

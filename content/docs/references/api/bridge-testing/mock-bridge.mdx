@@ -1,0 +1,39 @@
+---
+title: 'mockBridge'
+description: 'Create a mock bridge instance.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Create a mock bridge instance.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/bridge/src/testing/index.ts#L109)
+
+```ts
+function mockBridge(options?: MockBridgeOptions): MockBridge;
+```
+
+## Parameters
+
+<TypeTable type={{"options":{"type":"MockBridgeOptions","required":false}}} />
+
+## Returns
+
+`MockBridge`
+
+## Examples
+
+```ts
+import { source } from '@wvb/bridge';
+import { mockBridge } from '@wvb/bridge/testing';
+import { expect, test } from 'vitest';
+
+test('reads the active version', async () => {
+  using bridge = mockBridge()
+    .mockInvoke('source.getVersion', bundleName => {
+      expect(bundleName).toBe('app');
+      return { source: 'remote', version: '1.0.0' };
+    });
+
+  await expect(source.getVersion('app')).resolves.toEqual({ source: 'remote', version: '1.0.0' });
+});

@@ -1,67 +1,25 @@
 ---
 title: 'Updater'
-description: 'Coordinates updates between a BundleSource and a Remote: check, download to the remote dir, and activate.'
+description: 'Drives the update cycle over a Source and a Remote: ask what is available, download it, then install (or roll back) what was downloaded.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-Coordinates updates between a [`BundleSource`](/docs/references/api/deno/bundle-source) and a [`Remote`](/docs/references/api/deno/remote): check, download to the
-remote dir, and activate.
+Drives the update cycle over a [`Source`](/docs/references/api/deno/source) and a [`Remote`](/docs/references/api/deno/remote): ask what is available,
+download it, then install (or roll back) what was downloaded.
 
-Supports `channel`, `integrityPolicy`, and a declarative `signatureVerifier`. The custom-function
-callback options of `@wvb/node` (`integrityChecker`, custom `signatureVerifier`) are not yet
-supported over FFI.
+Owns a native handle — call `Updater.free` (or `using updater = new Updater(...)`) when done.
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/updater.ts#L83)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/updater.ts#L122)
 
 ## Constructor
 
 ```ts
-new Updater(source: BundleSource, remote: Remote, options?: UpdaterOptions);
+new Updater(source: Source, remote: Remote, updateFilepath: string, options?: UpdaterOptions);
 ```
 
-<TypeTable
-  type={{
-    source: { type: 'BundleSource', required: true },
-    remote: { type: 'Remote', required: true },
-    options: { type: 'UpdaterOptions', required: false },
-  }}
-/>
+<TypeTable type={{"source":{"type":"Source","required":true},"remote":{"type":"Remote","required":true},"updateFilepath":{"type":"string","required":true},"options":{"type":"UpdaterOptions","required":false}}} />
 
 ## Methods
 
-<TypeTable
-  type={{
-    '[dispose]': { type: '() => void', required: true, returns: 'void' },
-    download: {
-      type: '(bundleName: string, version?: string) => Promise<RemoteBundleInfo>',
-      required: true,
-      parameters: [
-        { name: 'bundleName', description: 'string' },
-        { name: 'version?', description: 'string' },
-      ],
-      returns: 'Promise<RemoteBundleInfo>',
-    },
-    free: { type: '() => void', required: true, returns: 'void' },
-    getUpdate: {
-      type: '(bundleName: string) => Promise<BundleUpdateInfo>',
-      required: true,
-      parameters: [{ name: 'bundleName', description: 'string' }],
-      returns: 'Promise<BundleUpdateInfo>',
-    },
-    install: {
-      type: '(bundleName: string, version: string) => Promise<void>',
-      required: true,
-      parameters: [
-        { name: 'bundleName', description: 'string' },
-        { name: 'version', description: 'string' },
-      ],
-      returns: 'Promise<void>',
-    },
-    listRemotes: {
-      type: '() => Promise<ListRemoteBundleInfo[]>',
-      required: true,
-      returns: 'Promise<ListRemoteBundleInfo[]>',
-    },
-  }}
-/>
+<TypeTable type={{"[dispose]":{"type":"() => void","required":true,"returns":"void"},"download":{"type":"(bundleUpdates: BundleUpdate[], options?: UpdaterDownloadOptions, cancellation?: Cancellation) => Promise<UpdaterDownloadResult[]>","description":"Downloads the given bundle updates. This only stages them on disk — Updater.install is what activates them for the protocol to serve.","required":true,"parameters":[{"name":"bundleUpdates","description":"BundleUpdate[]"},{"name":"options?","description":"UpdaterDownloadOptions"},{"name":"cancellation?","description":"Cancellation"}],"returns":"Promise<UpdaterDownloadResult[]>"},"free":{"type":"() => void","description":"Releases the native updater handle. Safe to call more than once.","required":true,"returns":"void"},"getUpdate":{"type":"(options?: UpdaterGetUpdateOptions) => Promise<Update | null>","description":"The bundles this source is missing, or null when it is already up to date.","required":true,"parameters":[{"name":"options?","description":"UpdaterGetUpdateOptions"}],"returns":"Promise<Update | null>"},"install":{"type":"(targets: UpdaterInstallTarget[]) => Promise<UpdaterInstallResult[]>","description":"Activates the staged version of each target.","required":true,"parameters":[{"name":"targets","description":"UpdaterInstallTarget[]"}],"returns":"Promise<UpdaterInstallResult[]>"},"rollback":{"type":"(targets: UpdaterRollbackTarget[]) => Promise<UpdaterRollbackResult[]>","description":"Puts each target back on the previous version recorded for it.","required":true,"parameters":[{"name":"targets","description":"UpdaterRollbackTarget[]"}],"returns":"Promise<UpdaterRollbackResult[]>"}}} />

@@ -1,0 +1,12 @@
+---
+title: 'WebviewBundleRemoteProps'
+description: 'WebviewBundleRemoteProps — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/remote/aws/src/cdk/remote.ts#L14)
+
+## Properties
+
+<TypeTable type={{"bucketName":{"type":"readonly string","description":"A concrete, globally unique name, embedded in the Lambda bundle at synthesis time.","required":true},"bucketProps":{"type":"readonly Pick<BucketProps, \"versioned\" | \"removalPolicy\" | \"autoDeleteObjects\" | \"lifecycleRules\" | \"cors\"> & { tags?: Readonly<Record<string, string>> }","description":"Storage lifecycle and CORS settings for the private, S3-encrypted bucket.","required":false},"distributionProps":{"type":"readonly Omit<DistributionProps, \"defaultBehavior\"> & { tags?: Readonly<Record<string, string>> }","description":"Distribution settings; the remote controls its default behavior and origin-request handler.","required":false},"originRequestProps":{"type":"readonly Partial<Pick<EdgeFunctionProps, \"functionName\" | \"description\" | \"code\" | \"runtime\" | \"handler\" | \"timeout\" | \"memorySize\" | \"role\" | \"initialPolicy\">> & { tags?: Readonly<Record<string, string>> }","description":"Lambda@Edge settings. Additional IAM statements are merged with the required S3 permissions.","required":false}}} />

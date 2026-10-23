@@ -1,21 +1,20 @@
 ---
 title: 'registerBindings'
-description: 'Register the @wvb/bridge transport on a Deno desktop window: a single wvbInvoke(name, params) binding that dispatches to wvb.'
+description: 'Register the @wvb/bridge transport on a Deno desktop window.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-Register the `@wvb/bridge` transport on a Deno desktop window: a single `wvbInvoke(name, params)`
-binding that dispatches to `wvb`. Call after creating the window and the app, e.g.
+Register the `@wvb/bridge` transport on a Deno desktop window.
 
 ```ts
 const win = new Deno.BrowserWindow();
-const app = webviewBundle({ source: { appName: 'myapp' }, protocols: [bundleProtocol('app')] });
-registerBindings(win, app);
-Deno.serve(app.fetch);
+const wvb = webviewBundle({ source: { appName: 'myapp' }, routes: { '/': { bundle: 'app' } } });
+registerBindings(win, wvb);
+Deno.serve(wvb.fetch);
 ```
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/bindings.ts#L150)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/desktop/bindings.ts#L143)
 
 ```ts
 function registerBindings(win: DenoBrowserWindow, wvb: WebviewBundle): void;
@@ -23,12 +22,7 @@ function registerBindings(win: DenoBrowserWindow, wvb: WebviewBundle): void;
 
 ## Parameters
 
-<TypeTable
-  type={{
-    win: { type: 'DenoBrowserWindow', required: true },
-    wvb: { type: 'WebviewBundle', required: true },
-  }}
-/>
+<TypeTable type={{"win":{"type":"DenoBrowserWindow","required":true},"wvb":{"type":"WebviewBundle","required":true}}} />
 
 ## Returns
 

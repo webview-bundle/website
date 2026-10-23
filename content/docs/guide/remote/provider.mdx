@@ -1,0 +1,233 @@
+---
+title: 'Providers'
+---
+
+Create a remote server that serves bundles and update documents. Provision
+resources with the AWS or Cloudflare Pulumi component, then connect the
+deployment client used by `wvb upload` and `wvb deploy`.
+
+## Before you begin
+
+Prepare a
+[Pulumi TypeScript project](https://www.pulumi.com/docs/iac/get-started/) with
+an initialized stack, Node.js, and credentials for your chosen cloud account.
+Keep infrastructure code in a separate directory. Run bundle deployment commands
+from the app project with upload credentials for that account.
+
+## AWS
+
+The component creates an S3 bucket, a CloudFront distribution, and an
+origin-request Lambda@Edge function. The Lambda function is created in
+`us-east-1`; the bucket can use your configured AWS region.
+
+### 1. Add the infrastructure component
+
+Install the component and its peer dependencies in the Pulumi project:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/remote-aws @pulumi/aws@^7 @pulumi/pulumi@^3
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/remote-aws @pulumi/aws@^7 @pulumi/pulumi@^3
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/remote-aws @pulumi/aws@^7 @pulumi/pulumi@^3
+```
+
+  </Tab>
+</Tabs>
+
+Create the remote and export the values needed for deployment:
+
+```ts title="index.ts"
+import { WebviewBundleRemoteProvider } from '@wvb/remote-aws/pulumi';
+
+const remote = new WebviewBundleRemoteProvider('updates', {
+  bucketName: 'BUCKET_NAME',
+  region: 'us-east-1',
+});
+
+export const baseUrl = remote.cloudfrontDistributionDomainName.apply(
+  domain => `https://${domain}`
+);
+export const bucketName = remote.bucketName;
+export const distributionId = remote.cloudfrontDistributionId;
+```
+
+Replace `BUCKET_NAME` with a globally unique, lowercase S3 bucket name.
+Authenticate with the
+[Pulumi AWS provider](https://www.pulumi.com/registry/packages/aws/installation-configuration/)
+before the next step.
+
+### 2. Create the server
+
+Review the resources to create, then apply the stack:
+
+```bash
+pulumi preview
+pulumi up
+```
+
+Wait for the CloudFront deployment to finish. Keep the exported `baseUrl`,
+`bucketName`, and `distributionId`.
+
+### 3. Configure the deployment client
+
+Install `@wvb/remote-aws` in the app project and merge the following `remote`
+settings into `wvb.config.ts`:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { awsRemote } from '@wvb/remote-aws';
+
+export default defineConfig({
+  remote: {
+    baseUrl: 'REMOTE_BASE_URL',
+    ...awsRemote({
+      bucket: 'BUCKET_NAME',
+      deployer: { invalidate: { distributionId: 'DISTRIBUTION_ID' } },
+    }),
+  },
+});
+```
+
+Replace `REMOTE_BASE_URL`, `BUCKET_NAME`, and `DISTRIBUTION_ID` with the stack
+outputs. AWS credentials and the bucket region are read from the AWS SDK
+credential and region configuration. The deployment identity needs bucket access
+and permission to invalidate CloudFront caches as used in this example.
+
+## Cloudflare
+
+The component creates an R2 bucket, a KV namespace, and a Worker version and
+deployment. R2 stores `.wvb` files; KV stores update documents and
+current-update pointers.
+
+### 1. Add the infrastructure component
+
+Install the following dependencies in the Cloudflare Pulumi project:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/remote-cloudflare @pulumi/cloudflare@^6 @pulumi/pulumi@^3
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/remote-cloudflare @pulumi/cloudflare@^6 @pulumi/pulumi@^3
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/remote-cloudflare @pulumi/cloudflare@^6 @pulumi/pulumi@^3
+```
+
+  </Tab>
+</Tabs>
+
+Create the component and export the resource identifiers:
+
+```ts title="index.ts"
+import { WebviewBundleRemoteProvider } from '@wvb/remote-cloudflare/pulumi';
+
+const remote = new WebviewBundleRemoteProvider('updates', {
+  accountId: 'ACCOUNT_ID',
+  worker: { name: 'webview-bundle' },
+});
+
+export const bucketName = remote.bucketName;
+export const kvNamespaceId = remote.kvNamespaceId;
+export const workerId = remote.workerId;
+```
+
+Replace `ACCOUNT_ID` with your Cloudflare account ID. Configure the
+[Pulumi Cloudflare provider](https://www.pulumi.com/registry/packages/cloudflare/)
+with an API token that can create Workers, R2 buckets, and KV namespaces.
+
+### 2. Create the server and connect a URL
+
+Review and apply the stack:
+
+```sh
+pulumi preview
+pulumi up
+```
+
+In the Cloudflare dashboard, open the `webview-bundle` Worker. Under \*\*Settings
+
+> Domains & Routes\*\*, enable a
+> [workers.dev route](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/)
+> or connect a custom domain. Use that HTTPS address as the remote base URL. The
+> Pulumi component doesn't export a public URL or create a custom domain.
+
+### 3. Configure the deployment client
+
+Install `@wvb/remote-cloudflare` in the app project. The deployment client needs
+S3-compatible R2 credentials and a Cloudflare API token for KV. Configure it to
+read them from environment variables:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { cloudflareRemote } from '@wvb/remote-cloudflare';
+
+export default defineConfig({
+  remote: {
+    baseUrl: 'REMOTE_BASE_URL',
+    ...cloudflareRemote({
+      accountId: 'ACCOUNT_ID',
+      bucket: 'BUCKET_NAME',
+      kvNamespaceId: 'KV_NAMESPACE_ID',
+      aws: {
+        region: 'auto',
+        credentials: {
+          accessKeyId: 'R2_ACCESS_KEY_ID',
+          secretAccessKey: 'R2_SECRET_ACCESS_KEY',
+        },
+      },
+      cloudflareConfig: {
+        apiToken: 'CLOUDFLARE_API_TOKEN',
+      },
+    }),
+  },
+});
+```
+
+Replace `REMOTE_BASE_URL` with the Worker URL, `ACCOUNT_ID` with your account
+ID, and `BUCKET_NAME` and `KV_NAMESPACE_ID` with the stack outputs.
+
+Set `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, and `CLOUDFLARE_API_TOKEN` in
+your local or CI deployment environment.
+
+## Verify the remote
+
+Query the update endpoint at the URL you created:
+
+```bash
+curl -i 'REMOTE_BASE_URL/update' \
+  -H 'wvb-update-protocol-version: 1' \
+  -H 'wvb-runtime-version: 1' \
+  -H 'wvb-update-channel: stable'
+```
+
+A channel with no deployed update returns `204`. After you deploy to `stable`,
+it returns `200` with an update document.
+
+Continue with [Releasing](/docs/guide/releasing) to upload and deploy your first
+bundle. To implement your own server, see the
+[Remote specification](/docs/guide/remote/spec).

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" role="img" aria-labelledby="t">
-  <title id="t">The .wvb file layout: a Header, Index, and Data section, each ending with an xxHash-32 checksum.</title>
+  <title id="t">The .wvb file layout: a header, an index, and data entries. The header, index, and each data entry have an xxHash-32 checksum.</title>
   <style>
     .lbl { font: 600 15px ui-sans-serif, system-ui, sans-serif; fill: #18181b; }
     .fld { font: 12px ui-sans-serif, system-ui, sans-serif; fill: #18181b; }
@@ -21,7 +21,7 @@
   <!-- section labels -->
   <text class="lbl" x="165" y="24" text-anchor="middle">Header (17 B)</text>
   <text class="lbl" x="422" y="24" text-anchor="middle">Index</text>
-  <text class="lbl" x="637" y="24" text-anchor="middle">Data</text>
+  <text class="lbl" x="637" y="24" text-anchor="middle">Data entries</text>
   <line class="rule" x1="20" y1="34" x2="310" y2="34"/>
   <line class="rule" x1="322" y1="34" x2="522" y2="34"/>
   <line class="rule" x1="534" y1="34" x2="740" y2="34"/>
@@ -52,13 +52,14 @@
     <text class="sz" x="493" y="130" text-anchor="middle">4 B</text>
   </g>
 
-  <!-- Data -->
+  <!-- The payload and checksum repeat for every resource. -->
   <g>
     <rect class="seg" x="534" y="48" width="148" height="64" rx="3"/>
     <rect class="sum" x="684" y="48" width="56"  height="64" rx="3"/>
-    <text class="fld"    x="608" y="84" text-anchor="middle">Data</text>
+    <text class="fld"    x="608" y="84" text-anchor="middle">LZ4 entry</text>
     <text class="fld sumtxt" x="712" y="84" text-anchor="middle">Checksum</text>
-    <text class="sz" x="608" y="130" text-anchor="middle">variable</text>
+    <text class="sz" x="608" y="130" text-anchor="middle">one resource</text>
     <text class="sz" x="712" y="130" text-anchor="middle">4 B</text>
   </g>
+  <text class="sz" x="637" y="158" text-anchor="middle">repeat for each resource</text>
 </svg>

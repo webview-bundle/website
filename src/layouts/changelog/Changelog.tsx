@@ -8,7 +8,7 @@ import {
 } from '../../lib/changelog';
 import { cn } from '../../lib/cn';
 import type { Locale } from '../../lib/i18n';
-import { localizeHref, useLocale } from '../../lib/locale';
+import { useLocale } from '../../lib/locale';
 import { useUiStrings } from '../../lib/ui-strings';
 
 function ChevronDownIcon(props: ComponentProps<'svg'>) {
@@ -283,7 +283,6 @@ function ReleaseItem({ release, isLatest }: { release: Release; isLatest: boolea
 
 export function Changelog({ releases, error }: { releases: Release[]; error: boolean }) {
   const t = useUiStrings();
-  const locale = useLocale();
   const [selected, setSelected] = useState<string>('all');
   const [query, setQuery] = useState('');
 
@@ -313,7 +312,6 @@ export function Changelog({ releases, error }: { releases: Release[]; error: boo
         <h1 className="text-3xl font-semibold tracking-tight text-fd-foreground">
           {t.changelog.title}
         </h1>
-        <p className="mt-2 text-fd-muted-foreground">{t.changelog.subtitle}</p>
       </header>
 
       {releases.length === 0 ? (
@@ -354,17 +352,6 @@ export function Changelog({ releases, error }: { releases: Release[]; error: boo
           )}
         </>
       )}
-
-      <footer className="mt-12 border-t border-fd-border pt-6 text-sm leading-relaxed text-fd-muted-foreground">
-        {t.changelog.versioningNote}{' '}
-        <a
-          href={localizeHref('/docs/guide/bundle-format', locale)}
-          className="text-brand underline-offset-2 hover:underline"
-        >
-          {t.changelog.bundleFormatLink}
-        </a>
-        .
-      </footer>
     </div>
   );
 }

@@ -52,11 +52,11 @@ export function Showcase() {
 
       {/* Heading column — aligned to the page's content width. */}
       <div className="relative mx-auto max-w-6xl px-4 pt-16 sm:px-6 sm:pt-24">
-        <div className="mb-6 flex items-baseline justify-between gap-4">
-          <div className="font-mono text-[11px] tracking-widest text-blue-300/80 uppercase">
-            {t.showcase.eyebrow}
-          </div>
-        </div>
+        {/*<div className="mb-6 flex items-baseline justify-between gap-4">*/}
+        {/*  <div className="font-mono text-[11px] tracking-widest text-blue-300/80 uppercase">*/}
+        {/*    {t.showcase.eyebrow}*/}
+        {/*  </div>*/}
+        {/*</div>*/}
 
         <h2 className="max-w-2xl bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-3xl leading-[1.08] font-semibold tracking-[-0.02em] text-balance text-transparent sm:text-[40px]">
           {t.showcase.title}

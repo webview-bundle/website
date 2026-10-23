@@ -1,14 +1,51 @@
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Card, Cards } from 'fumadocs-ui/components/card';
+import { File, Folder, Files } from 'fumadocs-ui/components/files';
 import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
 import * as TabsComponents from 'fumadocs-ui/components/tabs';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentProps, ReactNode } from 'react';
 import { cn } from './lib/cn';
-import { useLocale } from './lib/locale';
-import { localizeHref } from './lib/locale';
+import { codeIcons } from './lib/code-icons';
+import { localizeHref, useLocale } from './lib/locale';
+
+function FileTypeIcon({ name }: { name: keyof typeof codeIcons }) {
+  const icon = codeIcons[name];
+  return (
+    <span aria-hidden="true" className="inline-flex size-4 shrink-0 items-center justify-center">
+      <svg viewBox={icon.viewBox} style={{ width: 14, height: 14 }}>
+        <path d={icon.d} fill={icon.fill} />
+      </svg>
+    </span>
+  );
+}
+
+function IconTypeScript() {
+  return <FileTypeIcon name="typescript" />;
+}
+
+function IconJson() {
+  return <FileTypeIcon name="json" />;
+}
+
+function IconHtml() {
+  return <FileTypeIcon name="html" />;
+}
+
+function IconRust() {
+  return <FileTypeIcon name="rust" />;
+}
+
+function IconSwift() {
+  return <FileTypeIcon name="swift" />;
+}
+
+function IconKotlin() {
+  return <FileTypeIcon name="kotlin" />;
+}
 
 // Prefix internal `/docs/...` links with the active locale so translated pages
 // link to their own language (`/ko/docs/...`) without the MDX carrying prefixes.
@@ -62,6 +99,17 @@ export function getMDXComponents(components?: MDXComponents) {
     Cards,
     Badge,
     TypeTable,
+    File,
+    Folder,
+    Files,
+    IconTypeScript,
+    IconJson,
+    IconHtml,
+    IconRust,
+    IconSwift,
+    IconKotlin,
+    Steps,
+    Step,
     ...TabsComponents,
     ...components,
   } satisfies MDXComponents;

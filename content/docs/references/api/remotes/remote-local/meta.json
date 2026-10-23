@@ -3,8 +3,14 @@
   "pages": [
     "---Functions---",
     "local-remote",
+    "local-remote-deployer",
+    "local-remote-uploader",
     "---Interfaces---",
     "local-remote-interface",
-    "local-remote-config"
+    "local-remote-config",
+    "local-remote-deployer-config",
+    "local-remote-uploader-config",
+    "../remote-local-api",
+    "../remote-local-server"
   ]
 }

@@ -17,7 +17,7 @@ import { withExperimentalBadges } from './sidebar-badges';
 // Shared docs route wiring, parameterized by locale so `/docs/*` (English) and
 // `/ko/docs/*` (Korean) render the same UI from the locale's page tree.
 export const docsServerLoader = createServerFn({ method: 'GET' })
-  .inputValidator((input: { slugs: string[]; locale: Locale }) => input)
+  .validator((input: { slugs: string[]; locale: Locale }) => input)
   .handler(async ({ data: { slugs, locale } }) => {
     const page = docSource.getPage(slugs, locale);
     if (page == null) {
@@ -33,7 +33,15 @@ export const docsServerLoader = createServerFn({ method: 'GET' })
 export const docsClientLoader = browserCollections.docs.createClientLoader({
   component({ toc, frontmatter, default: MDX }, _props: undefined) {
     return (
-      <DocsPage toc={toc} tableOfContentPopover={{ component: <MobileTocBar /> }}>
+      <DocsPage
+        toc={toc}
+        tableOfContent={{ style: 'block' }}
+        tableOfContentPopover={{ component: <MobileTocBar /> }}
+        footer={{
+          className:
+            'mt-8 gap-4 pb-6 sm:mt-12 sm:gap-6 sm:pb-10 [&>a]:min-h-28 [&>a]:gap-3 [&>a]:px-6 [&>a]:py-5 sm:[&>a]:px-8 sm:[&>a]:py-6',
+        }}
+      >
         <DocsTitle>{frontmatter.title}</DocsTitle>
         <DocsDescription>{frontmatter.description}</DocsDescription>
         <DocsBody>

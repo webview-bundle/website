@@ -1,0 +1,224 @@
+---
+title: "릴리즈"
+---
+
+플랫폼별 가이드에서 빌트인 번들을 실행한 뒤 이 절차를 진행하세요. 리모트를 설정하고, 배포한 버전을 네이티브 앱에 포함하고, 이후 웹 변경사항을 원격으로 전달합니다.
+
+## 시작 전 준비
+
+[제공자](/docs/guide/remote/provider)를 따라 리모트 서버와 배포 자격 증명을 준비하세요. 플랫폼별 가이드처럼 프론트엔드는 `web`, 정적 빌드 결과는 `web/dist`에 둡니다. 예제는 `app` 번들을 사용합니다.
+
+## 1. 리모트 설정
+
+네이티브 프로젝트 루트에서 CLI와 배포 제공자를 설치하세요. 다음 예제는 AWS를 사용합니다:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+    ```sh
+    npm install --save-dev @wvb/cli @wvb/remote-aws
+    ```
+
+  </Tab>
+  <Tab value="yarn">
+
+    ```sh
+    yarn add -D @wvb/cli @wvb/remote-aws
+    ```
+
+  </Tab>
+  <Tab value="pnpm">
+
+    ```sh
+    pnpm add -D @wvb/cli @wvb/remote-aws
+    ```
+
+  </Tab>
+</Tabs>
+
+이후 설정 파일을 다음과 같이 업데이트하세요:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { awsRemote } from '@wvb/remote-aws';
+
+export default defineConfig({
+  pack: { srcDir: './web/dist', outFile: './.wvb/app.wvb' },
+  remote: {
+    baseUrl: 'REMOTE_BASE_URL',
+    bundleName: 'app',
+    version: '1.0.0',
+    ...awsRemote({ bucket: 'BUCKET_NAME' }),
+  },
+  builtin: {
+    outDir: './bundles',
+    target: { type: 'remote' },
+    include: 'app',
+  },
+});
+```
+
+`REMOTE_BASE_URL`은 서버의 기본 URL, `BUCKET_NAME`은 버킷 이름으로 바꾸세요. Cloudflare는 `awsRemote(...)` 대신 [Cloudflare 배포 설정](/docs/guide/remote/provider#cloudflare)을 사용하세요. 제공자의 업로더와 디플로이어를 함께 설정해야 합니다.
+
+## 2. 배포한 버전을 빌트인으로 탑재
+
+첫 릴리즈라면 프론트엔드를 빌드한 뒤 `1.0.0`을 업로드하고 배포하세요. 네이티브 프로젝트 루트에서 다음 명령을 실행하세요:
+
+```bash
+wvb upload app --version 1.0.0
+wvb deploy app --version 1.0.0
+```
+
+해당 버전을 이미 배포했다면 두 명령은 생략하세요. 배포한 번들을 빌트인 디렉터리에 설치하세요:
+
+```bash
+wvb builtin
+```
+
+`builtin.outDir`은 플랫폼별 가이드의 리소스 경로로 설정하세요:
+
+| 플랫폼 | 빌트인 디렉터리 | 패키징 단계 |
+| --- | --- | --- |
+| Electron | `./.wvb/bundles/builtin` | Forge·Builder 통합이 리소스를 복사합니다. |
+| Tauri | `./src-tauri/bundles` | `tauri.conf.json`의 리소스 매핑을 유지합니다. |
+| Android | `./app/src/main/assets/bundles` | 리소스를 포함해 APK를 다시 빌드합니다. |
+| iOS | `./bundles` | 앱 리소스의 폴더 참조를 유지합니다. |
+| Deno Desktop | `./bundles` | 데스크톱 빌드에 `bundles`와 `.wvb/lib`를 포함합니다. |
+
+매니페스트가 `1.0.0`을 선택하는지 확인한 뒤 기존 릴리즈 절차로 네이티브 앱을 패키징하고 배포하세요. 패키징한 앱을 오프라인에서 실행해 빌트인을 확인하세요.
+
+## 3. 다음 웹 버전 업로드
+
+프론트엔드를 변경한 뒤 `web/dist`를 다시 빌드하고 다른 버전으로 업로드하세요:
+
+```bash
+wvb upload app --version 1.1.0
+```
+
+명령은 빌드 결과를 패키징하고 무결성 해시와 함께 `.wvb` 파일을 업로드합니다.
+## 4. 버전 배포
+
+웹 릴리즈 준비가 끝나면 배포합니다:
+
+```bash
+wvb deploy app --version 1.1.0
+```
+
+제공자는 업데이트 문서를 만들고 채널이 가리키는 현재 업데이트를 바꿉니다. 설치된 앱은 다음 조회 시 업데이트를 받습니다. 빌트인 다운로드, 배포, 클라이언트 조회의 채널이 일치해야 합니다.
+
+서명한 업데이트는 [서명](/docs/guide/remote/spec#서명)을 참고하세요. 이 CLI 명령은 서명 옵션을 디플로이어에 전달하지 않습니다.
+
+## 5. 네이티브 업데이터 설정
+
+플랫폼별 가이드에서 만든 인스턴스에 리모트 기본 URL과 `stable` 채널을 추가하세요. 사용하는 호스트의 설정만 적용하세요:
+
+<Tabs items={["Electron", "Tauri", "Android", "iOS", "Deno Desktop"]}>
+<Tab value="Electron">
+
+```ts
+updater: {
+  remote: { baseUrl: 'REMOTE_BASE_URL' },
+},
+```
+
+</Tab>
+<Tab value="Tauri">
+
+```rust
+.remote(RemoteConfig::new("REMOTE_BASE_URL"))
+```
+
+</Tab>
+<Tab value="Android">
+
+```kotlin
+updater = WebViewBundleUpdaterConfig(
+    remote = WebViewBundleRemoteConfig(baseUrl = "REMOTE_BASE_URL"),
+),
+```
+
+</Tab>
+<Tab value="iOS">
+
+```swift
+updater: WebViewBundleUpdaterConfig(
+    remote: WebViewBundleRemoteConfig(baseUrl: "REMOTE_BASE_URL"),
+)
+```
+
+</Tab>
+<Tab value="Deno Desktop">
+
+```ts
+updater: {
+  remote: { baseUrl: 'REMOTE_BASE_URL' },
+},
+```
+
+</Tab>
+</Tabs>
+
+`REMOTE_BASE_URL`은 배포 설정에 사용한 URL로 바꾸세요.
+
+## 6. 웹 앱에서 다운로드와 설치
+
+프론트엔드 워크스페이스에서 브리지를 설치하세요:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+    ```sh
+    npm install @wvb/bridge
+    ```
+
+  </Tab>
+  <Tab value="yarn">
+
+    ```sh
+    yarn add @wvb/bridge
+    ```
+
+  </Tab>
+  <Tab value="pnpm">
+
+    ```sh
+    pnpm add @wvb/bridge
+    ```
+
+  </Tab>
+</Tabs>
+
+Electron은 `@wvb/electron/preload`의 `preload(){:js}`를 호출하는 preload 파일이 필요합니다. 다음 파일을 메인 프로세스 빌드에 포함하고, `webPreferences.preload`에 빌드 결과의 절대 경로를 지정하세요:
+
+```ts title="src/preload.ts"
+import { preload } from '@wvb/electron/preload';
+
+preload();
+```
+
+Tauri는 메인 창의 capability에 `wvb-tauri:default`가 필요합니다. Android와 iOS는 웹뷰 연동 시 브리지를 설치합니다. Deno는 `registerBindings(win, instance){:js}`를 사용합니다.
+
+다음 업데이트 동작 코드의 예시입니다:
+
+```ts title="web/src/update.ts"
+import { updater } from '@wvb/bridge';
+
+export async function checkForUpdates() {
+  const update = await updater.getUpdate();
+  if (update === null) {
+    return;
+  }
+
+  const downloads = await updater.download(update.bundles);
+  if (downloads.some(item => item.result.type !== 'downloaded')) {
+    throw new Error('A bundle could not be downloaded');
+  }
+
+  const installed = await updater.install(update.bundles);
+  if (installed.some(item => item.result.type !== 'installed')) {
+    throw new Error('A bundle could not be installed');
+  }
+
+  window.location.reload();
+}
+```

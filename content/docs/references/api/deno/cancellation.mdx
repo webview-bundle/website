@@ -1,0 +1,22 @@
+---
+title: 'Cancellation'
+description: 'A token handed to a download to stop it.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A token handed to a download to stop it. Cancelling makes the in-flight call reject with the
+`core.cancelled` code. Owns a native handle — call `Cancellation.free` (or
+`using cancellation = new Cancellation()`) when done.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/cancellation.ts#L9)
+
+## Constructor
+
+```ts
+new Cancellation();
+```
+
+## Methods
+
+<TypeTable type={{"[dispose]":{"type":"() => void","required":true,"returns":"void"},"cancel":{"type":"() => void","description":"Requests cancellation of every operation using this token.","required":true,"returns":"void"},"free":{"type":"() => void","description":"Releases the native cancellation handle. Safe to call more than once.","required":true,"returns":"void"},"isCancelled":{"type":"() => boolean","description":"Whether cancellation has been requested.","required":true,"returns":"boolean"}}} />

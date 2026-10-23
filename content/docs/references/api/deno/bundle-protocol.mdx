@@ -1,39 +1,25 @@
 ---
 title: 'BundleProtocol'
-description: 'Serves files from a BundleSource as HTTP responses — GET/HEAD, content-type, HTTP Range (206), and index.html directory-index fallback.'
+description: 'Serves files from a Source as HTTP responses — GET/HEAD, content-type, HTTP Range (206), and index.html directory-index fallback.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-Serves files from a [`BundleSource`](/docs/references/api/deno/bundle-source) as HTTP responses — GET/HEAD, content-type, HTTP Range
-(206), and `index.html` directory-index fallback. Resolves the bundle name from the request URI
-host (`bundle://app/index.html` → bundle `app`).
+Serves files from a [`Source`](/docs/references/api/deno/source) as HTTP responses — GET/HEAD, content-type, HTTP Range
+(206), and `index.html` directory-index fallback. By default the bundle name comes from the
+request URI host (`bundle://app/index.html` → bundle `app`); pass [`BundleProtocolOptions`](/docs/references/api/deno/bundle-protocol-options)
+to resolve the bundle name or the path differently.
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno/lib/protocol.ts#L30)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/protocol.ts#L64)
 
 ## Constructor
 
 ```ts
-new BundleProtocol(source: BundleSource);
+new BundleProtocol(source: Source, options?: BundleProtocolOptions);
 ```
 
-<TypeTable type={{ source: { type: 'BundleSource', required: true } }} />
+<TypeTable type={{"source":{"type":"Source","required":true},"options":{"type":"BundleProtocolOptions","required":false}}} />
 
 ## Methods
 
-<TypeTable
-  type={{
-    '[dispose]': { type: '() => void', required: true, returns: 'void' },
-    free: { type: '() => void', required: true, returns: 'void' },
-    handle: {
-      type: '(method: HttpMethod, uri: string, headers?: Record<string, string>) => Promise<HttpResponse>',
-      required: true,
-      parameters: [
-        { name: 'method', description: 'HttpMethod' },
-        { name: 'uri', description: 'string' },
-        { name: 'headers?', description: 'Record<string, string>' },
-      ],
-      returns: 'Promise<HttpResponse>',
-    },
-  }}
-/>
+<TypeTable type={{"[dispose]":{"type":"() => void","required":true,"returns":"void"},"free":{"type":"() => void","required":true,"returns":"void"},"handle":{"type":"(method: HttpMethod, uri: string, headers?: Record<string, string>, body?: Uint8Array<ArrayBuffer>) => Promise<HttpResponse>","description":"Serves from the bundle; a request body is accepted but unused (only GET/HEAD are served).","required":true,"parameters":[{"name":"method","description":"HttpMethod"},{"name":"uri","description":"string"},{"name":"headers?","description":"Record<string, string>"},{"name":"body?","description":"Uint8Array<ArrayBuffer>"}],"returns":"Promise<HttpResponse>"}}} />

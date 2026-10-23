@@ -1,0 +1,26 @@
+---
+title: 'Exception'
+description: 'Exception — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/remote/base/src/server/exception.ts#L30)
+
+**Extends:** `Error`
+
+## Constructor
+
+```ts
+new Exception<T extends ExceptionType = ExceptionType>(type: T, data: ExceptionDataOf<T>, options?: ErrorOptions);
+```
+
+<TypeTable type={{"type":{"type":"T","required":true},"data":{"type":"ExceptionDataOf<T>","required":true},"options":{"type":"ErrorOptions","required":false}}} />
+
+## Properties
+
+<TypeTable type={{"data":{"type":"readonly ExceptionDataOf<T>","required":true},"name":{"type":"readonly \"WebviewBundleRemoteException\"","required":true},"type":{"type":"readonly T","required":true}}} />
+
+## Methods
+
+<TypeTable type={{"getResponse":{"type":"() => Response","required":true,"returns":"Response"},"getMessage":{"type":"(type: V, data: ExceptionDataOf<V>) => string","required":true,"parameters":[{"name":"type","description":"V"},{"name":"data","description":"ExceptionDataOf<V>"}],"returns":"string"},"getStatus":{"type":"(type: ExceptionType) => number","required":true,"parameters":[{"name":"type","description":"ExceptionType"}],"returns":"number"}}} />

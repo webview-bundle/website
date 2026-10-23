@@ -1,0 +1,153 @@
+---
+title: 'Specification'
+---
+
+This specification is for developers implementing a remote server compatible
+with Webview Bundle clients.
+
+## Client flow
+
+1. Request `GET /update` with the supported protocol and runtime versions and an optional channel.
+2. On a `200` response, verify any requested signature against the response bytes before parsing JSON.
+3. Compare the document's bundle list with the source's active versions.
+4. Download the required bundles and verify the integrity hashes in the document.
+5. Stage the downloaded files, then install them when the app is ready.
+
+An update document can describe multiple bundles. Installation returns a result
+for each bundle.
+
+## Update request
+
+Clients must request `GET /update` relative to the configured base URL. The
+request headers are:
+
+| Header                        | Required | Value                                                                                                       |
+| ----------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `wvb-update-protocol-version` | Yes      | `1`                                                                                                         |
+| `wvb-runtime-version`         | Yes      | A positive integer. The client runtime value is `1`.                                                        |
+| `wvb-update-channel`          | No       | A channel name such as `beta`. Omit for the default channel.                                                |
+| `if-none-match`               | No       | The ETag of a previously accepted update.                                                                   |
+| `wvb-expect-signature`        | No       | A [structured dictionary](https://www.rfc-editor.org/info/rfc8941/) with string members `key_id` and `alg`. |
+
+For example:
+
+```http
+GET /update HTTP/1.1
+Host: updates.example.com
+Accept: application/json
+wvb-update-protocol-version: 1
+wvb-runtime-version: 1
+```
+
+## Update response
+
+The server selects an update for the requested runtime and channel. Status codes
+must have the following meanings:
+
+| Status | Meaning                                                                                 | Body                                  |
+| ------ | --------------------------------------------------------------------------------------- | ------------------------------------- |
+| `200`  | An update document is available.                                                        | Update JSON                           |
+| `204`  | No update is available.                                                                 | Empty                                 |
+| `304`  | The selected document matches `If-None-Match`.                                          | Empty                                 |
+| `400`  | An invalid protocol, runtime, or signature request, or a required signature is missing. | Error JSON                            |
+| `404`  | The requested download or path is missing.                                              | Provider-specific error or empty body |
+| `500`  | Server error.                                                                           | Error JSON                            |
+
+A `200` response must include `Content-Type: application/json`. Include an ETag
+to support conditional requests. `Remote.getUpdate()` returns no document for
+either `204` or `304`. The updater can reuse a previously accepted cached
+document on `304`, but doesn't treat `204` as permission to use a cached update.
+
+The response body is the update data without the provider's storage wrapper. A
+minimal example is:
+
+```json
+{
+  "id": "0199ba38-8ba0-7000-8000-000000000001",
+  "createdAt": "2026-10-17T00:00:00Z",
+  "runtimeVersion": 1,
+  "bundles": [{ "name": "app", "version": "1.1.0" }]
+}
+```
+
+The document fields are:
+
+| Field            | Type     | Required | Meaning                                              |
+| ---------------- | -------- | -------- | ---------------------------------------------------- |
+| `id`             | `string` | Yes      | Unique update identifier. Providers generate a UUID. |
+| `createdAt`      | `string` | Yes      | Creation time in ISO 8601 format.                    |
+| `runtimeVersion` | `number` | Yes      | Compatible library runtime version.                  |
+| `bundles`        | `array`  | Yes      | Bundle versions selected for the deployment.         |
+| `metadata`       | `object` | No       | Metadata with string keys and values.                |
+
+Each bundle entry contains the following fields:
+
+| Field         | Type                          | Required | Meaning                                                                   |
+| ------------- | ----------------------------- | -------- | ------------------------------------------------------------------------- |
+| `name`        | `string`                      | Yes      | Bundle name.                                                              |
+| `version`     | `string`                      | Yes      | Version identifier. Clients compare equality, not semantic version order. |
+| `integrity`   | `string`                      | No       | File hash in the form `sha256:BASE64_DIGEST`.                             |
+| `downloadUrl` | `string`                      | No       | Custom absolute download URL supported by the core client.                |
+| `metadata`    | `Record<string, string>{:ts}` | No       | Metadata with string keys and values.                                     |
+
+## Conditional requests and caching
+
+The server MUST select the update for the runtime and channel before evaluating
+`If-None-Match`. Return `304` if the ETag matches.
+
+Separate caches by runtime, channel, and signature request. Configure the CDN to
+forward these headers and avoid serving stale `/update` responses. Keep bundle
+version URLs immutable.
+
+## Signatures
+
+When a client requires a signature, it sends a
+[structured dictionary](https://www.rfc-editor.org/info/rfc8941/) such as:
+
+```http
+wvb-expect-signature: key_id="release", alg="ed25519"
+```
+
+The server selects the key ID and algorithm and returns the following header:
+
+```http
+wvb-signature: key_id="release", alg="ed25519", sig="BASE64_SIGNATURE"
+```
+
+Replace `BASE64_SIGNATURE` with the Base64-encoded signature. Sign the exact
+UTF-8 bytes of the response body. Clients verify those bytes before parsing.
+Configure trusted public keys separately in the app.
+
+The built-in providers support three policies:
+
+- `optional` (default): requires a matching signature when the client requests one.
+- `strict`: requires a matching signature for the update being served.
+- `off`: does not reject an update because a signature is missing.
+
+A `204` response has no body and skips signature verification. When an update is
+available, select the signature before comparing ETags.
+
+## Bundle download
+
+If `downloadUrl` is absent, the client uses `GET /bundles/NAME/VERSION` as the
+default download path. Replace `NAME` and `VERSION` with the identifiers from
+the update document.
+
+The server must return the bundle bytes unchanged. Use
+`Content-Type: application/webview-bundle` and include `Content-Length` when the
+size is known. Return `404` if the bundle is missing.
+
+For example:
+
+```http
+GET /bundles/app/1.1.0 HTTP/1.1
+Host: updates.example.com
+```
+
+## Errors and validation
+
+The shared server uses a JSON object with a `message` field for error responses:
+
+```json
+{ "message": "Unsupported update protocol version: 2" }
+```

@@ -1,0 +1,14 @@
+---
+title: 'BundleSourceConfig'
+description: 'BundleSourceConfig — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/desktop/source.ts#L4)
+
+**Extends:** `Omit<SourceConfig, "builtinDir" | "remoteDir">`
+
+## Properties
+
+<TypeTable type={{"appName":{"type":"string","description":"App name used in the default remote dir. Defaults to the executable name.","required":false},"builtinCacheDir":{"type":"string","description":"Extraction cache for compiled webviewBundle apps. Defaults to <app-data>/<appName>/builtin. Kept separate from downloaded remote bundles.","required":false},"builtinDir":{"type":"string","description":"Read-only builtin bundles directory. Defaults to bundles next to the app's entry module (Deno.mainModule). Compiled webviewBundle apps extract it to disk before creating a Source.","required":false},"builtinManifestFilepath":{"type":"string | null","required":false},"options":{"type":"SourceOptions | null","required":false},"remoteDir":{"type":"string","description":"Writable directory for downloaded (remote) bundles. Defaults to <app-data>/<appName>/bundles (see appDataDir) so updates persist across runs.","required":false},"remoteManifestFilepath":{"type":"string | null","required":false}}} />

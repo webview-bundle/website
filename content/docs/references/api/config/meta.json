@@ -22,6 +22,7 @@
     "config-input-fn-promise",
     "headers-config",
     "ignore-config",
-    "version-resolver"
+    "version-resolver",
+    "../config-remote"
   ]
 }

@@ -1,24 +1,14 @@
 ---
 title: 'WebviewBundleConfig'
-description: 'WebviewBundleConfig — API reference.'
+description: 'Configuration used to build a Deno Desktop request handler.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/webview-bundle.ts#L14)
+Configuration used to build a Deno Desktop request handler.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/desktop/webview-bundle.ts#L26)
 
 ## Properties
 
-<TypeTable
-  type={{
-    lib: {
-      type: 'string | URL',
-      description:
-        "Deno-specific: the native cdylib path (e.g. a deno desktop --included dir resolved from the app's import.meta.url). Omit if you already loaded it via loadLib/loadLibViaPlug.",
-      required: false,
-    },
-    protocols: { type: 'Protocol[]', required: true },
-    source: { type: 'SourceOptions', required: false },
-    updater: { type: 'WebviewBundleUpdaterConfig', required: false },
-  }}
-/>
+<TypeTable type={{"lib":{"type":"string | URL","description":"Deno-specific: the native cdylib path — e.g. the .wvb/lib/<target> directory installed with deno run -A jsr:@wvb/deno/install, or a deno desktop --included dir resolved from the app's import.meta.url. Omit if you already loaded it via loadLib/loadFromGitHub.","required":false},"routes":{"type":"Routes","description":"What is served at which path. Deno desktop serves a single origin over local HTTP, so bundles are told apart by the request path — see Routes.","required":true},"source":{"type":"BundleSourceConfig","description":"Bundle storage configuration.","required":false},"updater":{"type":"WebviewBundleUpdaterConfig","description":"Optional remote update configuration.","required":false}}} />

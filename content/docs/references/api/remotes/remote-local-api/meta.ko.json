@@ -1,0 +1,18 @@
+{
+  "title": "@wvb/remote-local/api",
+  "pages": [
+    "---함수---",
+    "get-bundle-file-size",
+    "read-bundle-stream",
+    "read-bundle-version-data",
+    "read-current-update",
+    "read-update",
+    "write-bundle",
+    "write-bundle-version-data",
+    "write-update",
+    "---타입---",
+    "bundle-version-data",
+    "---변수---",
+    "bundle-version-data-schema"
+  ]
+}

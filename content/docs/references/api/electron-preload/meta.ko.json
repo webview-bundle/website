@@ -1,0 +1,7 @@
+{
+  "title": "@wvb/electron/preload",
+  "pages": [
+    "---함수---",
+    "preload"
+  ]
+}

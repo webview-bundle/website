@@ -1,0 +1,145 @@
+---
+title: '@wvb/deno'
+description: '@wvb/deno 설치 방법과 API 레퍼런스.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+`@wvb/deno`의 설치 방법과 내보내는 API를 확인하세요.
+
+## 설치
+
+프로젝트에 JSR 패키지를 추가하세요:
+
+```sh
+deno add jsr:@wvb/deno
+```
+
+실행할 플랫폼의 네이티브 라이브러리를 다운로드하세요:
+
+```sh
+deno run --allow-net --allow-read --allow-write @wvb/deno/install
+```
+
+라이브러리는 `.wvb/lib`에 저장됩니다. 실행 권한과 패키징 설정은 [Deno Desktop 가이드](/docs/guide/deno-desktop)를 참고하세요.
+
+## 클래스
+
+<Cards>
+  <Card title="Bundle" href="/docs/references/api/deno/bundle" description="A .wvb bundle loaded into memory: its header, index and every entry's (compressed) data." />
+  <Card title="BundleBuilder" href="/docs/references/api/deno/bundle-builder" description="Builds a Bundle from a set of entries." />
+  <Card title="BundleDescriptor" href="/docs/references/api/deno/bundle-descriptor" description="A bundle's metadata (header + index) without its data, backed by a .wvb file on disk." />
+  <Card title="BundleProtocol" href="/docs/references/api/deno/bundle-protocol" description="Serves files from a Source as HTTP responses — GET/HEAD, content-type, HTTP Range (206), and index.html directory-index fallback." />
+  <Card title="Cancellation" href="/docs/references/api/deno/cancellation" description="A token handed to a download to stop it." />
+  <Card title="Integrity" href="/docs/references/api/deno/integrity" description="A digest over some bytes, serialized as &lt;algorithm&gt;:&lt;base64&gt; (e.g." />
+  <Card title="LoadedDescriptor" href="/docs/references/api/deno/loaded-descriptor" description="A cached descriptor from Source.load, pinned to a specific bundle file and its read options." />
+  <Card title="ProxyProtocol" href="/docs/references/api/deno/proxy-protocol" description="Proxies requests for custom hosts to other servers (for dev servers with hot reload)." />
+  <Card title="Remote" href="/docs/references/api/deno/remote" description="HTTP client for the update server: fetches the update document and downloads bundle files." />
+  <Card title="Source" href="/docs/references/api/deno/source" description="The local bundle store: read-only builtin bundles shipped with the app, plus a writable directory of downloaded remote ones." />
+  <Card title="Updater" href="/docs/references/api/deno/updater" description="Drives the update cycle over a Source and a Remote: ask what is available, download it, then install (or roll back) what was downloaded." />
+  <Card title="WebviewBundleError" href="/docs/references/api/deno/webview-bundle-error" />
+</Cards>
+
+## 함수
+
+<Cards>
+  <Card title="computeIntegrity" href="/docs/references/api/deno/compute-integrity" description="Computes the integrity of data with algorithm." />
+  <Card title="contentTypeForPath" href="/docs/references/api/deno/content-type-for-path" description="Guess a content type from a path's extension, defaulting to application/octet-stream." />
+  <Card title="isWebviewBundleError" href="/docs/references/api/deno/is-webview-bundle-error" />
+  <Card title="libFileName" href="/docs/references/api/deno/lib-file-name" description="Platform cdylib filename - macOS : libwvb_deno.dylib - Linux :libwvb_deno.so (Linux) - Windows : wvb_deno.dll (Windows)" />
+  <Card title="loadFromGitHub" href="/docs/references/api/deno/load-from-git-hub" description="Download the platform cdylib from a release from github release." />
+  <Card title="loadLib" href="/docs/references/api/deno/load-lib" description="Load the native library from an explicit path." />
+  <Card title="parseIntegrity" href="/docs/references/api/deno/parse-integrity" description="Parses a serialized integrity string (e.g." />
+  <Card title="readBundle" href="/docs/references/api/deno/read-bundle" description="Reads a bundle from a .wvb file into memory." />
+  <Card title="readBundleFromBytes" href="/docs/references/api/deno/read-bundle-from-bytes" description="Parses a bundle from its bytes (e.g." />
+  <Card title="writeBundle" href="/docs/references/api/deno/write-bundle" description="Writes a bundle to a .wvb file, returning the number of bytes written." />
+  <Card title="writeBundleToBytes" href="/docs/references/api/deno/write-bundle-to-bytes" description="Serializes a bundle to .wvb bytes." />
+</Cards>
+
+## 인터페이스
+
+<Cards>
+  <Card title="BundleProtocolOptions" href="/docs/references/api/deno/bundle-protocol-options" description="How a BundleProtocol resolves the request uri." />
+  <Card title="HttpResponse" href="/docs/references/api/deno/http-response" />
+  <Card title="LoadLibViaPlugOptions" href="/docs/references/api/deno/load-lib-via-plug-options" />
+  <Card title="ManifestBundleSet" href="/docs/references/api/deno/manifest-bundle-set" description="Every version of one bundle a manifest records, plus which of them are in play." />
+  <Card title="ManifestData" href="/docs/references/api/deno/manifest-data" description="A manifest.json as it is stored on disk." />
+  <Card title="RemoteGetUpdateOptions" href="/docs/references/api/deno/remote-get-update-options" />
+  <Card title="SignatureKey" href="/docs/references/api/deno/signature-key" />
+  <Card title="SignatureKeyData" href="/docs/references/api/deno/signature-key-data" description="The public key itself, in one of the formats the algorithm accepts." />
+  <Card title="SignatureVerifyKey" href="/docs/references/api/deno/signature-verify-key" description="A verifying key paired with the id it is published under, so an update naming a keyId can be matched to the key that verifies it." />
+  <Card title="UpdaterDownloadResult" href="/docs/references/api/deno/updater-download-result" />
+  <Card title="UpdaterInstallResult" href="/docs/references/api/deno/updater-install-result" />
+  <Card title="UpdaterOptions" href="/docs/references/api/deno/updater-options" />
+  <Card title="UpdaterRollbackResult" href="/docs/references/api/deno/updater-rollback-result" />
+  <Card title="UpdaterSignatureOptions" href="/docs/references/api/deno/updater-signature-options" description="The keys an update response may be signed with, each published under its own id." />
+</Cards>
+
+## 타입
+
+<Cards>
+  <Card title="BundleBuilderOptions" href="/docs/references/api/deno/bundle-builder-options" description="Options for BundleBuilder.build." />
+  <Card title="BundleHeader" href="/docs/references/api/deno/bundle-header" description="A bundle's header: format metadata read from the first bytes of a .wvb file." />
+  <Card title="BundleIndex" href="/docs/references/api/deno/bundle-index" description="A bundle index: file path → its IndexEntry metadata." />
+  <Card title="BundleSourceVersion" href="/docs/references/api/deno/bundle-source-version" description="Bundle version with the source (builtin/remote) that provides it." />
+  <Card title="BundleUpdate" href="/docs/references/api/deno/bundle-update" description="One bundle advertised by an update document." />
+  <Card title="ChecksumReadOptions" href="/docs/references/api/deno/checksum-read-options" description="How a bundle section's xxHash checksum is verified when that section is read." />
+  <Card title="ChecksumWriteOptions" href="/docs/references/api/deno/checksum-write-options" description="The seed an xxHash checksum is written with." />
+  <Card title="DataReadOptions" href="/docs/references/api/deno/data-read-options" description="How each entry's data is read out of a bundle's data section." />
+  <Card title="ErrorCode" href="/docs/references/api/deno/error-code" description="The stable code every WebviewBundleError carries." />
+  <Card title="HeaderReadOptions" href="/docs/references/api/deno/header-read-options" description="How a bundle's header is read." />
+  <Card title="HeaderWriterOptions" href="/docs/references/api/deno/header-writer-options" description="How a bundle's header section is written." />
+  <Card title="HostnameSegment" href="/docs/references/api/deno/hostname-segment" description="Which hostname segment names the bundle." />
+  <Card title="HttpMethod" href="/docs/references/api/deno/http-method" description="HTTP method accepted by a protocol handler (case-insensitive on the wire)." />
+  <Card title="HttpOptions" href="/docs/references/api/deno/http-options" description="HTTP client options for a remote." />
+  <Card title="IndexEntry" href="/docs/references/api/deno/index-entry" description="Metadata for a single file in a bundle's index." />
+  <Card title="IndexReadOptions" href="/docs/references/api/deno/index-read-options" description="How a bundle's index is read." />
+  <Card title="IndexWriterOptions" href="/docs/references/api/deno/index-writer-options" description="How a bundle's index section is written." />
+  <Card title="IntegrityAlgorithm" href="/docs/references/api/deno/integrity-algorithm" />
+  <Card title="IntegrityPolicy" href="/docs/references/api/deno/integrity-policy" description="How a bundle's integrity metadata is treated when the integrity check runs." />
+  <Card title="ManifestBundleItem" href="/docs/references/api/deno/manifest-bundle-item" />
+  <Card title="ManifestBundleItemStatus" href="/docs/references/api/deno/manifest-bundle-item-status" description="Where a version stands in its bundle's lifecycle." />
+  <Card title="ManifestPruneResult" href="/docs/references/api/deno/manifest-prune-result" />
+  <Card title="ManifestRemoveData" href="/docs/references/api/deno/manifest-remove-data" />
+  <Card title="ManifestRemoveResult" href="/docs/references/api/deno/manifest-remove-result" />
+  <Card title="ManifestRemoveResultKind" href="/docs/references/api/deno/manifest-remove-result-kind" />
+  <Card title="ManifestSetCurrentVersionResult" href="/docs/references/api/deno/manifest-set-current-version-result" />
+  <Card title="ManifestSetCurrentVersionResultKind" href="/docs/references/api/deno/manifest-set-current-version-result-kind" />
+  <Card title="ManifestStageData" href="/docs/references/api/deno/manifest-stage-data" />
+  <Card title="ManifestStageResult" href="/docs/references/api/deno/manifest-stage-result" />
+  <Card title="ManifestStageResultKind" href="/docs/references/api/deno/manifest-stage-result-kind" />
+  <Card title="ManifestVersion" href="/docs/references/api/deno/manifest-version" description="The format version of a manifest.json." />
+  <Card title="ManifestVersionData" href="/docs/references/api/deno/manifest-version-data" description="What the manifest records for one version of a bundle." />
+  <Card title="RemoteConfig" href="/docs/references/api/deno/remote-config" description="@wvb/node's RemoteConfig minus onDownload: Deno FFI cannot call back into JS from the worker thread a nonblocking symbol runs on, so download progress is not…" />
+  <Card title="RemoteUpdateResponse" href="/docs/references/api/deno/remote-update-response" description="A successful update response returned by the remote service." />
+  <Card title="SignatureAlgorithm" href="/docs/references/api/deno/signature-algorithm" description="Digital signature algorithm for bundle verification." />
+  <Card title="SignatureKeyFormat" href="/docs/references/api/deno/signature-key-format" description="Format of the public key used for signature verification." />
+  <Card title="SourceConfig" href="/docs/references/api/deno/source-config" />
+  <Card title="SourceIntegrityCheckMode" href="/docs/references/api/deno/source-integrity-check-mode" description="Which bundles are checked against the integrity recorded for them in the manifest when they are loaded from disk." />
+  <Card title="SourceIntegrityOptions" href="/docs/references/api/deno/source-integrity-options" />
+  <Card title="SourceKind" href="/docs/references/api/deno/source-kind" description="The type of bundle source: builtin or remote." />
+  <Card title="SourceListItem" href="/docs/references/api/deno/source-list-item" />
+  <Card title="SourceOptions" href="/docs/references/api/deno/source-options" />
+  <Card title="Update" href="/docs/references/api/deno/update" description="An atomically published set of bundle updates." />
+  <Card title="UpdaterDownloadOptions" href="/docs/references/api/deno/updater-download-options" />
+  <Card title="UpdaterDownloadResultKind" href="/docs/references/api/deno/updater-download-result-kind" description="The outcome of downloading one bundle." />
+  <Card title="UpdaterGetUpdateOptions" href="/docs/references/api/deno/updater-get-update-options" />
+  <Card title="UpdaterInstallResultKind" href="/docs/references/api/deno/updater-install-result-kind" description="The outcome of installing one staged bundle." />
+  <Card title="UpdaterInstallTarget" href="/docs/references/api/deno/updater-install-target" />
+  <Card title="UpdaterIntegrityOptions" href="/docs/references/api/deno/updater-integrity-options" />
+  <Card title="UpdaterRollbackResultKind" href="/docs/references/api/deno/updater-rollback-result-kind" description="The outcome of rolling one bundle back to its previous version." />
+  <Card title="UpdaterRollbackTarget" href="/docs/references/api/deno/updater-rollback-target" />
+  <Card title="UpdateSignature" href="/docs/references/api/deno/update-signature" description="Signature metadata returned with an update document." />
+  <Card title="UriBundleResolver" href="/docs/references/api/deno/uri-bundle-resolver" description="How the bundle name is resolved from the request uri." />
+  <Card title="UriPathResolver" href="/docs/references/api/deno/uri-path-resolver" description="How the file path in the bundle is resolved from the request uri." />
+  <Card title="Version" href="/docs/references/api/deno/version" description="The .wvb bundle format version." />
+</Cards>
+
+## 변수
+
+<Cards>
+  <Card title="EXTENSION" href="/docs/references/api/deno/extension" description="File extension of a bundle file." />
+  <Card title="MIME_TYPE" href="/docs/references/api/deno/mime-type" description="MIME type of a bundle file." />
+  <Card title="RUNTIME_VERSION" href="/docs/references/api/deno/runtime-version" description="The version of the update model this client understands." />
+  <Card title="UPDATE_PROTOCOL_VERSION" href="/docs/references/api/deno/update-protocol-version" description="The update protocol version sent to the remote server." />
+</Cards>

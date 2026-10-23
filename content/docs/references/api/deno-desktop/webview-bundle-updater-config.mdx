@@ -1,14 +1,16 @@
 ---
 title: 'WebviewBundleUpdaterConfig'
-description: 'WebviewBundleUpdaterConfig — API reference.'
+description: 'Remote update options owned by a Deno Desktop host.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/webview-bundle.ts#L10)
+Remote update options owned by a Deno Desktop host.
 
-**Extends:** `HttpResponse`
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/desktop/webview-bundle.ts#L15)
+
+**Extends:** `UpdaterOptions`
 
 ## Properties
 
-<TypeTable type={{ remote: { type: 'WebviewBundleRemoteConfig', required: true } }} />
+<TypeTable type={{"channel":{"type":"string","description":"Fetch updates from this release channel.","required":false},"integrity":{"type":"UpdaterIntegrityOptions","description":"How a downloaded bundle is checked against the integrity the update advertises.","required":false},"remote":{"type":"RemoteConfig","description":"Update endpoint and HTTP options.","required":true},"signature":{"type":"UpdaterSignatureOptions","description":"Recommended in production: verify the update document before acting on it.","required":false},"updateFilepath":{"type":"string","description":"Where the update document last received is cached. Defaults to update.json in the source's remote directory.","required":false}}} />

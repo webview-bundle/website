@@ -1,0 +1,143 @@
+---
+title: "Deno Desktop"
+description: "Deno Desktop 라우트로 개발 서버 또는 빌트인 번들을 제공하세요."
+---
+
+<Badge>실험적 지원</Badge>
+
+웹 프론트엔드를 Deno Desktop에 연결하고 빌트인 번들과 네이티브 FFI 라이브러리를 패키징합니다. 이 가이드는 `Deno.serve()`의 경로 기반 요청 처리를 사용합니다.
+
+## 시작 전 준비
+
+`desktop` 명령과 `deno.desktop` 타입을 제공하는 Deno 2.9를 사용하세요. 저장소의 예제는 Deno 2.9.7을 사용합니다. `@wvb/cli`에는 Node.js 20.x의 20.19 이상 또는 22.12 이상이 필요합니다. 프론트엔드는 `web`에 배치하세요.
+
+앱은 다음 파일을 사용합니다:
+
+<Files>
+<File name="main.ts" icon={<IconTypeScript />} />
+  <File name="deno.json" icon={<IconJson />} />
+  <File name="wvb.config.ts" icon={<IconTypeScript />} />
+  <Folder name="web"><File name="wvb.config.ts" icon={<IconTypeScript />} /></Folder>
+  <Folder name="bundles" />
+  <Folder name=".wvb/lib" />
+</Files>
+
+## 1. 의존성 설치
+
+`deno.json`에 import, 타입, 데스크톱 설정을 추가하세요:
+
+```json title="deno.json"
+{
+  "imports": {
+    "@wvb/deno/desktop": "jsr:@wvb/deno@0.3.0/desktop",
+    "@wvb/deno/install": "jsr:@wvb/deno@0.3.0/install"
+  },
+  "compilerOptions": { "lib": ["deno.desktop"] },
+  "desktop": {
+    "app": { "name": "MyApp", "identifier": "com.example.app" },
+    "backend": "webview"
+  }
+}
+```
+
+빌드 컴퓨터에 맞는 네이티브 라이브러리를 다운로드하세요:
+
+```sh
+deno run --allow-net --allow-read --allow-write @wvb/deno/install
+```
+
+설치 도구는 플랫폼 라이브러리를 `.wvb/lib` 아래에 저장합니다. 앱에 포함할 라이브러리는 대상 운영체제와 아키텍처에 맞아야 합니다.
+
+## 2. 인스턴스 생성과 개발 서버 연결
+
+프록시 라우트로 호스트를 생성하세요:
+
+```ts title="main.ts"
+import { registerBindings, webviewBundle } from '@wvb/deno/desktop';
+
+const instance = webviewBundle({
+  lib: new URL(`./.wvb/lib/${Deno.build.target}/`, import.meta.url),
+  source: { appName: 'com.example.app' },
+  routes: { '/': { proxy: 'http://localhost:5173' } },
+});
+
+const win = new Deno.BrowserWindow({
+  title: 'My app',
+  width: 800,
+  height: 600,
+});
+registerBindings(win, instance);
+Deno.serve(instance.fetch);
+```
+
+Deno Desktop은 `proxyProtocol()` 대신 `{ proxy: ... }` 라우트를 사용합니다. 프론트엔드 서버를 `5173` 포트에서 시작한 뒤 앱을 실행하세요:
+
+```sh
+deno desktop --hmr   --allow-ffi --allow-read --allow-write --allow-env --allow-net   --include .wvb/lib main.ts
+```
+
+## 3. CLI 설치
+
+앱 루트에서 빌드용 CLI를 설치하세요:
+
+네이티브 프로젝트 루트에 `package.json`이 없다면 CLI 설치 전에 생성하세요:
+
+```json title="package.json"
+{ "name": "native-app", "private": true, "type": "module" }
+```
+
+그다음 CLI를 설치하세요:
+
+```sh
+yarn add -D @wvb/cli
+```
+
+## 4. 로컬 빌드 결과를 빌트인으로 설치
+
+웹 워크스페이스의 `dist` 디렉터리를 `app` 번들, `1.0.0` 버전으로 패키징하도록 설정하세요:
+
+```ts title="web/wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: { srcDir: './dist' },
+  remote: { bundleName: 'app', version: '1.0.0' },
+});
+```
+
+네이티브 프로젝트 루트에서 `builtin.target`이 웹 워크스페이스를 가리키도록 설정하세요:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './bundles',
+    target: { type: 'local', workspaces: ['./web'] },
+  },
+});
+```
+
+프론트엔드의 기존 빌드 명령을 실행하세요. `web/dist/index.html`이 생성되면 네이티브 프로젝트 루트에서 다음 명령을 실행하세요:
+
+```sh
+yarn wvb builtin
+```
+
+CLI는 웹 빌드 결과를 패키징하고 `./bundles/manifest.json`과 `./bundles/app/1.0.0.wvb`를 생성합니다. 프론트엔드 빌드는 실행하지 않습니다.
+
+## 5. 빌트인 번들 실행과 확인
+
+`main.ts`의 프록시 라우트를 다음과 같이 교체하세요:
+
+```ts
+routes: { '/': { bundle: 'app' } },
+```
+
+프론트엔드 서버를 종료하고 두 리소스 디렉터리를 포함해 앱을 실행하세요:
+
+```sh
+deno desktop   --allow-ffi --allow-read --allow-write --allow-env --allow-net   --include bundles --include .wvb/lib main.ts
+```
+
+개발 서버 없이 화면이 표시되는지 확인하세요. Deno Desktop은 진입 모듈 옆의 빌트인 파일을 읽고, 컴파일한 앱에서는 포함된 빌트인을 디스크로 추출합니다. 다운로드한 업데이트는 별도의 쓰기 가능한 앱 저장소를 사용합니다.

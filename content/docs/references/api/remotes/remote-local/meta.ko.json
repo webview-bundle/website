@@ -3,8 +3,14 @@
   "pages": [
     "---함수---",
     "local-remote",
+    "local-remote-deployer",
+    "local-remote-uploader",
     "---인터페이스---",
     "local-remote-interface",
-    "local-remote-config"
+    "local-remote-config",
+    "local-remote-deployer-config",
+    "local-remote-uploader-config",
+    "../remote-local-api",
+    "../remote-local-server"
   ]
 }

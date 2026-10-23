@@ -1,0 +1,17 @@
+---
+title: 'BundleRoute'
+description: 'Serves a bundle from the source.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Serves a bundle from the source.
+
+Data-checksum verification is not configured per route; it comes from the read options the shared
+`Source` was built with (`options.dataRead`).
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/desktop/routes.ts#L20)
+
+## Properties
+
+<TypeTable type={{"bundle":{"type":"string","description":"Name of the bundle in the source.","required":true},"errorResponse":{"type":"ErrorResponse","required":false},"pathResolver":{"type":"UriPathResolver","description":"How a request path maps to a file inside the bundle (default: 'directory_index', i.e. /about → /about/index.html).","required":false}}} />

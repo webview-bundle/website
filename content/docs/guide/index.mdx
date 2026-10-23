@@ -1,0 +1,64 @@
+---
+title: 'Introduction'
+---
+
+Webview Bundle is an offline-first web resource distribution system for
+webview-based frameworks and platforms.
+
+With Webview Bundle, you can serve the same web application code in
+[Electron](https://electronjs.org), [Tauri](https://tauri.app), Android, iOS,
+and [Deno Desktop (experimental)](https://docs.deno.com/runtime/desktop/).
+
+## How does it work?
+
+### Webview Bundle format (`.wvb`)
+
+A `.wvb` file stores web resources such as HTML, JavaScript, and CSS on the
+device. The native host reads the file locally, so loading bundled resources
+does not require a network connection.
+
+A **builtin bundle** ships with the native app. A **remote bundle** can be
+downloaded and installed afterward. For details, see
+[Webview Bundle (.wvb)](/docs/guide/concepts/webview-bundle).
+
+### Native implementations
+
+The native host manages bundle sources, responds to webview resource requests,
+and downloads and installs remote bundles. The shared logic is written in Rust.
+Node.js calls the core through [napi-rs](https://napi.rs), Android and iOS
+through [UniFFI](https://mozilla.github.io/uniffi-rs), and Deno through its
+[foreign function interface (FFI)](https://docs.deno.com/runtime/fundamentals/ffi/).
+For details, see [Native implementations](/docs/guide/concepts/native).
+
+### Remote updates
+
+Over-the-air (OTA) updates replace webview bundles without redistributing the
+native app. After you upload a bundle and deploy its version, clients can
+download and install it.
+
+Providers are available for AWS and Cloudflare. You can also implement a server
+that follows the [remote specification](/docs/guide/remote/spec). For the full
+workflow, see [Remote updates](/docs/guide/concepts/remote).
+
+## Why use Webview Bundle?
+
+This project began with a need to deliver offline-first web apps. To render a UI
+without a network connection, the app must store its web resources on the device
+so the browser can load and render them locally.
+
+Efforts such as [WICG Web Packaging](https://github.com/WICG/webpackage) and
+[Isolated Web Apps (IWA)](https://developer.chrome.com/docs/iwa) address offline
+web apps. However, they have limitations: some are not yet standardized, while
+others are available only in specific browsers.
+
+Webview Bundle is designed for use across platforms and frameworks. It provides
+a simple file format for offline resources and native integrations so you can
+use the same web app code across platforms (Android, iOS, Windows, and macOS)
+and frameworks (Electron, Tauri, and Deno Desktop).
+
+## Next steps
+
+- To start using Webview Bundle, see [Get started](/docs/guide/get-started).
+- To understand the bundle format, see
+  [Webview Bundle (.wvb)](/docs/guide/concepts/webview-bundle).
+- To explore the available APIs, see [References](/docs/references).

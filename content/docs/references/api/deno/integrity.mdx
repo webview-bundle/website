@@ -1,0 +1,18 @@
+---
+title: 'Integrity'
+description: 'A digest over some bytes, serialized as <algorithm>:<base64> (e.g.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A digest over some bytes, serialized as `<algorithm>:<base64>` (e.g. `"sha256:n4bQ..."`).
+
+Created by [`computeIntegrity`](/docs/references/api/deno/compute-integrity) or [`parseIntegrity`](/docs/references/api/deno/parse-integrity). Unlike the other
+classes here it owns no native handle — the digest is copied out on creation — so it needs
+no `free()`.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/integrity.ts#L13)
+
+## Methods
+
+<TypeTable type={{"serialize":{"type":"() => string","description":"Serializes to <algorithm>:<base64>.","required":true,"returns":"string"},"toString":{"type":"() => string","required":true,"returns":"string"},"validate":{"type":"(data: Uint8Array<ArrayBuffer>) => boolean","description":"Whether data digests to this integrity.","required":true,"parameters":[{"name":"data","description":"Uint8Array<ArrayBuffer>"}],"returns":"boolean"},"value":{"type":"() => Uint8Array<ArrayBuffer>","description":"The raw digest bytes.","required":true,"returns":"Uint8Array<ArrayBuffer>"}}} />
