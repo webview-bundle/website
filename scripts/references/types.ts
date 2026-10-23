@@ -4,6 +4,11 @@
 export type LinkResolver = (label: string) => string | null;
 
 export interface PackageTarget {
+  // The installable package, shared by all of its export subpaths.
+  packageName: string;
+  registry: 'npm' | 'jsr';
+  nodeVersion?: string;
+  peers: { name: string; version: string; optional: boolean }[];
   name: string;
   slug: string;
   description: string;

@@ -286,6 +286,15 @@ function renderEnum(reflection: any, ctx: RenderCtx): string {
 function renderTypeAlias(reflection: any, ctx: RenderCtx): string {
   let out = leadBody(commentOf(reflection), ctx);
   out += sourceLine(reflection, ctx);
+  // TypeDoc promotes some object aliases' members directly onto the alias.
+  if (reflection.type == null && reflection.children != null) {
+    const { props, methods } = partitionMembers(reflection.children);
+    out += propertiesSection(props);
+    out += methodsSection(methods);
+    out += indexSignatureSection(reflection.indexSignatures);
+    out += examplesSection(commentOf(reflection));
+    return out;
+  }
   // Object-like type literal → show its members as a table too.
   const decl = reflection.type?.declaration;
   out += `## Type\n\n\`\`\`ts\ntype ${reflection.name}${typeParamsStr({ typeParameters: reflection.typeParameters })} = ${typeStr(reflection.type)};\n\`\`\`\n\n`;
@@ -336,6 +345,13 @@ function renderVariable(reflection: any, ctx: RenderCtx): string {
 
 export function renderReflection(reflection: any, ctx: RenderCtx): string {
   switch (reflection.kind) {
+    case ReflectionKind.Reference: {
+      const target = reflection.getTargetReflectionDeep();
+      const href = ctx.link(target.name);
+      return href == null
+        ? `Re-export of \`${target.name}\`.\n\n${renderReflection(target, ctx)}`
+        : `Alias of [\`${target.name}\`](${href}).\n`;
+    }
     case ReflectionKind.Function:
       return renderFunction(reflection, ctx);
     case ReflectionKind.Interface:

@@ -3,6 +3,7 @@
 // one page per name, ordered and slugged deterministically.
 import { ReflectionKind } from 'typedoc';
 import { DEFAULT_LOCALE, KIND_ORDER, kindRank, type Locale, t } from './i18n.ts';
+import { installationSection } from './installation.ts';
 import { frontmatter, frontmatterDescription, htmlAttr, plainParts } from './mdx.ts';
 import { commentOf } from './reflection.ts';
 import { renderReflection } from './render.ts';
@@ -33,13 +34,15 @@ export function groupExports(children: any[]): ExportGroup[] {
   const groups: ExportGroup[] = [...byName.entries()].map(([name, reflections]) => {
     reflections.sort((a, b) => kindRank(a.kind) - kindRank(b.kind));
     const primary = reflections[0];
+    const target =
+      primary.kind === ReflectionKind.Reference ? primary.getTargetReflectionDeep() : primary;
     const summarySource =
       reflections.find(r => plainParts(commentOf(r)?.summary) !== '') ?? primary;
     return {
       name,
       slug: '',
       reflections,
-      primaryKind: primary.kind,
+      primaryKind: target.kind,
       summary: plainParts(commentOf(summarySource)?.summary),
     };
   });
@@ -87,13 +90,25 @@ export function exportPage(group: ExportGroup, ctx: RenderCtx): string {
 // `urlBase` is the package's absolute page URL (e.g. /docs/references/api/node);
 // cards link to `${urlBase}/${export}` so client-side routing can resolve them
 // (relative `./` hrefs are not localized/routed).
-export function indexPage(pkg: PackageTarget, groups: ExportGroup[], urlBase: string): string {
-  const description = pkg.description === '' ? `API reference for ${pkg.name}.` : pkg.description;
-  let body = '';
+export function indexPage(
+  pkg: PackageTarget,
+  groups: ExportGroup[],
+  urlBase: string,
+  locale: Locale = DEFAULT_LOCALE
+): string {
+  const description =
+    locale === 'ko'
+      ? `${pkg.name} 설치 방법과 API 레퍼런스.`
+      : pkg.description || `Installation and API reference for ${pkg.name}.`;
+  let body =
+    locale === 'ko'
+      ? `\`${pkg.name}\`의 설치 방법과 내보내는 API를 확인하세요.\n\n`
+      : `Use \`${pkg.name}\` in your project and browse its exported API.\n\n`;
+  body += installationSection(pkg, locale);
   for (const kg of KIND_ORDER) {
     const inKind = groups.filter(g => g.primaryKind === kg.kind);
     if (inKind.length === 0) continue;
-    body += `## ${t(kg.label, DEFAULT_LOCALE)}\n\n<Cards>\n`;
+    body += `## ${t(kg.label, locale)}\n\n<Cards>\n`;
     for (const g of inKind) {
       const cardDesc = htmlAttr(frontmatterDescription(g.summary, ''));
       body += `  <Card title="${htmlAttr(g.name)}" href="${urlBase}/${g.slug}"${cardDesc === '' ? '' : ` description="${cardDesc}"`} />\n`;
@@ -131,20 +146,24 @@ export function packageMeta(pkg: PackageTarget, groups: ExportGroup[], locale: L
 // Remote packages (`@wvb/remote-*`) are grouped under `api/remotes/`; everything
 // else is a top-level core package.
 export function isRemote(pkg: PackageTarget): boolean {
-  return pkg.slug.startsWith('remote-');
+  return pkg.packageName.startsWith('@wvb/remote-');
+}
+
+export function packageSlug(pkg: PackageTarget): string {
+  return pkg.packageName.slice('@wvb/'.length);
 }
 
 // The `api` folder meta: core packages, then the `remotes` subfolder. Locale
 // independent — the entries are path refs, and the folder title is not rendered
 // (the folder is extracted into its parent).
 export function apiMeta(core: PackageTarget[], hasRemotes: boolean): string {
-  const pages = core.map(p => p.slug);
+  const pages = [...new Set(core.map(packageSlug))];
   if (hasRemotes) pages.push('remotes');
   return `${JSON.stringify({ title: 'API', pages }, null, 2)}\n`;
 }
 
 // The `api/remotes` folder meta: a collapsible group titled "Remotes" per locale.
 export function remotesMeta(remotes: PackageTarget[], locale: Locale): string {
-  const pages = remotes.map(p => p.slug);
+  const pages = [...new Set(remotes.map(packageSlug))];
   return `${JSON.stringify({ title: t('remotes', locale), pages }, null, 2)}\n`;
 }
