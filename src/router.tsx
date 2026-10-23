@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/tanstackstart-react';
 import { createRouter } from '@tanstack/react-router';
 import { ErrorPage } from './layouts/ErrorPage';
 import { NotFound } from './layouts/NotFound';
+import { sentryDataCollection } from './lib/sentry-options';
 import { routeTree } from './routeTree.gen';
 
 export function getRouter() {
@@ -15,6 +16,7 @@ export function getRouter() {
   if (!router.isServer) {
     Sentry.init({
       dsn: import.meta.env.VITE_SENTRY_DSN,
+      dataCollection: sentryDataCollection,
       integrations: [],
     });
   }

@@ -19,7 +19,6 @@ export function Hero() {
   const locale = useLocale();
   return (
     <section className="relative overflow-hidden border-b border-zinc-200 dark:border-zinc-900">
-      {/* Blueprint grid — faint vertical rules, matching the rest of the page. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.04]"
@@ -28,8 +27,6 @@ export function Hero() {
           backgroundSize: '80px 100%',
         }}
       />
-      {/* Ambient blue→violet aura behind the headline — the same lighting the
-          Showcase footage has, breathing slowly so the hero feels lit, not flat. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -top-24 -left-24 size-[640px] rounded-full bg-brand/20 blur-[140px] motion-safe:animate-[wvb-breathe_11s_ease-in-out_infinite] dark:bg-brand/25"
@@ -40,9 +37,6 @@ export function Hero() {
       />
 
       <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-12 sm:px-6 sm:pt-20">
-        {/* Eyebrow — the supported targets, in the display face's mono sibling.
-            `flex-wrap` + `max-w-full` keep the list from overflowing on the
-            narrowest phones; it stays one line from ~360px up. */}
         <div
           className={`${RISE} inline-flex max-w-full flex-wrap items-center gap-x-2.5 gap-y-1 rounded-md border border-zinc-200/80 bg-white/50 px-3 py-1.5 font-mono text-[11px] text-zinc-500 backdrop-blur-sm dark:border-zinc-800/80 dark:bg-white/[0.02] dark:text-zinc-400`}
         >

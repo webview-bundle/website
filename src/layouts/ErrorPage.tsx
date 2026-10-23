@@ -67,7 +67,7 @@ function ErrorBody({ error, info }: Omit<ErrorComponentProps, 'reset'>) {
           production, where the error ID is what we'd actually ask a reader for. */}
       {import.meta.env.DEV && (
         <pre className="mt-6 max-w-xl overflow-x-auto rounded-md border border-zinc-300 bg-fd-muted/50 p-4 text-left font-mono text-xs text-fd-muted-foreground dark:border-zinc-800">
-          {error.message}
+          {error instanceof Error ? error.message : String(error)}
         </pre>
       )}
 

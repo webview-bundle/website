@@ -2,7 +2,12 @@ import type * as PageTree from 'fumadocs-core/page-tree';
 import type { ReactNode } from 'react';
 
 // Sidebar entries (by URL) that should carry a small "Experimental" badge.
-const EXPERIMENTAL_URLS = new Set(['/docs/guide/native/deno', '/docs/references/api/deno']);
+const EXPERIMENTAL_URLS = new Set([
+  '/docs/guide/deno-desktop',
+  '/ko/docs/guide/deno-desktop',
+  '/docs/references/api/deno',
+  '/ko/docs/references/api/deno',
+]);
 
 function ExperimentalBadge() {
   return (

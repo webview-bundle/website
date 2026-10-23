@@ -1,5 +1,4 @@
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
 import { cn } from '../../../lib/cn';
 import { MoonIcon, SunIcon } from './icons';
 
@@ -9,19 +8,11 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // Avoid a hydration mismatch: the resolved theme is only known on the client.
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isDark = mounted && resolvedTheme === 'dark';
 
   return (
     <button
       type="button"
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
       aria-label="Toggle theme"
       className={cn(
         'flex size-8 items-center justify-center rounded-md border border-zinc-300 text-zinc-600 transition-colors',
@@ -30,7 +21,9 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         className
       )}
     >
-      {isDark ? <SunIcon className="size-[15px]" /> : <MoonIcon className="size-[15px]" />}
+      {/* Keep server and client markup identical; CSS selects the active theme. */}
+      <SunIcon className="hidden size-[15px] dark:block" />
+      <MoonIcon className="size-[15px] dark:hidden" />
     </button>
   );
 }

@@ -1,5 +1,5 @@
 export const GITHUB_URL = 'https://github.com/webview-bundle/webview-bundle';
-export const DOCS_URL = '/docs/guide/getting-started';
+export const DOCS_URL = '/docs/guide';
 
 /** Files shown on the left ("your source") of the architecture diagram. */
 export const SOURCE_FILES = ['app/main.tsx', 'styles/app.css', 'assets/*.png', 'package.json'];
@@ -27,10 +27,4 @@ export const PLATFORMS: Platform[] = [
   { name: 'Android' },
   { name: 'iOS' },
   { name: 'Deno Desktop', experimental: true },
-];
-
-export const INSTALL_COMMANDS = [
-  'npm install -D @wvb/cli',
-  'wvb pack ./dist --outfile app.wvb',
-  'wvb serve .wvb/app.wvb',
 ];

@@ -7,8 +7,7 @@
     "**/*.d.ts",
     "**/*.d.cts",
     "**/*.gen.ts",
-    "**/*.jsonc",
-    "**/*.mdx"
+    "**/*.jsonc"
   ],
   "printWidth": 100,
   "singleQuote": true,

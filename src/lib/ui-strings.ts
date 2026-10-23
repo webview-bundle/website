@@ -32,7 +32,6 @@ export interface UiStrings {
   menu: { open: string; close: string; github: string; theme: string; search: string };
   changelog: {
     title: string;
-    subtitle: string;
     allPackages: string;
     filterLabel: string;
     searchPlaceholder: string;
@@ -42,8 +41,6 @@ export interface UiStrings {
     empty: string;
     viewRelease: string;
     latest: string;
-    versioningNote: string;
-    bundleFormatLink: string;
   };
   notFound: { title: string; message: string; home: string; docs: string };
   error: {
@@ -58,7 +55,7 @@ export interface UiStrings {
 
 const en: UiStrings = {
   sections: [
-    { label: 'Guide', href: '/docs/guide/getting-started', match: '/docs/guide' },
+    { label: 'Guide', href: '/docs/guide', match: '/docs/guide' },
     { label: 'References', href: '/docs/references' },
     { label: 'Changelog', href: '/docs/changelog' },
   ],
@@ -74,7 +71,7 @@ const en: UiStrings = {
     titleB: 'inside',
     titleC: 'native.',
     subtitle:
-      'Webview Bundle is an offline-first distributing system for web applications on webview-based frameworks and platforms.',
+      'Webview Bundle is an offline-first web application distribution system for webview-based frameworks and platforms.',
     getStarted: 'Get Started',
     github: 'GitHub',
   },
@@ -88,24 +85,24 @@ const en: UiStrings = {
   },
   features: [
     {
-      title: 'Offline-first, by default',
+      title: 'Offline-first',
       description:
-        'The native host intercepts each webview request and reads the response straight from the webview bundle — no network round-trip. Subway, plane, dead network: it still loads.',
+        'The native host intercepts webview requests and reads responses directly from the webview bundle. Your web application can run without a network connection.',
     },
     {
-      title: 'Written in web code',
+      title: 'Write familiar web code',
       description:
         'Author with React, Vue, Svelte, or plain HTML. Package it as a webview bundle and it runs in every native environment. No new toolchain to learn.',
     },
     {
-      title: 'One format, every webview',
+      title: 'A core written in Rust',
       description:
-        'One .wvb format over one shared Rust core. Electron and Tauri run it today; Android and iOS through native bindings; Deno Desktop experimentally. No per-host packaging branches.',
+        'The core, written in Rust, supports a range of native hosts: Electron, Tauri, Android, and iOS, with experimental support for Deno Desktop.',
     },
     {
-      title: 'Over-the-air',
+      title: 'Remote updates',
       description:
-        'Update the webview bundle remotely, with no native release. Pull updates over the air whenever you choose.',
+        'Update the webview bundle remotely without a native update. Receive remote updates whenever you choose.',
     },
   ],
   platforms: {
@@ -115,8 +112,8 @@ const en: UiStrings = {
   },
   cta: {
     eyebrow: 'Start building',
-    title: 'Write it once. Run it in every webview. Update it over the air.',
-    getStarted: 'Get started',
+    title: 'An easy way to build\nOffline-first web applications',
+    getStarted: 'Start the guide',
     github: 'GitHub',
   },
   footer: [
@@ -135,7 +132,6 @@ const en: UiStrings = {
   },
   changelog: {
     title: 'Changelog',
-    subtitle: 'Published releases, pulled per package from GitHub.',
     allPackages: 'All packages',
     filterLabel: 'Filter by package',
     searchPlaceholder: 'Search changelog…',
@@ -145,9 +141,6 @@ const en: UiStrings = {
     empty: "Couldn't load releases right now. Please try again later.",
     viewRelease: 'View release',
     latest: 'Latest',
-    versioningNote:
-      'Packages follow semantic versioning — pin exact versions for reproducible builds. The .wvb bundle format carries its own version (v1), independent of package versions.',
-    bundleFormatLink: 'Bundle format',
   },
   notFound: {
     title: 'Page not found',
@@ -168,7 +161,7 @@ const en: UiStrings = {
 
 const ko: UiStrings = {
   sections: [
-    { label: '가이드', href: '/docs/guide/getting-started', match: '/docs/guide' },
+    { label: '가이드', href: '/docs/guide', match: '/docs/guide' },
     { label: '레퍼런스', href: '/docs/references' },
     { label: '변경 이력', href: '/docs/changelog' },
   ],
@@ -198,22 +191,22 @@ const ko: UiStrings = {
   },
   features: [
     {
-      title: '기본이 오프라인 우선',
+      title: '오프라인 우선',
       description:
-        '네이티브 호스트가 웹뷰의 요청을 가로채 웹뷰 번들에서 바로 응답을 읽습니다. 네트워크 왕복이 없어 지하철이든 비행기든 네트워크가 끊겨도 화면이 뜹니다.',
+        '네이티브 호스트가 웹뷰의 요청을 가로채 웹뷰 번들에서 바로 응답을 읽습니다. 네트워크 없이도 웹 애플리케이션을 구동할 수 있어요.',
     },
     {
-      title: '웹 코드로 작성',
+      title: '익숙한 웹 코드로 작성',
       description:
         'React, Vue, Svelte, 또는 순수 HTML로 작성하세요. 웹뷰 번들로 패키징한 파일은 모든 네이티브 환경에서 동작합니다. 새 툴체인을 배울 필요가 없습니다.',
     },
     {
-      title: '하나의 포맷, 모든 웹뷰',
+      title: 'Rust로 작성된 코어',
       description:
-        '하나의 .wvb 포맷과 하나의 공유 Rust 코어. Electron과 Tauri가 지금 실행하며, Android와 iOS는 네이티브 바인딩으로, Deno Desktop은 실험적으로 지원됩니다. 호스트마다 패키징을 분기할 필요가 없습니다.',
+        'Rust로 작성된 코어가 다양한 네이티브 호스트를 지원합니다. Electron, Tauri, Android, iOS, 그리고 Deno Desktop를 실험적으로 지원합니다.',
     },
     {
-      title: 'Over-The-Air',
+      title: '원격 업데이트',
       description:
         '네이티브 업데이트 없이 웹뷰 번들을 원격에서 업데이트하세요. 원하는 시점에 원격 업데이트를 받을 수 있습니다.',
     },
@@ -227,7 +220,7 @@ const ko: UiStrings = {
     eyebrow: '시작하기',
     // `\n` forces the line break at the clause boundary (rendered as <br> in
     // CallToAction) so Korean never wraps mid-word ("웹뷰에|서").
-    title: '한 번 작성해, 모든 웹뷰에서,\n원격으로 업데이트까지.',
+    title: '오프라인 우선으로\n웹 애플리케이션을 만드는 쉬운 방법',
     getStarted: '가이드 시작하기',
     github: 'GitHub',
   },
@@ -247,7 +240,6 @@ const ko: UiStrings = {
   },
   changelog: {
     title: '변경 이력',
-    subtitle: 'GitHub 릴리스에서 패키지별로 불러온 배포 이력입니다.',
     allPackages: '전체 패키지',
     filterLabel: '패키지로 필터',
     searchPlaceholder: '변경 이력 검색…',
@@ -257,9 +249,6 @@ const ko: UiStrings = {
     empty: '지금은 릴리스를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.',
     viewRelease: '릴리스 보기',
     latest: '최신',
-    versioningNote:
-      '패키지는 유의적 버전을 따릅니다. 재현 가능한 빌드를 위해 정확한 버전을 고정하세요. .wvb 번들 포맷은 패키지 버전과 별개로 자체 포맷 버전(v1)을 가집니다.',
-    bundleFormatLink: '번들 포맷',
   },
   notFound: {
     title: '페이지를 찾을 수 없습니다',

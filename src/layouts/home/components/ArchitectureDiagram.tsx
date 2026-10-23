@@ -1,23 +1,6 @@
 import { SOURCE_FILES, WEBVIEW_HOSTS } from '../data';
 import { Logo } from './Logo';
 
-// A tiny closed-padlock, marking the bundle's ed25519 signature.
-function LockIcon(props: React.ComponentProps<'svg'>) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.2}
-      aria-hidden="true"
-      {...props}
-    >
-      <rect x="5" y="11" width="14" height="10" rx="2" />
-      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-    </svg>
-  );
-}
-
 function ColumnLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="mb-3 text-center font-mono text-[10px] tracking-widest text-zinc-500 uppercase md:text-start dark:text-zinc-400">
@@ -115,14 +98,6 @@ export function ArchitectureDiagram() {
               <div className="flex size-full flex-col items-center justify-center rounded-[13px] bg-white/90 backdrop-blur-sm dark:bg-[#141414]/95">
                 <Logo width={44} height={44} className="mb-3" />
                 <div className="font-mono text-[13px] font-medium">app.wvb</div>
-                <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[10px] text-zinc-500 dark:text-zinc-400">
-                  <span>2.1 MB</span>
-                  <span className="text-zinc-300 dark:text-zinc-700">·</span>
-                  <span className="inline-flex items-center gap-1 text-brand">
-                    <LockIcon className="size-2.5" />
-                    ed25519
-                  </span>
-                </div>
               </div>
             </div>
           </div>

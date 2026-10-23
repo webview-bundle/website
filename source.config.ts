@@ -1,5 +1,7 @@
+import { rehypeCodeDefaultOptions } from 'fumadocs-core/mdx-plugins/rehype-code';
 import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
 import lastModified from 'fumadocs-mdx/plugins/last-modified';
+import { codeIcons } from './src/lib/code-icons';
 
 export const docs = defineDocs({
   dir: 'content/docs',
@@ -16,4 +18,11 @@ export const docs = defineDocs({
 
 export default defineConfig({
   plugins: [lastModified()],
+  mdxOptions: {
+    rehypeCodeOptions: {
+      ...rehypeCodeDefaultOptions,
+      inline: 'tailing-curly-colon',
+      icon: { extend: codeIcons },
+    },
+  },
 });
