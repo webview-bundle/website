@@ -1,0 +1,148 @@
+---
+title: "iOS"
+---
+
+Swift iOS 앱에 웹뷰 번들을 추가합니다. 사용자 정의 URL 스킴을 개발 서버로 전달한 뒤, 같은 URL에서 빌트인 리소스를 제공합니다. UIKit과 기존 뷰 컨트롤러를 기준으로 설명합니다.
+
+## 시작 전 준비
+
+iOS 16 이상과 Swift 도구 6.1 이상을 포함한 Xcode 도구 모음을 준비하세요. 앱 프로젝트와 `web` 프론트엔드를 준비하고, 정적 빌드로 `web/dist/index.html`을 생성하세요. CLI에는 Node.js 20.x의 20.19 이상 또는 22.12 이상이 필요합니다.
+
+프로젝트 루트에서 다음 파일 구조를 사용합니다:
+
+<Files>
+<Folder name="App" defaultOpen><File name="ViewController.swift" icon={<IconSwift />} /></Folder>
+  <Folder name="web" defaultOpen>
+    <Folder name="dist"><File name="index.html" icon={<IconHtml />} /></Folder>
+    <File name="wvb.config.ts" icon={<IconTypeScript />} />
+  </Folder>
+  <Folder name="bundles" />
+  <File name="wvb.config.ts" icon={<IconTypeScript />} />
+</Files>
+
+## 1. 의존성 설치
+
+Xcode에서 **File > Add Package Dependencies**를 선택하고 `https://github.com/webview-bundle/webview-bundle-ios.git`을 버전 `0.3.0` 이상으로 추가하세요. 앱 대상에 `WebViewBundle` 제품을 연결하세요.
+
+`Package.swift`로 의존성을 관리한다면 다음 선언을 사용하세요:
+
+```swift
+.package(
+    url: "https://github.com/webview-bundle/webview-bundle-ios.git",
+    from: "0.3.0"
+)
+```
+
+## 2. 인스턴스 생성과 개발 서버 연결
+
+메인 액터에서 공유 인스턴스를 설정하세요. iOS의 프록시 API 이름은 `.local(scheme:hosts:)`입니다. `WKWebView`를 만들기 전에 핸들러를 설치하세요:
+
+```swift title="App/ViewController.swift"
+import UIKit
+import WebKit
+import WebViewBundle
+
+@MainActor
+final class ViewController: UIViewController {
+    override func loadView() {
+        do {
+            let instance = try wvb(WebViewBundleConfig(
+                protocols: [
+                    .local(
+                        scheme: "app",
+                        hosts: ["app.wvb": "http://localhost:5173"]
+                    )
+                ]
+            ))
+            let webView = instance.makeWebView()
+            view = webView
+            webView.load(URLRequest(url: URL(string: "app://app.wvb/")!))
+        } catch {
+            let label = UILabel()
+            label.numberOfLines = 0
+            label.text = error.localizedDescription
+            view = label
+        }
+    }
+}
+```
+
+기존 앱 진입점에서 이 컨트롤러를 사용하세요. 프론트엔드 서버를 `5173` 포트에서 시작하고 iOS 시뮬레이터를 실행하세요. 실제 기기에서는 `localhost`를 컴퓨터에 접근할 수 있는 네트워크 주소로 바꾸고, 요청 시 로컬 네트워크 접근을 허용하세요.
+
+`app` 같은 사용자 정의 스킴을 사용하세요. WKWebView는 `http`와 `https`를 자체 처리합니다. 같은 스킴을 중복 등록하지 마세요.
+
+## 3. CLI 설치
+
+프로젝트 루트에서 CLI를 설치하세요:
+
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+    ```sh
+    npm install --save-dev @wvb/cli
+    ```
+
+  </Tab>
+  <Tab value="yarn">
+
+    ```sh
+    yarn add -D @wvb/cli
+    ```
+
+  </Tab>
+  <Tab value="pnpm">
+
+    ```sh
+    pnpm add -D @wvb/cli
+    ```
+
+  </Tab>
+</Tabs>
+
+
+## 4. 로컬 빌드 결과를 빌트인으로 설치
+
+웹 워크스페이스의 `dist` 디렉터리를 `app` 번들, `1.0.0` 버전으로 패키징하도록 설정하세요:
+
+```ts title="web/wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: { srcDir: './dist' },
+  remote: { bundleName: 'app', version: '1.0.0' },
+});
+```
+
+네이티브 프로젝트 루트에서 `builtin.target`이 웹 워크스페이스를 가리키도록 설정하세요:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './bundles',
+    target: { type: 'local', workspaces: ['./web'] },
+  },
+});
+```
+
+프론트엔드의 기존 빌드 명령을 실행하세요. `web/dist/index.html`이 생성되면 네이티브 프로젝트 루트에서 다음 명령을 실행하세요:
+
+```sh
+yarn wvb builtin
+```
+
+CLI는 웹 빌드 결과를 패키징하고 `./bundles/manifest.json`과 `./bundles/app/1.0.0.wvb`를 생성합니다. 프론트엔드 빌드는 실행하지 않습니다.
+
+`bundles`를 디렉터리 구조를 보존하는 폴더 참조로 앱 대상에 추가하세요. **Build Phases > Copy Bundle Resources**에 포함되는지 확인하세요. 빌드한 앱의 리소스 디렉터리 안에 `bundles/manifest.json`과 `bundles/app/1.0.0.wvb`가 있어야 합니다.
+
+## 5. 빌트인 번들 실행과 확인
+
+개발용 프로토콜을 다음과 같이 교체하세요:
+
+```swift
+protocols: [.bundle(scheme: "app")]
+```
+
+프론트엔드 서버를 종료하고 앱을 다시 빌드·실행하세요. 패키징한 리소스를 사용해 `app://app.wvb/`에서 화면이 표시되어야 합니다. `wvb(...)`는 프로세스당 하나의 설정을 유지하므로 설정을 바꾼 뒤 앱을 재시작하세요.

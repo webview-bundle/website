@@ -1,0 +1,183 @@
+---
+title: "Android"
+---
+
+Kotlin Android 앱에 웹뷰 번들을 추가합니다. `WebView`에 개발 서버를 연결하고 앱 리소스에 빌트인 번들을 설치한 뒤, 오프라인에서 화면을 확인합니다.
+
+## 시작 전 준비
+
+`minSdk` 24 이상, `compileSdk` 35 이상, JVM 17 호환성을 설정한 Android 프로젝트를 준비하세요. 예제는 에뮬레이터, `app` 애플리케이션 모듈, `web` 프론트엔드를 사용합니다. CLI에는 Node.js 20.x의 20.19 이상 또는 22.12 이상이 필요합니다.
+
+이 가이드에서 사용하는 파일은 다음과 같습니다:
+
+<Files>
+<Folder name="app" defaultOpen>
+    <File name="build.gradle.kts" icon={<IconKotlin />} />
+    <Folder name="src/main" defaultOpen>
+      <File name="AndroidManifest.xml" />
+      <Folder name="assets/bundles" />
+      <File name="java/com/example/app/MainActivity.kt" icon={<IconKotlin />} />
+    </Folder>
+  </Folder>
+  <Folder name="web"><File name="wvb.config.ts" icon={<IconTypeScript />} /></Folder>
+  <File name="wvb.config.ts" icon={<IconTypeScript />} />
+</Files>
+
+## 1. 의존성 설치
+
+의존성 저장소에 `mavenCentral()`이 있는지 확인하세요. 애플리케이션 모듈에 SDK를 추가하세요:
+
+```kotlin title="app/build.gradle.kts"
+dependencies {
+    implementation("dev.wvb:webview-bundle-android:0.3.0")
+}
+```
+
+## 2. 인스턴스 생성과 개발 서버 연결
+
+공유 인스턴스를 생성하고 URL을 불러오기 전에 웹뷰에 설치하세요. Android의 프록시 API 이름은 `WebViewBundleProtocol.local()`입니다:
+
+```kotlin title="app/src/main/java/com/example/app/MainActivity.kt"
+package com.example.app
+
+import android.app.Activity
+import android.os.Bundle
+import android.webkit.WebView
+import dev.wvb.WebViewBundleConfig
+import dev.wvb.WebViewBundleProtocol
+import dev.wvb.wvb
+
+class MainActivity : Activity() {
+    private lateinit var webView: WebView
+    private var bridge: AutoCloseable? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val instance = wvb(
+            this,
+            WebViewBundleConfig(
+                protocols = listOf(
+                    WebViewBundleProtocol.local(
+                        mapOf("app.wvb" to "http://10.0.2.2:5173")
+                    )
+                )
+            )
+        )
+        webView = WebView(this).apply {
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+        }
+        bridge = instance.install(webView)
+        setContentView(webView)
+        webView.loadUrl("https://app.wvb/")
+    }
+
+    override fun onDestroy() {
+        bridge?.close()
+        webView.destroy()
+        super.onDestroy()
+    }
+}
+```
+
+`com.example.app`은 앱의 패키지 이름으로 바꾸세요. 에뮬레이터는 `10.0.2.2`로 개발 컴퓨터에 접근합니다. 실제 기기는 컴퓨터에 접근할 수 있는 네트워크 주소를 사용하세요. 프론트엔드는 `5173` 포트에서 실행합니다.
+
+메인 매니페스트에 네트워크 권한을 선언하세요. HTTP 개발 서버를 사용하는 경우 디버그 매니페스트에서만 평문 통신을 허용하세요:
+
+```xml title="app/src/main/AndroidManifest.xml"
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+```xml title="app/src/debug/AndroidManifest.xml"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:usesCleartextTraffic="true" />
+</manifest>
+```
+
+권한은 기존 `<manifest>` 요소 안에 넣으세요. 앱을 실행해 `https://app.wvb/`에서 개발 화면이 표시되는지 확인하세요. 앱에서 네트워크 보안 설정을 사용한다면 디버그 빌드에서 개발 호스트를 허용하도록 해당 설정도 조정하세요.
+
+## 3. CLI 설치
+
+Android 프로젝트 루트에서 CLI를 설치하세요:
+
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+    ```sh
+    npm install --save-dev @wvb/cli
+    ```
+
+  </Tab>
+  <Tab value="yarn">
+
+    ```sh
+    yarn add -D @wvb/cli
+    ```
+
+  </Tab>
+  <Tab value="pnpm">
+
+    ```sh
+    pnpm add -D @wvb/cli
+    ```
+
+  </Tab>
+</Tabs>
+
+
+## 4. 로컬 빌드 결과를 빌트인으로 설치
+
+웹 워크스페이스의 `dist` 디렉터리를 `app` 번들, `1.0.0` 버전으로 패키징하도록 설정하세요:
+
+```ts title="web/wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: { srcDir: './dist' },
+  remote: { bundleName: 'app', version: '1.0.0' },
+});
+```
+
+네이티브 프로젝트 루트에서 `builtin.target`이 웹 워크스페이스를 가리키도록 설정하세요:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './app/src/main/assets/bundles',
+    target: { type: 'local', workspaces: ['./web'] },
+  },
+});
+```
+
+프론트엔드의 기존 빌드 명령을 실행하세요. `web/dist/index.html`이 생성되면 네이티브 프로젝트 루트에서 다음 명령을 실행하세요:
+
+```sh
+yarn wvb builtin
+```
+
+CLI는 웹 빌드 결과를 패키징하고 `./app/src/main/assets/bundles/manifest.json`과 `./app/src/main/assets/bundles/app/1.0.0.wvb`를 생성합니다.
+
+APK에서 `.wvb` 파일을 다시 압축하지 않도록 설정하세요:
+
+```kotlin title="app/build.gradle.kts"
+android {
+    androidResources {
+        noCompress += "wvb"
+    }
+}
+```
+
+SDK는 소스를 생성할 때 `assets/bundles`를 앱 전용 저장소에 복사합니다. Rust 코어는 복사한 파일의 경로로 번들을 읽습니다.
+
+## 5. 빌트인 번들 실행과 확인
+
+개발용 프로토콜 목록을 다음과 같이 교체하세요:
+
+```kotlin
+protocols = listOf(WebViewBundleProtocol.bundle())
+```
+
+`app.wvb`는 번들에서 응답하고 다른 호스트는 네트워크로 연결합니다. 개발 서버를 종료하고 APK를 다시 빌드·설치한 뒤 앱을 재시작하세요. 서버 없이 `https://app.wvb/` 에서 화면이 표시되어야 합니다.

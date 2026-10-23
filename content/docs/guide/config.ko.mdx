@@ -1,0 +1,306 @@
+---
+title: '설정'
+---
+
+설정 파일을 사용하면 여러 [CLI 커맨드](/docs/guide/cli)에서 옵션을 공유할 수
+있습니다. 이 파일은 번들을 준비하고 배포하는 방법을 설정합니다. 네이티브 앱의
+소스, 프로토콜, 업데이터는 각 플랫폼의 네이티브 연동 코드에서 별도로 설정하세요.
+
+## 설정 파일 만들고 사용하기
+
+프로젝트의 `package.json` 옆에 `wvb.config.ts`를 만드세요. `defineConfig`로
+설정을 내보내면 타입 검사와 에디터 자동 완성을 사용할 수 있습니다:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+    outFile: './out/app.wvb',
+  },
+  remote: {
+    bundleName: 'app',
+    version: '1.0.0',
+    baseUrl: 'https://updates.example.com',
+  },
+  serve: {
+    pathResolver: 'directory_index',
+  },
+});
+```
+
+프론트엔드를 `dist` 디렉터리에 빌드한 뒤 결과물을 패키징하고 확인하세요:
+
+```bash
+wvb pack
+wvb serve --port 4312
+```
+
+`pack`은 `out/app.wvb`를 생성합니다. `http://localhost:4312`에 접속해 결과를
+확인하세요.
+
+### 파일명과 탐색 순서
+
+CLI는 작업 디렉터리에서 다음 순서로 파일을 찾고, 처음 발견한 파일을 불러옵니다.
+여러 설정 파일을 병합하지 않습니다:
+
+1. `wvb.config.js`, `wvb.config.cjs`, `wvb.config.mjs`, `wvb.config.ts`,
+   `wvb.config.cts`, `wvb.config.mts`.
+2. `webview-bundle.config.js`, `webview-bundle.config.cjs`,
+   `webview-bundle.config.mjs`, `webview-bundle.config.ts`,
+   `webview-bundle.config.cts`, `webview-bundle.config.mts`.
+3. `wvb.config.json`, `wvb.config.jsonc`.
+
+기본 설정 경로가 아닌 다른 경로에서 설정 파일을 불러오려면 `--config` 또는 `-C`를 사용하세요.
+
+```bash
+wvb pack --config ./config/wvb.production.ts
+wvb pack --cwd ./web --config ./wvb.config.ts
+```
+
+## `root`
+
+- **유형**: `string`
+- **기본값**: `process.cwd(){:js}`
+
+파일 경로를 해석하고 가장 가까운 `package.json`을 찾는 기준 디렉터리입니다.
+
+CLI에서는 `--cwd`로 지정하세요.
+
+## `pack`
+
+프론트엔드 빌드 결과를 `.wvb` 아카이브로 패키징하는 설정입니다.
+
+### `srcDir`
+
+- **유형**: `string`
+- **기본값**: `./dist`
+
+패키징할 디렉터리입니다. 작업 디렉터리 기준 상대 경로나 절대 경로를 지정합니다.
+
+### `outFile`
+
+- **유형**: `string`
+- **기본값**: `./.wvb/{NAME}.wvb`
+
+생성할 아카이브의 경로입니다. 작업 디렉터리 기준 상대 경로나 절대 경로를
+지정합니다. `.wvb` 확장자를 생략하면 자동으로 추가됩니다.
+
+기본값은 `.wvb/NAME.wvb`이며, `NAME`은 가장 가까운 `package.json`의 이름에서 npm 스코프를
+제거한 값입니다.
+
+### `overwrite`
+
+- **유형**: `boolean`
+- **기본값**: `true{:js}`
+
+기존 출력 아카이브를 덮어쓸지 지정합니다. `false`로 설정하면 대상 파일이 이미 있을 때 실패합니다.
+
+### `ignore`
+
+- **유형**:
+  - `Array<string | RegExp>{:ts}`
+  - `(file: string) => boolean | Promise<boolean>{:ts}`
+
+패키징에서 제외할 파일입니다.
+
+예를 들어 아래와 같이 설정하여 소스맵을 제외할 수 있습니다:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: {
+    ignore: ['**/*.map'],
+  },
+});
+```
+
+### `headers`
+
+- **유형**:
+  - `Record<string, HeadersInit>{:ts}`
+  - `Array<[string, HeadersInit]>{:ts}`
+  - `(file: string) => HeadersInit | null | undefined | Promise<HeadersInit | null | undefined>{:ts}`
+
+아카이브의 각 엔트리에 저장할 HTTP 응답 헤더입니다.
+
+일치하는 패턴을 순서대로 적용하며, 같은 헤더는 뒤의 값으로 덮어씁니다. 예를 들어 다음과 같이 설정합니다:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: {
+    headers: {
+      '**/*.html': { 'cache-control': 'no-cache' },
+      'assets/**': { 'cache-control': 'public, max-age=31536000, immutable' },
+    },
+  },
+});
+```
+
+## `remote`
+
+리모트 접근과 배포 설정입니다.
+
+로컬에서 테스트하기 위해 [`@wvb/local-remote`](/docs/references/api/remotes/remote-local)을 사용할 수 있습니다:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { localRemote } from '@wvb/remote-local';
+
+export default defineConfig({
+  remote: {
+    ...localRemote({ baseDir: './.wvb/local' }),
+    baseUrl: 'http://127.0.0.1:4313',
+  },
+});
+```
+
+`wvb remote local --base-dir ./.wvb/local{:bash}`을 실행하면 해당 디렉터리를
+제공하는 서버가 시작됩니다. 배포에 사용할 프로바이더는
+[리모트 프로바이더](/docs/guide/remote/provider)를 참고하세요.
+
+### `baseUrl`
+
+- **유형**: `string`
+
+리모트 서버의 기본 URL입니다. 업데이트를 조회하거나 번들을 다운로드하는
+커맨드에서 사용합니다. 리모트 대상에서 빌트인 번들을 설치할 때 대상 URL을 따로
+지정하지 않으면 이 값을 사용합니다.
+
+### `bundleName`
+
+- **유형**:
+  - `{ from: 'package.json' }{:ts}`
+  - `string`
+  - `(params: BundleInfoResolverParams) => string | Promise<string>{:ts}`
+- **기본값**: `{ from: 'package.json' }{:ts}`
+
+업로드와 배포에 사용할 번들 이름입니다. 기본값 `{ from: 'package.json' }`은 가장 가까운 `package.json`의
+이름에서 스코프를 제거한 값입니다. 예를 들어 `@example/app`은 `app`이 됩니다.
+
+### `version`
+
+- **유형**:
+  - `{ from: 'package.json' }{:ts}`
+  - `{ from: 'git' }{:ts}`
+  - `string`
+  - `(params: BundleInfoResolverParams) => string | Promise<string>{:ts}`
+- **기본값**: `{ from: 'package.json' }{:ts}`
+
+업로드와 배포에 사용할 버전입니다. 기본값 `{ from: 'package.json' }`은 가장 가까운 `package.json`의 `version` 필드값을 읽습니다.
+
+### `packBeforeUpload`
+
+- **유형**: `boolean`
+- **기본값**: `true`
+
+`wvb upload`가 업로드 전에 소스 디렉터리를 패키징할지 지정합니다.
+
+### `uploader`
+
+- **유형**: `BaseUploader{:ts}`
+
+### `deployer`
+
+- **유형**: `BaseDeployer{:ts}`
+
+### `integrity`
+
+- **유형**: `boolean | IntegrityMakeConfig{:ts}`
+- **기본값**: `true`
+
+업로드할 때 아카이브의 무결성 해시를 계산할지 지정합니다.
+
+### `signature`
+
+- **유형**: `SignatureSignConfig | SignatureConfig[]{:ts}`
+
+## `serve`
+
+### `file`
+
+- **유형**: `string`
+
+### `port`
+
+- **유형**: `number`
+- **기본값**: `4312{:ts}`
+
+### `silent`
+
+- **유형**: `boolean`
+- **기본값**: `false`
+
+### `pathResolver`
+
+- **유형**: `'directory_index' | 'html_extension'{:ts}`
+- **기본값**: `'directory_index'`
+
+## `builtin`
+
+네이티브 앱에 포함할 아카이브와 `manifest.json`을 준비하는 `wvb builtin`의
+설정입니다. 예를 들어 로컬 웹 워크스페이스에서 설치할 수 있습니다:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './bundles',
+    target: {
+      type: 'local',
+      workspaces: ['./web/*'],
+    },
+  },
+});
+```
+
+해당 워크스페이스를 빌드한 뒤 `builtin`을 실행하세요. 대상 디렉터리에
+`manifest.json`과 `BUNDLE_NAME/VERSION.wvb` 경로의 아카이브를 생성합니다.
+
+### `outDir`
+
+- **유형**: `string`
+- **기본값**: `./.wvb/builtin/bundles`
+
+설치 대상 디렉터리입니다. 작업 디렉터리 기준 상대 경로나 절대 경로를 지정합니다.
+
+### `target`
+
+- **유형**:
+  - `({ type: 'remote' } & BuiltinRemoteTargetConfig){:ts}`
+  - `({ type: 'local' } & BuiltinRemoteTargetConfig){:ts}`
+- **기본값**: `{ type: 'remote' }{:ts}`
+
+빌트인 번들을 가져올 대상을 설정합니다.
+
+### `include`
+
+- **유형**:
+  - `string`
+  - `RegExp{:ts}`
+  - `Array<string | RegExp>{:ts}`
+  - `(info: { name: string; version: string }) => boolean | Promise<boolean>{:ts}`
+
+포함할 번들을 설정합니다.
+
+### `exclude`
+
+- **유형**:
+  - `string`
+  - `RegExp{:ts}`
+  - `Array<string | RegExp>{:ts}`
+  - `(info: { name: string; version: string }) => boolean | Promise<boolean>{:ts}`
+
+제외할 번들을 설정합니다.
+
+### `clean`
+
+- **유형**: `boolean`
+- **기본값**: `true`
+
+설치 전에 대상 디렉터리를 삭제할지 지정합니다.
