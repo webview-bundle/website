@@ -1,0 +1,437 @@
+---
+title: 'Electron'
+---
+
+Add Webview Bundle to an existing Electron app. First, load your frontend
+development server, then run a builtin bundle in the same window. Finally,
+configure packaging with Forge and electron-builder.
+
+## Before you begin
+
+Use Electron 15 or later and Node.js 20.19 or later in the 20.x line, or
+Node.js 22.12 or later. Start from an Electron project that can build and run
+its main process. Put the frontend in `web` and its static build output in
+`web/dist`. Run commands from the Electron project root.
+
+This guide uses the following file layout:
+
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="main.ts" icon={<IconTypeScript />} />
+  </Folder>
+  <Folder name="web" defaultOpen>
+    <Folder name="dist">
+      <File name="index.html" icon={<IconHtml />} />
+    </Folder>
+    <File name="wvb.config.ts" icon={<IconTypeScript />} />
+  </Folder>
+  <Folder name="bundles" />
+  <File name="wvb.config.ts" icon={<IconTypeScript />} />
+</Files>
+
+## 1. Install dependencies
+
+Add the runtime package:
+
+```sh
+yarn add @wvb/electron
+```
+
+## 2. Create an instance and connect the development server
+
+Create the instance in your main-process entry point before Electron becomes
+ready. Register `proxyProtocol` for the `app` scheme, then open the window
+after `ready()` completes:
+
+```ts title="src/main.ts"
+import { BrowserWindow } from 'electron';
+import { proxyProtocol, webviewBundle } from '@wvb/electron';
+
+const wvb = webviewBundle({
+  protocols: [
+    proxyProtocol('app', {
+      hosts: { 'app.wvb': 'http://localhost:5173' },
+    }),
+  ],
+});
+
+wvb.ready().then(async () => {
+  const win = new BrowserWindow({
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  await win.loadURL('app://app.wvb/');
+});
+```
+
+Start the server at `http://localhost:5173` with your frontend's development
+command, then run the Electron app. Requests to `app://app.wvb/` are forwarded
+to that server. The `app.wvb` key in `hosts` must match the full hostname of
+the request.
+
+<Callout title="HMR connections with proxyProtocol">
+`proxyProtocol` forwards HTTP requests from a custom scheme. When using a
+development server with HMR, the client may fail to connect to its WebSocket
+server. In that case, explicitly configure the development server's WebSocket
+address so the client can connect.
+
+For [Vite](https://vite.dev), use the following configuration:
+
+```typescript title="vite.config.ts"
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  server: {
+    port: 5173,
+    strictPort: true,
+    ws: {
+      protocol: 'ws',
+      host: 'localhost',
+      clientPort: 5173,
+    },
+  },
+});
+```
+
+</Callout>
+
+## 3. Install the CLI
+
+Add the build-time CLI at the project root:
+
+```sh
+yarn add -D @wvb/cli
+```
+
+## 4. Install the local build as a builtin bundle
+
+Configure the web workspace to package its `dist` directory as bundle `app`,
+version `1.0.0`:
+
+```ts title="web/wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+  },
+  remote: {
+    bundleName: 'app',
+    version: '1.0.0',
+  },
+});
+```
+
+At the native project root, point `builtin.target` at the web workspace:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    target: {
+      type: 'local',
+      workspaces: ['./web'],
+    },
+  },
+});
+```
+
+Run your existing frontend build command. Once `web/dist/index.html` exists,
+run the following command from the native project root:
+
+```sh
+yarn wvb builtin
+```
+
+The CLI packages the web build output and creates
+`./.wvb/builtin/bundles/manifest.json` and
+`./.wvb/builtin/bundles/app/1.0.0.wvb`.
+
+## 5. Run and verify the builtin bundle
+
+In `src/main.ts`, replace the `proxyProtocol` import with `bundleProtocol`
+and update the `protocols` array:
+
+{/* prettier-ignore */}
+```ts
+import { BrowserWindow } from 'electron';
+import { proxyProtocol, webviewBundle } from '@wvb/electron'; // [!code --]
+import { bundleProtocol, webviewBundle } from '@wvb/electron'; // [!code ++]
+
+const wvb = webviewBundle({
+  protocols: [
+    proxyProtocol('app', { // [!code --]
+      hosts: { 'app.wvb': 'http://localhost:5173' }, // [!code --]
+    }), // [!code --]
+    bundleProtocol('app'), // [!code ++]
+  ],
+});
+
+wvb.ready().then(async () => {
+  const win = new BrowserWindow({
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  await win.loadURL('app://app.wvb/');
+});
+```
+
+Stop the frontend server and restart Electron. The same page should appear
+at `app://app.wvb/`.
+
+## 6. Package the app
+
+Follow these steps to package the app with its builtin bundles.
+
+<Callout title="`node_modules` must exist on disk when packaging">
+Electron packaging scans the project's `node_modules` directory to collect
+dependencies to include in the app. The module resolution algorithm used for
+this process does not support symlinked dependencies or Yarn Plug'n'Play (PnP).
+
+- For Yarn 2 or later, set `nodeLinker: node-modules` in `.yarnrc.yml`.
+- For pnpm, add `node-linker=hoisted` to `.npmrc`.
+
+</Callout>
+
+<Steps>
+<Step>
+
+### Install `@electron/packager`
+
+Install the packaging dependency:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @electron/packager
+```
+
+</Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @electron/packager
+```
+
+</Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @electron/packager
+```
+
+</Tab>
+</Tabs>
+
+</Step>
+
+<Step>
+
+### Write a packaging script
+
+Use the `@electron/packager` API to write a script that packages the Electron
+app. Run it with `node package.mts`:
+
+```typescript title="package.mts"
+import { packager } from '@electron/packager';
+
+const electronPkg = await import('electron/package.json', {
+  with: {
+    type: 'json',
+  },
+});
+
+const [appDir] = await packager({
+  dir: '.',
+  out: './out',
+  overwrite: true,
+  // import only 'dist', 'node_modules', and 'package.json'
+  ignore: [/^\/(?!(?:dist|node_modules)(?:\/|$)|package\.json$)/],
+  electronVersion: '45.0.0',
+  name: 'MyWebviewBundleApplication',
+  asar: {
+    unpack: `**/*.${process.platform}-*.node`,
+  },
+  extraResource: ['./.wvb/builtin/bundles'],
+});
+
+console.log(appDir);
+```
+
+</Step>
+
+<Step>
+
+### Create a distributable
+
+Use platform-specific tools to create a distributable from the packaged app.
+See [Distributing Apps With Electron Forge](https://www.electronjs.org/docs/latest/tutorial/forge-overview)
+for details.
+
+The following example creates a `.dmg` file on macOS:
+
+```typescript title="make.mts"
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import { exec } from 'es-toolkit/server';
+
+const appPath = path.join(
+  import.meta.dirname,
+  'out',
+  `MyWebviewBundleApplication-${process.platform}-${process.arch}`
+);
+const dmgSrc = path.join(import.meta.dirname, 'out', 'dmg');
+
+await fs.rm(dmgSrc, { recursive: true, force: true });
+await fs.mkdir(dmgSrc, { recursive: true });
+await fs.cp(
+  path.join(appPath, 'MyWebviewBundleApplication.app'),
+  path.join(dmgSrc, 'MyWebviewBundleApplication.app'),
+  {
+    recursive: true,
+    verbatimSymlinks: true,
+  }
+);
+await fs.symlink('/Applications', path.join(dmgSrc, 'Applications'));
+
+const dmgPath = path.join(
+  import.meta.dirname,
+  'out',
+  `MyWebviewBundleApplication.dmg`
+);
+await fs.rm(dmgPath, { force: true });
+await exec('hdiutil', [
+  'create',
+  '-volname',
+  'MyWebviewBundleApplication',
+  '-srcfolder',
+  dmgSrc,
+  '-format',
+  'UDZO',
+  '-ov',
+  dmgPath,
+]);
+```
+
+For instructions on signing the app, see Electron
+[Code Signing](https://www.electronjs.org/docs/latest/tutorial/code-signing).
+
+</Step>
+</Steps>
+
+## Electron Forge
+
+Use the Webview Bundle plugin to integrate with
+[Electron Forge](https://www.electronforge.io/).
+
+[`@wvb/electron-forge`](/docs/references/api/electron-forge) copies builtin
+bundles into the app resources. Install the plugin:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @wvb/electron-forge
+```
+
+</Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/electron-forge
+```
+
+</Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/electron-forge
+```
+
+</Tab>
+</Tabs>
+
+Then add `new WebviewBundlePlugin(){:js}` to your Forge configuration:
+
+```ts title="forge.config.ts"
+import type { ForgeConfig } from '@electron-forge/shared-types';
+import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives';
+import { WebviewBundlePlugin } from '@wvb/electron-forge';
+
+const config: ForgeConfig = {
+  packagerConfig: {
+    asar: true,
+  },
+  plugins: [new AutoUnpackNativesPlugin({}), new WebviewBundlePlugin()],
+};
+
+export default config;
+```
+
+Include `@wvb/electron` and its native binding files in the packaged app. If
+you build the main process with a bundler, mark `@wvb/electron` as external
+to keep its runtime files available.
+
+For Vite, use the following configuration:
+
+```ts title="vite.main.config.ts"
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  build: {
+    rolldownOptions: {
+      external: ['@wvb/electron'],
+    },
+  },
+});
+```
+
+## Electron Builder
+
+Integrate Webview Bundle with
+[Electron Builder](https://www.electron.build/).
+
+[`@wvb/electron-builder`](/docs/references/api/electron-builder) copies
+builtin bundles into the app resources. Install the integration:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @wvb/electron-builder
+```
+
+</Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/electron-builder
+```
+
+</Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/electron-builder
+```
+
+</Tab>
+</Tabs>
+
+Then wrap your existing configuration with `withWebviewBundle`:
+
+```ts title="electron-builder.config.ts"
+import { withWebviewBundle } from '@wvb/electron-builder';
+
+export default withWebviewBundle({
+  appId: 'com.example.app',
+  asar: true,
+  asarUnpack: ['**/*.node'],
+});
+```
