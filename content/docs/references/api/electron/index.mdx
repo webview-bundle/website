@@ -5,32 +5,99 @@ description: 'Webview Bundle API for Electron'
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
+Use `@wvb/electron` in your project and browse its exported API.
+
+## Installation
+
+Add the package to your project's dependencies:
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/electron
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/electron
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/electron
+```
+
+  </Tab>
+</Tabs>
+
+Install the compatible host tools:
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install -D "electron@>= 15"
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D "electron@>= 15"
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D "electron@>= 15"
+```
+
+  </Tab>
+</Tabs>
+
 ## Functions
 
 <Cards>
-  <Card title="bundleProtocol" href="/docs/references/api/electron/bundle-protocol" />
-  <Card title="localProtocol" href="/docs/references/api/electron/local-protocol" />
-  <Card title="webviewBundle" href="/docs/references/api/electron/webview-bundle" />
+  <Card title="bundleProtocol" href="/docs/references/api/electron/bundle-protocol" description="Creates a protocol that serves files from the configured bundle source." />
+  <Card title="isWebviewBundleError" href="/docs/references/api/electron/is-webview-bundle-error" description="Whether value is an error thrown by this binding." />
+  <Card title="proxyProtocol" href="/docs/references/api/electron/proxy-protocol" description="Proxy the scheme to another server (a dev server with hot reload)." />
+  <Card title="webviewBundle" href="/docs/references/api/electron/webview-bundle" description="Creates an Electron bundle manager and registers its renderer IPC transport." />
 </Cards>
 
 ## Interfaces
 
 <Cards>
-  <Card title="Protocol" href="/docs/references/api/electron/protocol" />
-  <Card title="ProtocolHandler" href="/docs/references/api/electron/protocol-handler" />
-  <Card title="ProtocolOptions" href="/docs/references/api/electron/protocol-options" />
-  <Card title="RemoteOptions" href="/docs/references/api/electron/remote-options" />
-  <Card title="SourceOptions" href="/docs/references/api/electron/source-options" />
-  <Card title="WebviewBundle" href="/docs/references/api/electron/webview-bundle-interface" />
-  <Card title="WebviewBundleConfig" href="/docs/references/api/electron/webview-bundle-config" />
-  <Card
-    title="WebviewBundleRemoteConfig"
-    href="/docs/references/api/electron/webview-bundle-remote-config"
-  />
+  <Card title="BundleProtocolConfig" href="/docs/references/api/electron/bundle-protocol-config" description="Options shared by bundle and proxy protocol registrations." />
+  <Card title="Protocol" href="/docs/references/api/electron/protocol" description="A scheme, handler, and registration options managed by Webview Bundle." />
+  <Card title="ProtocolHandler" href="/docs/references/api/electron/protocol-handler" description="Handles one Fetch-compatible request for a registered protocol." />
+  <Card title="ProtocolOptions" href="/docs/references/api/electron/protocol-options" description="Options shared by bundle and proxy protocol registrations." />
+  <Card title="RemoteOptions" href="/docs/references/api/electron/remote-options" description="Optional settings forwarded to the native remote client." />
+  <Card title="SourceOptions" href="/docs/references/api/electron/source-options" description="Bundle source configuration with Electron-specific directory defaults." />
+  <Card title="WebviewBundle" href="/docs/references/api/electron/webview-bundle-interface" description="Host-process facade for bundle sources, custom protocols, and optional remote updates." />
+  <Card title="WebviewBundleConfig" href="/docs/references/api/electron/webview-bundle-config" description="Configuration used to initialize the Electron integration." />
+  <Card title="WebviewBundleError" href="/docs/references/api/electron/webview-bundle-error" />
+  <Card title="WebviewBundleRemoteConfig" href="/docs/references/api/electron/webview-bundle-remote-config" description="Remote endpoint and options used by the optional updater." />
+</Cards>
+
+## Type Aliases
+
+<Cards>
+  <Card title="HostnameSegment" href="/docs/references/api/electron/hostname-segment" description="Which hostname segment is used as the bundle name." />
+  <Card title="ProxyProtocolConfig" href="/docs/references/api/electron/proxy-protocol-config" description="Either a host → target mapping, or a resolver called with each request uri — never both." />
+  <Card title="ProxyResolver" href="/docs/references/api/electron/proxy-resolver" description="Resolves the proxy target for a request uri (null to not proxy)." />
+  <Card title="UriBundleResolver" href="/docs/references/api/electron/uri-bundle-resolver" description="Options for resolving the bundle name from the request uri." />
+  <Card title="UriPathResolver" href="/docs/references/api/electron/uri-path-resolver" description="How the file path in the bundle is resolved from the request uri." />
+  <Card title="WebviewBundleErrorCode" href="/docs/references/api/electron/webview-bundle-error-code" description="The stable code every error thrown by this binding carries (WebviewBundleError.code)." />
 </Cards>
 
 ## Variables
 
 <Cards>
-  <Card title="wvb" href="/docs/references/api/electron/wvb" />
+  <Card title="wvb" href="/docs/references/api/electron/wvb" description="Short alias for webviewBundle." />
 </Cards>

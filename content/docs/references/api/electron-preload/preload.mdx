@@ -1,0 +1,28 @@
+---
+title: 'preload'
+description: 'Exposes window.wvbElectron, the electron transport that @wvb/bridge expects.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Exposes `window.wvbElectron`, the electron transport that `@wvb/bridge` expects.
+To use bridges in renderer process, call this function in preload script.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/electron/src/preload/preload.ts#L16)
+
+```ts
+function preload(): void;
+```
+
+## Returns
+
+`void`
+
+## Examples
+
+```ts
+// preload.ts
+import { preload } from '@wvb/electron/preload';
+
+preload();
+```

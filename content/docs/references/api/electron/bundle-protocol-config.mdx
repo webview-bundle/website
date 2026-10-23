@@ -1,0 +1,33 @@
+---
+title: 'BundleProtocolConfig'
+description: 'Options shared by bundle and proxy protocol registrations.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Options shared by bundle and proxy protocol registrations.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/electron/src/protocol.ts#L196)
+
+**Extends:** `ProtocolOptions`, `BundleProtocolOptions`
+
+## Properties
+
+<TypeTable type={{"bundleResolver":{"type":"UriBundleResolver","description":"How the bundle name is resolved from the request uri (default: the first hostname segment, e.g. app://my-app/index.html -> bundle \"my-app\").","required":false},"pathResolver":{"type":"UriPathResolver","description":"How the file path in the bundle is resolved from the request uri (default: 'directory_index', i.e. /about -> /about/index.html).","required":false},"privileges":{"type":"Privileges","description":"Privileges merged with the secure defaults for this scheme.","required":false}}} />
+
+## Methods
+
+<TypeTable type={{"errorResponse":{"type":"(e: Error) => Response","description":"Builds the response when the handler throws (default: 500 with the error message). The error carries a WebviewBundleErrorCode when it comes from the bundle itself, so it can be routed by code.","required":false,"parameters":[{"name":"e","description":"Error"}],"returns":"Response"},"protocol":{"type":"() => Protocol","description":"Electron protocol registry to use. Defaults to Electron's global registry.","required":false,"returns":"Protocol"}}} />
+
+## Examples
+
+### errorResponse
+
+```typescript
+import { isWebviewBundleError } from '@wvb/electron';
+
+errorResponse: e =>
+  isWebviewBundleError(e) && e.code === 'core.checksum_mismatch'
+    ? new Response('bundle corrupted', { status: 502 })
+    : new Response(e.message, { status: 500 });
+```

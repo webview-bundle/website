@@ -1,0 +1,18 @@
+---
+title: 'UriBundleResolver'
+description: 'How the bundle name is resolved from the request uri.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+How the bundle name is resolved from the request uri.
+
+Hand-written rather than generated, because `segment` is a union of a named segment and an index.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/protocol.ts#L12)
+
+## Type
+
+```ts
+type UriBundleResolver = { allowWvbSuffixOnly?: boolean; segment?: HostnameSegment | number; type: "hostname" } | { segmentIndex?: number; type: "pathname" };
+```

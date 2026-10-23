@@ -1,66 +1,44 @@
 ---
-title: Overview
-description: API references for the Rust core, the Node and Deno bindings, and the web-side bridge.
+title: API Reference
 ---
 
-Most app developers never touch these APIs directly. To ship Webview Bundle in an app, reach for the platform integration packages and follow the platform guides — they wrap the core for you. These references are for advanced and embedding use: hosting the core yourself, driving the Node or Deno bindings, or calling the native host from inside the webview.
+Use this reference to look up public API signatures and return types. For setup
+instructions and examples, see the [Guide](/docs/guide).
 
-<Callout type="info">
-  Building an app? Start with the [platform integration
-  guide](/docs/guide/core-concepts/glue-to-native) and pick your platform:
-  [Electron](/docs/guide/native/electron), [Tauri](/docs/guide/native/tauri),
-  [Android](/docs/guide/native/android), [iOS](/docs/guide/native/ios), or [Deno
-  Desktop](/docs/guide/native/deno).
-</Callout>
+## API catalog
 
-## API references
+### Rust
 
-<Cards>
-  <Card
-    title="Rust API"
-    href="https://docs.rs/wvb"
-    description="The core wvb crate on docs.rs: the .wvb format, bundle sources, remote and updater, integrity, and signatures."
-  />
-  <Card
-    title="Node API"
-    href="/docs/references/api/node"
-    description="@wvb/node — N-API bindings for reading and writing bundles, serving them over a protocol, and running the updater from Node.js."
-  />
-  <Card
-    title="Deno API"
-    href="/docs/references/api/deno"
-    description="@wvb/deno — the Deno peer of @wvb/node. Experimental."
-  />
-  <Card
-    title="Bridge"
-    href="/docs/references/api/bridge"
-    description="@wvb/bridge — call the native host from inside the webview with one invoke() API across every platform."
-  />
-</Cards>
+| Package                                          | Description   |
+| ------------------------------------------------ | ------------- |
+| [wvb (docs.rs)](https://docs.rs/wvb)             | Rust Core API |
+| [wvb-tauri (docs.rs)](https://docs.rs/wvb-tauri) | Tauri API     |
 
-## Web-side bridge
+### JavaScript
 
-The bridge (`@wvb/bridge`) runs inside the webview and lets your web app call the native host. It exposes a single `invoke()` function plus typed `source`, `remote`, and `updater` helpers, so the same code works across Electron, Tauri, Android, and iOS — the per-platform transport is abstracted away. See the [Bridge reference](/docs/references/api/bridge) for the full API.
+| Package                 | Description          |
+| ----------------------- | -------------------- |
+| `@wvb/node`             | Node.js API          |
+| `@wvb/bridge`           | Bridge API           |
+| `@wvb/cli`              | CLI API              |
+| `@wvb/config`           | Config API           |
+| `@wvb/electron`         | Electron API         |
+| `@wvb/electron-builder` | Electron Builder API |
+| `@wvb/electron-forge`   | Electron Forge API   |
+| `@wvb/deno`             | Deno API             |
 
-```ts
-import { invoke, updater } from '@wvb/bridge';
+#### Remotes
 
-// Typed domain helper
-const update = await updater.getUpdate('my-app');
-if (update.isAvailable) {
-  await updater.download('my-app');
-  await updater.install('my-app', update.version);
-}
+| Package                  | Description           |
+| ------------------------ | --------------------- |
+| `@wvb/remote-aws`        | AWS Remote API        |
+| `@wvb/remote-base`       | Base Remote API       |
+| `@wvb/remote-cloudflare` | Cloudflare Remote API |
+| `@wvb/remote-local`      | Local Remote API      |
 
-// Or call a command directly
-const bundles = await invoke('sourceListBundles');
-```
+### Android/iOS
 
-The native side hosts `@wvb/node` and answers these calls. For how the bridge fits into each platform, see the [platform integration guide](/docs/guide/core-concepts/glue-to-native).
-
-## Other platforms
-
-The Tauri and mobile integrations expose their own APIs, documented alongside their guides:
-
-- Tauri ships as the Rust crate `wvb-tauri` — see the [Tauri guide](/docs/guide/native/tauri).
-- Android (Kotlin) and iOS (Swift) bindings are covered in the [Android guide](/docs/guide/native/android) and the [iOS guide](/docs/guide/native/ios).
+| Package                   | Description |
+| ------------------------- | ----------- |
+| Android (javadoc.io)      | Android API |
+| iOS (Swift Package Index) | iOS API     |

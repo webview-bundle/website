@@ -9,31 +9,10 @@ Digital signature algorithm for bundle verification.
 
 Supports multiple signature schemes for cryptographic verification of bundle authenticity.
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1430)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/node/binding.d.cts#L1063)
 
 ## Type
 
 ```ts
-type SignatureAlgorithm =
-  | 'ecdsaSecp256R1'
-  | 'ecdsaSecp384R1'
-  | 'ed25519'
-  | 'rsaPkcs1V15'
-  | 'rsaPss';
-```
-
-## Examples
-
-```typescript
-import { Updater } from '@wvb/node';
-
-const updater = new Updater(source, remote, {
-  signatureVerifier: {
-    algorithm: 'ed25519',
-    key: {
-      format: 'spkiPem',
-      data: publicKeyPem,
-    },
-  },
-});
+type SignatureAlgorithm = "rsa-pkcs1-v1_5-sha256" | "rsa-pss-sha256" | "ecdsa-secp256r1" | "ecdsa-secp384r1" | "ed25519";
 ```

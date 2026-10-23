@@ -3,9 +3,11 @@
   "pages": [
     "---함수---",
     "bundle-protocol",
-    "local-protocol",
+    "is-webview-bundle-error",
+    "proxy-protocol",
     "webview-bundle",
     "---인터페이스---",
+    "bundle-protocol-config",
     "protocol",
     "protocol-handler",
     "protocol-options",
@@ -13,8 +15,17 @@
     "source-options",
     "webview-bundle-interface",
     "webview-bundle-config",
+    "webview-bundle-error",
     "webview-bundle-remote-config",
+    "---타입---",
+    "hostname-segment",
+    "proxy-protocol-config",
+    "proxy-resolver",
+    "uri-bundle-resolver",
+    "uri-path-resolver",
+    "webview-bundle-error-code",
     "---변수---",
-    "wvb"
+    "wvb",
+    "../electron-preload"
   ]
 }

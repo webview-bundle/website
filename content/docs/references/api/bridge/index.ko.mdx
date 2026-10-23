@@ -1,0 +1,105 @@
+---
+title: '@wvb/bridge'
+description: '@wvb/bridge 설치 방법과 API 레퍼런스.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+`@wvb/bridge`의 설치 방법과 내보내는 API를 확인하세요.
+
+## 설치
+
+프로젝트에 의존성으로 추가하세요:
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/bridge
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/bridge
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/bridge
+```
+
+  </Tab>
+</Tabs>
+
+## 클래스
+
+<Cards>
+  <Card title="BridgeError" href="/docs/references/api/bridge/bridge-error" description="Error thrown by @wvb/bridge when an invoke() command rejects, regardless of platform." />
+</Cards>
+
+## 함수
+
+<Cards>
+  <Card title="invoke" href="/docs/references/api/bridge/invoke" description="Invokes a native bridge command and resolves its result." />
+  <Card title="isBridgeError" href="/docs/references/api/bridge/is-bridge-error" />
+  <Card title="isBridgeErrorData" href="/docs/references/api/bridge/is-bridge-error-data" />
+</Cards>
+
+## 인터페이스
+
+<Cards>
+  <Card title="BridgeErrorData" href="/docs/references/api/bridge/bridge-error-data" description="Bridge error data that respond from native." />
+  <Card title="BundleSourceVersion" href="/docs/references/api/bridge/bundle-source-version" description="Bundle version with the source that provides it." />
+  <Card title="BundleUpdate" href="/docs/references/api/bridge/bundle-update" description="One bundle an update offers." />
+  <Card title="InvokeParams" href="/docs/references/api/bridge/invoke-params" />
+  <Card title="ManifestBundleItem" href="/docs/references/api/bridge/manifest-bundle-item" description="One version of one bundle, as the manifest records it." />
+  <Card title="ManifestPruneResult" href="/docs/references/api/bridge/manifest-prune-result" />
+  <Card title="ManifestRemoveData" href="/docs/references/api/bridge/manifest-remove-data" description="The versions to remove from one bundle." />
+  <Card title="ManifestRemoveResult" href="/docs/references/api/bridge/manifest-remove-result" />
+  <Card title="ManifestSetCurrentVersionResult" href="/docs/references/api/bridge/manifest-set-current-version-result" />
+  <Card title="ManifestStageData" href="/docs/references/api/bridge/manifest-stage-data" description="The version to stage, and what the manifest should record for it." />
+  <Card title="ManifestStageResult" href="/docs/references/api/bridge/manifest-stage-result" />
+  <Card title="ManifestVersionData" href="/docs/references/api/bridge/manifest-version-data" description="What the manifest records for one version of a bundle." />
+  <Card title="RemoteApi" href="/docs/references/api/bridge/remote-api" />
+  <Card title="RemoteGetUpdateOptions" href="/docs/references/api/bridge/remote-get-update-options" />
+  <Card title="RemoteUpdateResponse" href="/docs/references/api/bridge/remote-update-response" />
+  <Card title="SourceApi" href="/docs/references/api/bridge/source-api" />
+  <Card title="SourceListItem" href="/docs/references/api/bridge/source-list-item" description="List item of bundles." />
+  <Card title="Update" href="/docs/references/api/bridge/update" description="The update document the remote server serves." />
+  <Card title="UpdaterApi" href="/docs/references/api/bridge/updater-api" />
+  <Card title="UpdaterDownloadOptions" href="/docs/references/api/bridge/updater-download-options" />
+  <Card title="UpdaterDownloadResult" href="/docs/references/api/bridge/updater-download-result" />
+  <Card title="UpdaterGetUpdateOptions" href="/docs/references/api/bridge/updater-get-update-options" />
+  <Card title="UpdaterInstallResult" href="/docs/references/api/bridge/updater-install-result" />
+  <Card title="UpdaterInstallTarget" href="/docs/references/api/bridge/updater-install-target" />
+  <Card title="UpdaterRollbackResult" href="/docs/references/api/bridge/updater-rollback-result" />
+  <Card title="UpdaterRollbackTarget" href="/docs/references/api/bridge/updater-rollback-target" />
+  <Card title="UpdateSignature" href="/docs/references/api/bridge/update-signature" description="The signature the server sent for an update, parsed from the wvb-signature header." />
+</Cards>
+
+## 타입
+
+<Cards>
+  <Card title="ManifestBundleItemStatus" href="/docs/references/api/bridge/manifest-bundle-item-status" description="Where a version stands in its bundle's lifecycle." />
+  <Card title="ManifestRemoveResultKind" href="/docs/references/api/bridge/manifest-remove-result-kind" />
+  <Card title="ManifestSetCurrentVersionResultKind" href="/docs/references/api/bridge/manifest-set-current-version-result-kind" />
+  <Card title="ManifestStageResultKind" href="/docs/references/api/bridge/manifest-stage-result-kind" />
+  <Card title="PlatformType" href="/docs/references/api/bridge/platform-type" />
+  <Card title="SourceKind" href="/docs/references/api/bridge/source-kind" />
+  <Card title="UpdaterDownloadResultKind" href="/docs/references/api/bridge/updater-download-result-kind" description="The outcome of downloading one bundle." />
+  <Card title="UpdaterInstallResultKind" href="/docs/references/api/bridge/updater-install-result-kind" description="The outcome of installing one staged bundle." />
+  <Card title="UpdaterRollbackResultKind" href="/docs/references/api/bridge/updater-rollback-result-kind" description="The outcome of rolling one bundle back to its previous version." />
+</Cards>
+
+## 변수
+
+<Cards>
+  <Card title="platform" href="/docs/references/api/bridge/platform" />
+  <Card title="remote" href="/docs/references/api/bridge/remote" />
+  <Card title="source" href="/docs/references/api/bridge/source" />
+  <Card title="updater" href="/docs/references/api/bridge/updater" />
+</Cards>

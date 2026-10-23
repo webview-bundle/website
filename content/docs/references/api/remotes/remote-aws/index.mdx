@@ -5,56 +5,128 @@ description: 'Webview Bundle remote configuration for AWS'
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
+Use `@wvb/remote-aws` in your project and browse its exported API.
+
+## Installation
+
+Node.js version requirement: `>=22`.
+
+Add the package to your project's dependencies:
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/remote-aws
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/remote-aws
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/remote-aws
+```
+
+  </Tab>
+</Tabs>
+
+To use `@wvb/remote-aws/pulumi`, also install:
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install -D "@pulumi/aws@^7" "@pulumi/pulumi@^3"
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D "@pulumi/aws@^7" "@pulumi/pulumi@^3"
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D "@pulumi/aws@^7" "@pulumi/pulumi@^3"
+```
+
+  </Tab>
+</Tabs>
+
+To use `@wvb/remote-aws/cdk`, also install:
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+
+```sh
+npm install -D "aws-cdk-lib@^2" "constructs@^10"
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D "aws-cdk-lib@^2" "constructs@^10"
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D "aws-cdk-lib@^2" "constructs@^10"
+```
+
+  </Tab>
+</Tabs>
+
 ## Classes
 
 <Cards>
-  <Card
-    title="BundleAlreadyUploadedError"
-    href="/docs/references/api/remotes/remote-aws/bundle-already-uploaded-error"
-  />
+  <Card title="BundleAlreadyUploadedError" href="/docs/references/api/remotes/remote-aws/bundle-already-uploaded-error" />
 </Cards>
 
 ## Functions
 
 <Cards>
-  <Card
-    title="awsKmsSignatureSigner"
-    href="/docs/references/api/remotes/remote-aws/aws-kms-signature-signer"
-  />
-  <Card
-    title="awsRemote"
-    href="/docs/references/api/remotes/remote-aws/aws-remote"
-    description="AWS remote configuration."
-  />
-  <Card
-    title="awsRemoteDeployer"
-    href="/docs/references/api/remotes/remote-aws/aws-remote-deployer"
-  />
-  <Card
-    title="awsS3RemoteUploader"
-    href="/docs/references/api/remotes/remote-aws/aws-s3-remote-uploader"
-  />
-  <Card
-    title="isBundleAlreadyUploadedError"
-    href="/docs/references/api/remotes/remote-aws/is-bundle-already-uploaded-error"
-  />
+  <Card title="awsKmsSignatureSigner" href="/docs/references/api/remotes/remote-aws/aws-kms-signature-signer" />
+  <Card title="awsRemote" href="/docs/references/api/remotes/remote-aws/aws-remote" description="AWS remote configuration." />
+  <Card title="awsRemoteDeployer" href="/docs/references/api/remotes/remote-aws/aws-remote-deployer" />
+  <Card title="awsRemoteUploader" href="/docs/references/api/remotes/remote-aws/aws-remote-uploader" />
+  <Card title="getCloudFrontClient" href="/docs/references/api/remotes/remote-aws/get-cloud-front-client" />
+  <Card title="getKmsClient" href="/docs/references/api/remotes/remote-aws/get-kms-client" />
+  <Card title="getS3Client" href="/docs/references/api/remotes/remote-aws/get-s3-client" />
+  <Card title="isBundleAlreadyUploadedError" href="/docs/references/api/remotes/remote-aws/is-bundle-already-uploaded-error" />
+  <Card title="readS3JsonFile" href="/docs/references/api/remotes/remote-aws/read-s3-json-file" />
+  <Card title="writeS3JsonFile" href="/docs/references/api/remotes/remote-aws/write-s3-json-file" />
 </Cards>
 
 ## Interfaces
 
 <Cards>
-  <Card
-    title="AwsKmsSignatureSignerConfig"
-    href="/docs/references/api/remotes/remote-aws/aws-kms-signature-signer-config"
-  />
+  <Card title="AwsCloudFrontClientConfigLike" href="/docs/references/api/remotes/remote-aws/aws-cloud-front-client-config-like" />
+  <Card title="AwsKmsClientConfigLike" href="/docs/references/api/remotes/remote-aws/aws-kms-client-config-like" />
+  <Card title="AwsKmsSignatureSignerConfig" href="/docs/references/api/remotes/remote-aws/aws-kms-signature-signer-config" />
   <Card title="AwsRemote" href="/docs/references/api/remotes/remote-aws/aws-remote-interface" />
   <Card title="AwsRemoteConfig" href="/docs/references/api/remotes/remote-aws/aws-remote-config" />
-  <Card
-    title="AwsRemoteDeployerConfig"
-    href="/docs/references/api/remotes/remote-aws/aws-remote-deployer-config"
-  />
-  <Card
-    title="AwsS3RemoteUploaderConfig"
-    href="/docs/references/api/remotes/remote-aws/aws-s3-remote-uploader-config"
-  />
+  <Card title="AwsRemoteDeployer" href="/docs/references/api/remotes/remote-aws/aws-remote-deployer-interface" />
+  <Card title="AwsRemoteDeployerConfig" href="/docs/references/api/remotes/remote-aws/aws-remote-deployer-config" />
+  <Card title="AwsRemoteUploader" href="/docs/references/api/remotes/remote-aws/aws-remote-uploader-interface" />
+  <Card title="AwsRemoteUploaderConfig" href="/docs/references/api/remotes/remote-aws/aws-remote-uploader-config" />
+  <Card title="AwsS3ClientConfigLike" href="/docs/references/api/remotes/remote-aws/aws-s3-client-config-like" />
+</Cards>
+
+## Type Aliases
+
+<Cards>
+  <Card title="AwsClientDefaults" href="/docs/references/api/remotes/remote-aws/aws-client-defaults" />
 </Cards>

@@ -1,0 +1,17 @@
+---
+title: 'BundleProtocolOptions'
+description: 'How a BundleProtocol resolves the request uri.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+How a [`BundleProtocol`](/docs/references/api/deno/bundle-protocol) resolves the request uri.
+
+Entries are served with the read options the [`Source`](/docs/references/api/deno/source) was configured with; to change
+data-checksum verification, set `options.dataRead` on the source.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/protocol.ts#L32)
+
+## Properties
+
+<TypeTable type={{"bundleResolver":{"type":"UriBundleResolver","description":"Default: the first hostname segment.","required":false},"pathResolver":{"type":"UriPathResolver","description":"Default: 'directory_index'.","required":false}}} />

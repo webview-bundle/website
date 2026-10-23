@@ -1,0 +1,28 @@
+---
+title: 'Routes'
+description: 'Mount path → what is served there.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Mount path → what is served there. `'/'` is the catch-all; the longest matching prefix wins.
+
+```ts
+routes: {
+  '/': { bundle: 'app' },
+  '/docs': { bundle: 'docs', pathResolver: 'html_extension' },
+  '/api': { proxy: 'http://localhost:8080' },
+}
+```
+
+A route mounted below the root only works if that app was **built** for the same base path (Vite
+`base`, Next `basePath`): the mount prefix is stripped before the bundle sees the request, so the
+app's own absolute urls (`/assets/…`) have to point back at the mount.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/desktop/routes.ts#L55)
+
+## Type
+
+```ts
+type Routes = Record<string, Route>;
+```

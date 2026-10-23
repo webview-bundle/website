@@ -7,6 +7,7 @@
     "resolve-config",
     "---인터페이스---",
     "inline-config",
-    "resolved-config"
+    "resolved-config",
+    "../cli-api"
   ]
 }

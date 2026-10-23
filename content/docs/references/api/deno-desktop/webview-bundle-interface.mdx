@@ -1,33 +1,18 @@
 ---
 title: 'WebviewBundle'
-description: 'WebviewBundle — API reference.'
+description: 'Deno Desktop facade that mounts bundles and optionally manages remote updates.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/deno-desktop/lib/webview-bundle.ts#L48)
+Deno Desktop facade that mounts bundles and optionally manages remote updates.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/desktop/webview-bundle.ts#L45)
 
 ## Properties
 
-<TypeTable
-  type={{
-    protocolSchemes: { type: 'readonly string[]', required: true },
-    remote: { type: 'any', required: true },
-    source: { type: 'BundleSource', required: true },
-    updater: { type: 'any', required: true },
-  }}
-/>
+<TypeTable type={{"remote":{"type":"Remote | null","description":"Remote client, or null when updates are not configured.","required":true},"routePaths":{"type":"readonly string[]","description":"Mount paths, in match order (longest prefix first).","required":true},"source":{"type":"Source","description":"Local builtin and remote bundle source.","required":true},"updater":{"type":"Updater | null","description":"Updater, or null when updates are not configured.","required":true}}} />
 
 ## Methods
 
-<TypeTable
-  type={{
-    fetch: {
-      type: '(req: Request) => Promise<Response>',
-      description: 'A Deno.serve-compatible handler: Deno.serve(wvb.fetch).',
-      required: true,
-      parameters: [{ name: 'req', description: 'Request' }],
-      returns: 'Promise<Response>',
-    },
-  }}
-/>
+<TypeTable type={{"fetch":{"type":"(req: Request) => Promise<Response>","description":"A Deno.serve-compatible handler: Deno.serve(wvb.fetch).","required":true,"parameters":[{"name":"req","description":"Request"}],"returns":"Promise<Response>"}}} />

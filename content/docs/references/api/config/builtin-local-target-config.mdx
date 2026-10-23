@@ -7,28 +7,8 @@ description: 'Install builtin bundles from a local target.'
 
 Install builtin bundles from a local target.
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/config/src/builtin.ts#L29)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/config/src/builtin.ts#L29)
 
 ## Properties
 
-<TypeTable
-  type={{
-    bundleName: { type: 'BundleNameResolver', required: false },
-    integrity: { type: 'boolean | IntegrityMakeConfig', required: false },
-    packBeforeInstall: {
-      type: 'boolean',
-      description:
-        'Whether to pack the bundle before installing. This option is used when the workspace detected.',
-      required: false,
-      default: 'true',
-    },
-    signature: { type: 'SignatureSignConfig', required: false },
-    version: { type: 'VersionResolver', required: false },
-    workspaces: {
-      type: 'string[] | (() => string[] | Promise<string[]>)',
-      description:
-        'Workspace directory path to install builtin bundles. Glob pattern is supported. Automatically resolve the workspace directory which includes a config file inside. (e.g. wvb.config.ts)',
-      required: true,
-    },
-  }}
-/>
+<TypeTable type={{"bundleName":{"type":"BundleNameResolver","required":false},"integrity":{"type":"boolean | IntegrityMakeConfig","required":false},"packBeforeInstall":{"type":"boolean","description":"Whether to pack the bundle before installing. This option is used when the workspace detected.","required":false,"default":"true"},"signature":{"type":"SignatureSignConfig","required":false},"version":{"type":"VersionResolver","required":false},"workspaces":{"type":"string[] | (() => string[] | Promise<string[]>)","description":"Workspace directory path to install builtin bundles. Glob pattern is supported. Automatically resolve the workspace directory which includes a config file inside. (e.g. wvb.config.ts)","required":true}}} />

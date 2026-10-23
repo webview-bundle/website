@@ -1,27 +1,20 @@
 ---
 title: 'RemoteOptions'
-description: 'RemoteOptions — API reference.'
+description: 'Optional settings forwarded to the native remote client.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/electron/src/remote.ts#L3)
+Optional settings forwarded to the native remote client.
 
-**Extends:** `RemoteOptions`
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/electron/src/remote.ts#L5)
+
+**Extends:** `Omit<RemoteConfig, "baseUrl">`
 
 ## Properties
 
-<TypeTable type={{ http: { type: 'HttpOptions', required: false } }} />
+<TypeTable type={{"http":{"type":"HttpOptions","description":"Optional HTTP client configuration.","required":false}}} />
 
 ## Methods
 
-<TypeTable
-  type={{
-    onDownload: {
-      type: '(data: RemoteOnDownloadData) => void',
-      required: false,
-      parameters: [{ name: 'data', description: 'RemoteOnDownloadData' }],
-      returns: 'void',
-    },
-  }}
-/>
+<TypeTable type={{"onDownload":{"type":"(data: RemoteOnDownloadData) => void","description":"Callback invoked as a bundle download progresses.","required":false,"parameters":[{"name":"data","description":"RemoteOnDownloadData"}],"returns":"void"}}} />

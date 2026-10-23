@@ -10,17 +10,15 @@ the remote and/or packed from local workspaces as configured in your webview-bun
 embeds them into the packaged app's `Resources/<bundlesDir>`, where `@wvb/electron` looks for them
 at runtime.
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/electron-builder/src/setup.ts#L38)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/electron-builder/src/setup.ts#L38)
 
 ```ts
-function webviewBundleAfterPack(
-  options: WebviewBundleOptions = {}
-): (context: AfterPackContext) => Promise<void>;
+function webviewBundleAfterPack(options: WebviewBundleOptions = {}): (context: AfterPackContext) => Promise<void>;
 ```
 
 ## Parameters
 
-<TypeTable type={{ options: { type: 'WebviewBundleOptions', required: false, default: '{}' } }} />
+<TypeTable type={{"options":{"type":"WebviewBundleOptions","required":false,"default":"{}"}}} />
 
 ## Returns
 

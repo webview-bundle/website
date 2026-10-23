@@ -1,0 +1,9 @@
+{
+  "title": "@wvb/deno/install",
+  "pages": [
+    "---함수---",
+    "install",
+    "---인터페이스---",
+    "install-options"
+  ]
+}

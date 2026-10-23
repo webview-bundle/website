@@ -1,0 +1,18 @@
+---
+title: 'SignatureVerifyKey'
+description: 'A verifying key paired with the id it is published under, so an update naming a keyId can be matched to the key that verifies it.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A verifying key paired with the id it is published under, so an update naming a `keyId` can be
+matched to the key that verifies it.
+
+Unlike `@wvb/node`, `verify` cannot be a JavaScript callback: a `nonblocking` FFI call runs on a
+worker thread that cannot re-enter the JS event loop, so a custom verifier would deadlock.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/signature.ts#L26)
+
+## Properties
+
+<TypeTable type={{"id":{"type":"string","required":true},"verify":{"type":"SignatureKey","required":true}}} />

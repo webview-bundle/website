@@ -1,0 +1,32 @@
+---
+title: 'computeIntegrity'
+description: 'Computes the integrity of data with algorithm.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Computes the integrity of `data` with `algorithm`.
+
+This is the write side of integrity: use it when publishing a bundle to produce the string
+a source or updater later verifies against.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/integrity.ts#L61)
+
+```ts
+function computeIntegrity(algorithm: IntegrityAlgorithm, data: Uint8Array<ArrayBuffer>): Integrity;
+```
+
+## Parameters
+
+<TypeTable type={{"algorithm":{"type":"IntegrityAlgorithm","required":true},"data":{"type":"Uint8Array<ArrayBuffer>","required":true}}} />
+
+## Returns
+
+`Integrity`
+
+## Examples
+
+```ts
+const integrity = computeIntegrity('sha256', data).serialize();
+// "sha256:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg="
+```

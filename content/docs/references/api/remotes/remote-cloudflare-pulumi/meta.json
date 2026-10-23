@@ -1,0 +1,12 @@
+{
+  "title": "@wvb/remote-cloudflare/pulumi",
+  "pages": [
+    "---Classes---",
+    "webview-bundle-remote-provider",
+    "---Interfaces---",
+    "webview-bundle-remote-provider-config",
+    "worker-script-config",
+    "---Variables---",
+    "wvb-remote-provider"
+  ]
+}

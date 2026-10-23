@@ -1,116 +1,68 @@
 ---
-title: '@wvb/deno-desktop'
-description: 'API reference for @wvb/deno-desktop.'
+title: '@wvb/deno/desktop'
+description: 'Installation and API reference for @wvb/deno/desktop.'
 ---
 
 {/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
 
+Use `@wvb/deno/desktop` in your project and browse its exported API.
+
+## Installation
+
+`@wvb/deno/desktop` is an export subpath of `@wvb/deno`. Use the package name when installing it.
+
+Add the JSR package to your project:
+
+```sh
+deno add jsr:@wvb/deno
+```
+
+Download the native library for the platform you run on:
+
+```sh
+deno run --allow-net --allow-read --allow-write @wvb/deno/install
+```
+
+The library is saved under `.wvb/lib`. For runtime permissions and packaging, see the [Deno Desktop guide](/docs/guide/deno-desktop).
+
 ## Functions
 
 <Cards>
-  <Card
-    title="appDataDir"
-    href="/docs/references/api/deno-desktop/app-data-dir"
-    description="The OS application-data base directory where downloaded bundles persist: macOS ~/Library/Application Support, Windows %APPDATA%, Linux $XDG_DATA_HOME (or ~/.…"
-  />
-  <Card
-    title="bundleProtocol"
-    href="/docs/references/api/deno-desktop/bundle-protocol"
-    description="Serve a builtin bundle (named scheme) at the HTTP root."
-  />
+  <Card title="appDataDir" href="/docs/references/api/deno-desktop/app-data-dir" description="The OS application-data base directory where downloaded bundles persist: macOS ~/Library/Application Support, Windows %APPDATA%, Linux $XDG_DATA_HOME (or ~/.…" />
   <Card title="bundleSource" href="/docs/references/api/deno-desktop/bundle-source" />
-  <Card
-    title="dispatch"
-    href="/docs/references/api/deno-desktop/dispatch"
-    description="Run one @wvb/bridge command and return its JSON-serializable result envelope (never throws)."
-  />
-  <Card
-    title="localProtocol"
-    href="/docs/references/api/deno-desktop/local-protocol"
-    description="Proxy to a local dev server (hot reload), mapping scheme host → URL."
-  />
-  <Card
-    title="registerBindings"
-    href="/docs/references/api/deno-desktop/register-bindings"
-    description="Register the @wvb/bridge transport on a Deno desktop window: a single wvbInvoke(name, params) binding that dispatches to wvb."
-  />
+  <Card title="loadFromGitHub" href="/docs/references/api/deno-desktop/load-from-git-hub" description="Download the platform cdylib from a release from github release." />
+  <Card title="loadLib" href="/docs/references/api/deno-desktop/load-lib" description="Load the native library from an explicit path." />
+  <Card title="registerBindings" href="/docs/references/api/deno-desktop/register-bindings" description="Register the @wvb/bridge transport on a Deno desktop window." />
   <Card title="remote" href="/docs/references/api/deno-desktop/remote" />
-  <Card title="webviewBundle" href="/docs/references/api/deno-desktop/webview-bundle" />
+  <Card title="resolveSourceConfig" href="/docs/references/api/deno-desktop/resolve-source-config" description="The SourceConfig the defaults resolve to." />
+  <Card title="webviewBundle" href="/docs/references/api/deno-desktop/webview-bundle" description="Creates a Deno.serve-compatible Webview Bundle host." />
 </Cards>
 
 ## Interfaces
 
 <Cards>
-  <Card
-    title="BridgeErrorData"
-    href="/docs/references/api/deno-desktop/bridge-error-data"
-    description="Error payload returned to @wvb/bridge (becomes a BridgeError there, preserving code)."
-  />
-  <Card
-    title="BundleProtocolConfig"
-    href="/docs/references/api/deno-desktop/bundle-protocol-config"
-  />
-  <Card
-    title="DenoBrowserWindow"
-    href="/docs/references/api/deno-desktop/deno-browser-window"
-    description="A Deno.BrowserWindow (only the binding methods we use; the full type ships with Deno desktop)."
-  />
-  <Card
-    title="LocalProtocolConfig"
-    href="/docs/references/api/deno-desktop/local-protocol-config"
-  />
-  <Card title="Protocol" href="/docs/references/api/deno-desktop/protocol" />
-  <Card title="ProtocolHandler" href="/docs/references/api/deno-desktop/protocol-handler" />
-  <Card
-    title="ProtocolHandlerBuildContext"
-    href="/docs/references/api/deno-desktop/protocol-handler-build-context"
-  />
-  <Card title="ProtocolOptions" href="/docs/references/api/deno-desktop/protocol-options" />
-  <Card title="RemoteOptions" href="/docs/references/api/deno-desktop/remote-options" />
-  <Card title="SourceOptions" href="/docs/references/api/deno-desktop/source-options" />
-  <Card title="WebviewBundle" href="/docs/references/api/deno-desktop/webview-bundle-interface" />
-  <Card
-    title="WebviewBundleConfig"
-    href="/docs/references/api/deno-desktop/webview-bundle-config"
-  />
-  <Card
-    title="WebviewBundleRemoteConfig"
-    href="/docs/references/api/deno-desktop/webview-bundle-remote-config"
-  />
-  <Card
-    title="WebviewBundleUpdaterConfig"
-    href="/docs/references/api/deno-desktop/webview-bundle-updater-config"
-  />
+  <Card title="BridgeErrorData" href="/docs/references/api/deno-desktop/bridge-error-data" description="Error payload returned to @wvb/bridge." />
+  <Card title="BundleRoute" href="/docs/references/api/deno-desktop/bundle-route" description="Serves a bundle from the source." />
+  <Card title="BundleSourceConfig" href="/docs/references/api/deno-desktop/bundle-source-config" />
+  <Card title="HttpResponse" href="/docs/references/api/deno-desktop/http-response" />
+  <Card title="ProxyRoute" href="/docs/references/api/deno-desktop/proxy-route" description="Proxies to another HTTP server — typically a dev server with hot reload." />
+  <Card title="WebviewBundle" href="/docs/references/api/deno-desktop/webview-bundle-interface" description="Deno Desktop facade that mounts bundles and optionally manages remote updates." />
+  <Card title="WebviewBundleConfig" href="/docs/references/api/deno-desktop/webview-bundle-config" description="Configuration used to build a Deno Desktop request handler." />
+  <Card title="WebviewBundleUpdaterConfig" href="/docs/references/api/deno-desktop/webview-bundle-updater-config" description="Remote update options owned by a Deno Desktop host." />
 </Cards>
 
 ## Type Aliases
 
 <Cards>
-  <Card title="HttpResponse" href="/docs/references/api/deno-desktop/http-response" />
-  <Card
-    title="InvokeResult"
-    href="/docs/references/api/deno-desktop/invoke-result"
-    description="Result envelope."
-  />
-  <Card
-    title="ProtocolHandlerBuild"
-    href="/docs/references/api/deno-desktop/protocol-handler-build"
-  />
+  <Card title="ErrorResponse" href="/docs/references/api/deno-desktop/error-response" description="The response for a request the protocol failed to serve (default: 500 with the message)." />
+  <Card title="RemoteConfig" href="/docs/references/api/deno-desktop/remote-config" description="@wvb/node's RemoteConfig minus onDownload: Deno FFI cannot call back into JS from the worker thread a nonblocking symbol runs on, so download progress is not…" />
+  <Card title="Route" href="/docs/references/api/deno-desktop/route" />
+  <Card title="Routes" href="/docs/references/api/deno-desktop/routes" description="Mount path → what is served there." />
+  <Card title="UriPathResolver" href="/docs/references/api/deno-desktop/uri-path-resolver" description="How the file path in the bundle is resolved from the request uri." />
 </Cards>
 
 ## Variables
 
 <Cards>
-  <Card title="BridgeErrorCode" href="/docs/references/api/deno-desktop/bridge-error-code" />
-  <Card
-    title="handlerNames"
-    href="/docs/references/api/deno-desktop/handler-names"
-    description="Names of every command this host can serve."
-  />
-  <Card
-    title="INVOKE_BINDING"
-    href="/docs/references/api/deno-desktop/invoke-binding"
-    description="The single binding name the @wvb/bridge deno transport calls."
-  />
-  <Card title="wvb" href="/docs/references/api/deno-desktop/wvb" />
+  <Card title="wvb" href="/docs/references/api/deno-desktop/wvb" description="Short alias for webviewBundle." />
 </Cards>

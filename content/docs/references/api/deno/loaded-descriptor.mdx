@@ -1,0 +1,16 @@
+---
+title: 'LoadedDescriptor'
+description: 'A cached descriptor from Source.load, pinned to a specific bundle file and its read options.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+A cached descriptor from `Source.load`, pinned to a specific bundle file and
+its read options. Its `LoadedDescriptor.getData` needs no filepath (it remembers one) and
+keeps working across active-version swaps. Owns a native handle — call `LoadedDescriptor.free`.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/bundle.ts#L281)
+
+## Methods
+
+<TypeTable type={{"[dispose]":{"type":"() => void","required":true,"returns":"void"},"free":{"type":"() => void","required":true,"returns":"void"},"getData":{"type":"(path: string) => Promise<Uint8Array<ArrayBuffer> | null>","description":"Decompressed contents of the entry at path, or null if it does not exist.","required":true,"parameters":[{"name":"path","description":"string"}],"returns":"Promise<Uint8Array<ArrayBuffer> | null>"},"getDataChecksum":{"type":"(path: string) => Promise<number | null>","description":"The stored checksum of the entry at path, or null if it does not exist.","required":true,"parameters":[{"name":"path","description":"string"}],"returns":"Promise<number | null>"},"header":{"type":"() => BundleHeader","required":true,"returns":"BundleHeader"},"index":{"type":"() => BundleIndex","required":true,"returns":"BundleIndex"}}} />

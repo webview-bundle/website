@@ -1,0 +1,13 @@
+{
+  "title": "@wvb/node/binding",
+  "pages": [
+    "---Functions---",
+    "is-webview-bundle-error",
+    "load-binding",
+    "---Interfaces---",
+    "webview-bundle-error",
+    "---Type Aliases---",
+    "webview-bundle-error-code",
+    "wvb-node-binding"
+  ]
+}

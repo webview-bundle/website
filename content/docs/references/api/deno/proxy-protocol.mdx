@@ -1,0 +1,27 @@
+---
+title: 'ProxyProtocol'
+description: 'Proxies requests for custom hosts to other servers (for dev servers with hot reload).'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+Proxies requests for custom hosts to other servers (for dev servers with hot reload). Maps a
+custom host to a base URL — e.g. `{ app: 'http://localhost:5173' }` serves `app://app/index.html`
+from the dev server; the path and query of the request are appended to the target.
+
+Unlike `@wvb/node`, the resolver cannot be a JavaScript callback: a `nonblocking` FFI call runs on
+a worker thread that cannot re-enter the JS event loop.
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/deno/lib/protocol.ts#L110)
+
+## Constructor
+
+```ts
+new ProxyProtocol(resolver: Record<string, string>);
+```
+
+<TypeTable type={{"resolver":{"type":"Record<string, string>","required":true}}} />
+
+## Methods
+
+<TypeTable type={{"[dispose]":{"type":"() => void","required":true,"returns":"void"},"free":{"type":"() => void","required":true,"returns":"void"},"handle":{"type":"(method: HttpMethod, uri: string, headers?: Record<string, string>, body?: Uint8Array<ArrayBuffer>) => Promise<HttpResponse>","description":"Forwards the request — including body, for POST/PUT/PATCH — to the resolved target.","required":true,"parameters":[{"name":"method","description":"HttpMethod"},{"name":"uri","description":"string"},{"name":"headers?","description":"Record<string, string>"},{"name":"body?","description":"Uint8Array<ArrayBuffer>"}],"returns":"Promise<HttpResponse>"}}} />

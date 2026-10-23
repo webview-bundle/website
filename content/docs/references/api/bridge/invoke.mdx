@@ -10,7 +10,7 @@ Before using the bridge, make sure native supports webview-bundle.
 
 Throws a [`BridgeError`](/docs/references/api/bridge/bridge-error) on failure.
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/bridge/src/invoke.ts#L27)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/bridge/src/invoke.ts#L27)
 
 ```ts
 function invoke<T = unknown>(name: string, params?: InvokeParams): Promise<T>;
@@ -18,12 +18,7 @@ function invoke<T = unknown>(name: string, params?: InvokeParams): Promise<T>;
 
 ## Parameters
 
-<TypeTable
-  type={{
-    name: { type: 'string', required: true },
-    params: { type: 'InvokeParams', required: false },
-  }}
-/>
+<TypeTable type={{"name":{"type":"string","required":true},"params":{"type":"InvokeParams","required":false}}} />
 
 ## Returns
 

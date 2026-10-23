@@ -1,0 +1,14 @@
+{
+  "title": "@wvb/remote-local/server",
+  "pages": [
+    "---함수---",
+    "webview-bundle-server",
+    "wvb-server",
+    "---인터페이스---",
+    "webview-bundle-server-config",
+    "webview-bundle-server-instance",
+    "webview-bundle-server-serve-params",
+    "---타입---",
+    "webview-bundle-server-type-alias"
+  ]
+}

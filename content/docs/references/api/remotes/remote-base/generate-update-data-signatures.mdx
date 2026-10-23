@@ -1,0 +1,20 @@
+---
+title: 'generateUpdateDataSignatures'
+description: 'generateUpdateDataSignatures — API reference.'
+---
+
+{/* This page is auto-generated from TypeScript + JSDoc by scripts/generate-references.ts — do not edit by hand. */}
+
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/remote/base/src/signature.ts#L6)
+
+```ts
+function generateUpdateDataSignatures(data: { bundles: { integrity?: string; metadata?: Record<string, string>; name: string; version: string }[]; createdAt: string; id: string; metadata?: Record<string, string>; runtimeVersion: number }, signatures: Required<SignatureConfig>[]): Promise<{ alg: string; id: string; sig: string }[]>;
+```
+
+## Parameters
+
+<TypeTable type={{"data":{"type":"{ bundles: { integrity?: string; metadata?: Record<string, string>; name: string; version: string }[]; createdAt: string; id: string; metadata?: Record<string, string>; runtimeVersion: number }","required":true},"signatures":{"type":"Required<SignatureConfig>[]","required":true}}} />
+
+## Returns
+
+`Promise<{ alg: string; id: string; sig: string }[]>`

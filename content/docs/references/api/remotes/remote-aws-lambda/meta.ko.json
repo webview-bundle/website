@@ -1,0 +1,13 @@
+{
+  "title": "@wvb/remote-aws/lambda",
+  "pages": [
+    "---함수---",
+    "generate-origin-request-handler-code",
+    "webview-bundle-remote-handler",
+    "wvb-remote-handler",
+    "---인터페이스---",
+    "webview-bundle-remote-config",
+    "---타입---",
+    "webview-bundle-remote-handler-type-alias"
+  ]
+}

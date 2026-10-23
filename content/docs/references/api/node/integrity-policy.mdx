@@ -9,26 +9,10 @@ Policy for enforcing integrity verification during bundle operations.
 
 Controls when integrity hashes are required and how missing hashes are handled.
 
-[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/262b4d90c5f036ab9d52086913752b990875ac84/packages/node/index.d.ts#L1288)
+[View source ↗](https://github.com/webview-bundle/webview-bundle/blob/35b5cd4896c272f05103799a4bb66211ee104804/packages/node/binding.d.cts#L880)
 
 ## Type
 
 ```ts
-type IntegrityPolicy = 'strict' | 'optional' | 'none';
-```
-
-## Examples
-
-```typescript
-import { Updater } from '@wvb/node';
-
-// Require integrity for all bundles
-const updater = new Updater(source, remote, {
-  integrityPolicy: 'strict',
-});
-
-// Optional integrity (warn if missing)
-const updater2 = new Updater(source, remote, {
-  integrityPolicy: 'optional',
-});
+type IntegrityPolicy = "strict" | "optional" | "off";
 ```
