@@ -1,0 +1,467 @@
+---
+title: 'CLI'
+---
+
+Use `@wvb/cli` to package frontend build output, inspect bundles, publish
+updates, and prepare builtin bundles for native apps. This page describes each
+command, its options, and its output. For an end-to-end publishing workflow, see
+[Releasing](/docs/guide/releasing).
+
+## Install and run
+
+Use Node.js 20.19 or later in the 20.x line, or Node.js 22.12 or later. Install
+the CLI in the project where you manage bundles:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @wvb/cli
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/cli
+```
+
+  </Tab>
+</Tabs>
+
+## Commands
+
+Choose a command by the result you need:
+
+| Command          | Result                                                           |
+| ---------------- | ---------------------------------------------------------------- |
+| `pack`           | Creates a `.wvb` archive from a directory.                       |
+| `unpack`         | Lists archive entries and extracts their files.                  |
+| `serve`          | Serves an archive over HTTP for local inspection.                |
+| `upload`         | Uploads a bundle version through a configured uploader.          |
+| `deploy`         | Publishes an uploaded version in an update.                      |
+| `download`       | Downloads a bundle from the current update.                      |
+| `remote current` | Displays metadata for one deployed bundle.                       |
+| `remote list`    | Prints the current update's bundle list as JSON.                 |
+| `remote local`   | Starts a local remote server for development.                    |
+| `builtin`        | Installs bundles and a manifest for packaging with a native app. |
+
+## Configuration and shared options
+
+Commands that load configuration search the working directory for a
+`wvb.config.*` or `webview-bundle.config.*` file. JavaScript and TypeScript
+variants are supported, as are `wvb.config.json` and `wvb.config.jsonc`. For
+example, configure the directory to package and the archive path:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+    outFile: './out/app.wvb',
+  },
+});
+```
+
+The following options control paths and configuration:
+
+| Option                     | Applies to                             | Behavior                                                                                  |
+| -------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `--cwd DIR`                | All except `remote local`              | Sets the working directory for relative paths. Defaults to the process working directory. |
+| `--config FILE`, `-C FILE` | All except `unpack` and `remote local` | Loads a specific configuration file, relative to the working directory or absolute.       |
+
+Replace `DIR`, `FILE`, and other uppercase placeholders in the option tables
+with your values. Boolean options support negation, such as `--no-write`. Only
+commands whose tables list an option accept it.
+
+All commands accept these output options:
+
+| Option              | Behavior                                                                                 |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| `--color MODE`      | Uses `auto`, `on`, or `off`. Defaults to `auto`; also reads `COLOR`.                     |
+| `--log-level LEVEL` | Uses `debug`, `info`, `warning`, or `error`. Defaults to `info`; also reads `LOG_LEVEL`. |
+| `--log-verbose`     | Adds timestamps, log categories, and error details. Defaults to `false`.                 |
+| `-h`, `--help`      | Displays help for the specified command.                                                 |
+
+Command execution returns exit code `0` on success and `1` on failure.
+
+## `pack`
+
+Creates a `.wvb` archive from the files in a directory. Usage:
+
+```bash
+wvb pack [SRC_DIR] [OPTIONS]
+```
+
+`SRC_DIR` defaults to `pack.srcDir`, then `./dist`. The output path defaults to
+`pack.outFile`, then `.wvb/NAME.wvb`, where `NAME` is the nearest `package.json`
+name without its npm scope. Supply `--outfile` if neither is available.
+
+Options:
+
+| Option                                           | Behavior                                                                                                            |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `--outfile FILE`, `--out-file FILE`, `-O FILE`   | Sets the archive path. Appends `.wvb` if omitted.                                                                   |
+| `--ignore GLOB`                                  | Excludes matching files. Repeat to add patterns alongside `pack.ignore`.                                            |
+| `--header GLOB NAME VALUE`, `-H GLOB NAME VALUE` | Adds a response header to matching entries. Repeat to add headers; CLI values override matching configured headers. |
+| `--write`                                        | Writes the archive. Defaults to `true`; `--no-write` builds it in memory and lists the files.                       |
+| `--overwrite`                                    | Replaces an existing archive. Defaults to `pack.overwrite`, then `true`.                                            |
+
+Package `dist`, excluding source maps, and add a cache header to HTML entries:
+
+```sh
+yarn wvb pack ./dist --outfile ./out/app.wvb \
+  --ignore '**/*.map' --header '**/*.html' cache-control no-cache
+```
+
+The command prints the included files, output path, and archive size. It fails
+if there are no files to package.
+
+## `unpack`
+
+Displays an archive's format version, entry paths, sizes, content types, and
+headers, then extracts its files. Usage:
+
+```bash
+wvb unpack FILE [OPTIONS]
+```
+
+`FILE` is required. The output directory defaults to `.wvb/NAME`, where `NAME`
+is the archive filename without `.wvb`.
+
+Options:
+
+| Option                   | Behavior                                                                                                                      |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `--outdir DIR`, `-O DIR` | Sets the extraction directory.                                                                                                |
+| `--write`                | Extracts files. Defaults to `true`; `--no-write` only displays archive information.                                           |
+| `--clean`                | Deletes an existing output directory before extraction. Defaults to `false`; an existing directory otherwise causes an error. |
+
+Inspect an archive without extracting files:
+
+```bash
+wvb unpack ./out/app.wvb --no-write
+```
+
+## `serve`
+
+Starts an HTTP server that reads resources from one archive. Usage:
+
+```bash
+wvb serve [FILE] [OPTIONS]
+```
+
+`FILE` defaults to `serve.file`, then the output path resolved by `pack`.
+
+Options:
+
+| Option                       | Behavior                                                                                                        |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `--hostname HOST`, `-H HOST` | Sets the listening address; also reads `HOSTNAME`. Use `127.0.0.1` to restrict access to the local machine.     |
+| `--port PORT`, `-P PORT`     | Sets the port. Reads `PORT`, then defaults to `4312`.                                                           |
+| `--silent`                   | Disables request logs. Defaults to `serve.silent`, then `false`.                                                |
+| `--path-resolver MODE`       | Uses `exact`, `directory_index`, or `html_extension`. Defaults to `serve.pathResolver`, then `directory_index`. |
+
+`exact` uses the requested path. For extensionless paths, `directory_index` maps
+`/about` to `/about/index.html`, and `html_extension` maps it to `/about.html`.
+Both of the latter modes map `/` to `/index.html`. A missing entry returns
+`404`.
+
+Serve the archive on the local machine:
+
+```bash
+wvb serve ./out/app.wvb --hostname 127.0.0.1 --port 4312
+```
+
+Open `http://127.0.0.1:4312/` to inspect the content. Press `Ctrl+C` to stop the
+server. Set the port with `--port` or `PORT`; the CLI's default takes precedence
+over `serve.port` in the configuration file.
+
+## `upload`
+
+Uploads one bundle version through `remote.uploader`. Configure a
+[remote provider](/docs/guide/remote/provider) before running this command.
+Usage:
+
+```bash
+wvb upload [BUNDLE] [OPTIONS]
+```
+
+`BUNDLE` defaults to `remote.bundleName`, then the unscoped package name, then
+the archive filename. The version defaults to `remote.version`, then the package
+version. Both configuration fields also accept resolver functions.
+
+Options:
+
+| Option                            | Behavior                                                                                            |
+| --------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `--version VERSION`, `-V VERSION` | Sets the bundle version.                                                                            |
+| `--file FILE`, `-F FILE`          | Sets the archive path. Defaults to the output path resolved by `pack`.                              |
+| `--pack`, `-P`                    | Packages the source directory before uploading. Defaults to `remote.packBeforeUpload`, then `true`. |
+| `--skip-integrity`                | Skips hash generation. Otherwise, uses `remote.integrity`, which defaults to SHA-256.               |
+| `--channel CHANNEL`               | Accepted, but has no effect on upload. Choose the channel with `deploy`.                            |
+
+Upload an existing archive without repackaging it:
+
+```bash
+wvb upload app --version 1.2.0 --file ./out/app.wvb --no-pack
+```
+
+The command prints the uploaded name, version, size, and integrity hash.
+Uploading does not change the version served to clients; run `deploy` to publish
+it.
+
+The automatic packaging step uses `pack.srcDir`, `pack.outFile`, and
+`pack.overwrite`, but does not apply `pack.ignore` or `pack.headers`. To apply
+those settings, run `pack` first, then upload with `--no-pack`.
+
+## `deploy`
+
+Publishes an uploaded bundle version through `remote.deployer`. Usage:
+
+```bash
+wvb deploy [BUNDLE] [OPTIONS]
+```
+
+`BUNDLE` defaults to `remote.bundleName`, then the unscoped package name. The
+version defaults to `remote.version`, then the package version. The configured
+deployer receives one bundle name/version pair and the selected channel.
+
+Options:
+
+| Option                            | Behavior                                                      |
+| --------------------------------- | ------------------------------------------------------------- |
+| `--version VERSION`, `-V VERSION` | Selects the uploaded version to publish.                      |
+| `--channel CHANNEL`               | Selects the release channel. Omit to use the default channel. |
+
+Deploy the uploaded version to the `beta` channel:
+
+```bash
+wvb deploy app --version 1.2.0 --channel beta
+wvb remote current app --channel beta
+```
+
+The inspection command requires `remote.baseUrl` or `--base-url`. Deployment
+prints the bundle name, version, and channel. The CLI does not forward
+`remote.signature` to the deployer; see
+[Signatures](/docs/guide/remote/spec#signatures) if clients require signed
+updates.
+
+## `download`
+
+Downloads a bundle listed in the selected channel's current update. Usage:
+
+```bash
+wvb download [BUNDLE] VERSION [OPTIONS]
+```
+
+`VERSION` is a required positional argument. `BUNDLE` defaults to
+`remote.bundleName`, then the unscoped package name. The requested version must
+match the bundle in the current update; this command does not retrieve arbitrary
+historical versions.
+
+Options:
+
+| Option                  | Behavior                                                                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `--base-url URL`        | Sets the remote base URL. Defaults to `remote.baseUrl`; one is required.                                           |
+| `--channel CHANNEL`     | Selects the update channel. Omit to use the default channel.                                                       |
+| `--out FILE`, `-O FILE` | Sets the destination. Defaults to `BUNDLE.wvb` in the working directory.                                           |
+| `--write`               | Saves the bundle. Defaults to `true`; `--no-write` only checks that a matching entry exists in the current update. |
+| `--overwrite`           | Replaces an existing destination file. Defaults to `false`.                                                        |
+| `--progress`            | Shows download progress. Defaults to `true`; use `--no-progress` to disable it.                                    |
+
+For example:
+
+```bash
+wvb download app 1.2.0 --base-url https://updates.example.com \
+  --channel beta --out ./downloads/app.wvb
+```
+
+Replace the example base URL with your remote's URL. The command prints the
+output path and file size. A missing bundle or mismatched version causes an
+error. The destination-file check also applies when using `--no-write`.
+
+## `remote current`
+
+Displays metadata for one bundle in the current update without downloading the
+archive. Usage:
+
+```bash
+wvb remote current [BUNDLE] [OPTIONS]
+```
+
+`BUNDLE` defaults to `remote.bundleName`, then the unscoped package name.
+
+Options:
+
+| Option              | Behavior                                                                 |
+| ------------------- | ------------------------------------------------------------------------ |
+| `--base-url URL`    | Sets the remote base URL. Defaults to `remote.baseUrl`; one is required. |
+| `--channel CHANNEL` | Selects the update channel. Omit to use the default channel.             |
+
+Check the deployed version using your configured base URL:
+
+```bash
+wvb remote current app --channel beta
+```
+
+The output includes the version, update ETag, integrity hash, and download URL.
+The command fails if the current update does not contain the bundle. Displaying
+an integrity hash does not verify the archive's bytes.
+
+## `remote list`
+
+Prints the bundle entries in the current update as a JSON array. `remote ls` is
+an alias. Usage:
+
+```bash
+remote list [OPTIONS]
+```
+
+Options:
+
+| Option              | Behavior                                                                 |
+| ------------------- | ------------------------------------------------------------------------ |
+| `--base-url URL`    | Sets the remote base URL. Defaults to `remote.baseUrl`; one is required. |
+| `--channel CHANNEL` | Selects the update channel. Omit to use the default channel.             |
+
+## `remote local`
+
+Starts a remote server backed by a local directory for development and update
+testing. Usage:
+
+```bash
+wvb remote local [OPTIONS]
+```
+
+Options:
+
+| Option                       | Behavior                                                |
+| ---------------------------- | ------------------------------------------------------- |
+| `--base-dir DIR`             | Sets the storage directory. Defaults to `~/.wvb/local`. |
+| `--hostname HOST`, `-H HOST` | Sets the listening address; also reads `HOSTNAME`.      |
+| `--port PORT`, `-P PORT`     | Sets the port. Reads `PORT`, then defaults to `4313`.   |
+
+For example:
+
+```bash
+wvb remote local --base-dir ./.wvb/local \
+  --hostname 127.0.0.1 --port 4313
+```
+
+The command prints the listening URL; press `Ctrl+C` to stop it. It does not
+load `wvb.config.*` or accept `--config` or `--cwd`.
+
+To publish into this server's storage directory, install the local provider:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @wvb/remote-local
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/remote-local
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/remote-local
+```
+
+  </Tab>
+</Tabs>
+
+Add the provider and base URL to your configuration, keeping the storage
+directory the same as the server's `--base-dir`:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { localRemote } from '@wvb/remote-local';
+
+export default defineConfig({
+  remote: {
+    ...localRemote({ baseDir: './.wvb/local' }),
+    baseUrl: 'http://127.0.0.1:4313',
+  },
+});
+```
+
+## `builtin`
+
+Installs bundles into a directory for inclusion in a native app. Usage:
+
+```bash
+wvb builtin [OPTIONS]
+```
+
+`builtin.target` selects the source:
+
+- `remote` (default): downloads bundles from the current update.
+- `local`: packages existing build output in the configured `workspaces`.
+
+Options:
+
+| Option                | Behavior                                                                                                                                                                            |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--out DIR`, `-O DIR` | Sets the destination. Defaults to the platform preset, `builtin.outDir`, or `.wvb/builtin/bundles`, in that order.                                                                  |
+| `--base-url URL`      | Supplies the remote URL when `builtin.target.baseUrl` is unset. Falls back to `remote.baseUrl`. Remote targets only.                                                                |
+| `--channel CHANNEL`   | Selects the current update's channel. Remote targets only.                                                                                                                          |
+| `--include GLOB`      | Includes bundle names matching a pattern. Repeat to add patterns alongside `builtin.include`.                                                                                       |
+| `--exclude GLOB`      | Excludes bundle names matching a pattern. Repeat to add patterns alongside `builtin.exclude`. Exclusions take precedence.                                                           |
+| `--write`             | Writes bundles and the manifest. Defaults to `true`; `--no-write` skips installation but can still download remote bundles to temporary files.                                      |
+| `--clean`             | Deletes the destination before installation. Defaults to `builtin.clean`, then `true`.                                                                                              |
+| `--concurrency COUNT` | Sets concurrent remote downloads. Defaults to available CPU parallelism, capped at eight; the minimum is one.                                                                       |
+| `--progress`          | Shows remote download progress. Defaults to `true`.                                                                                                                                 |
+| `--android[=DIR]`     | Detects an Android application module or uses the specified module. Defaults the destination to `src/main/assets/bundles` in that module and checks its `.wvb` compression setting. |
+| `--ios[=DIR]`         | Detects an iOS project or uses the specified project. Defaults the destination to its `bundles` directory and attempts to add a folder reference to `Project.swift`.                |
+
+Use only one platform preset. `--android` checks Gradle configuration without
+editing it. `--ios` can edit a Tuist `Project.swift`; Xcode projects require you
+to add the resources yourself.
+
+For example:
+
+```bash
+wvb builtin --out ./bundles --include app --channel beta
+```
+
+For local build output, configure the native project's target instead:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './bundles',
+    target: { type: 'local', workspaces: ['./web'] },
+  },
+});
+```
+
+Each workspace needs a bundle configuration file. Bundle names and versions come
+from the target's `bundleName` and `version` resolvers, or the workspace's
+`package.json`. After building `web`, run:
+
+```bash
+wvb builtin
+```
+
+The destination contains `manifest.json` and `BUNDLE/VERSION.wvb` files. For
+example, bundle `app` at version `1.2.0` produces `app/1.2.0.wvb`. Include the
+entire directory in the native app as described in your platform guide.

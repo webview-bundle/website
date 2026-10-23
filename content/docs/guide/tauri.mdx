@@ -1,0 +1,204 @@
+---
+title: 'Tauri'
+---
+
+Add the Rust plugin to an existing Tauri 2 app, run the frontend through a
+proxy, and switch to a builtin bundle. This guide covers desktop apps, with
+mobile packaging differences at the end.
+
+## Before you begin
+
+Prepare a working Tauri 2 project, Rust 1.90 or later, and a Node.js version
+supported by `@wvb/cli`: 20.19 or later in the 20.x line, or 22.12 or later. Put
+the frontend in `web`. Follow the
+[Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your
+operating system.
+
+Use the following file layout:
+
+<Files>
+  <Folder name="src-tauri" defaultOpen>
+    <Folder name="src">
+      <File name="main.rs" icon={<IconRust />} />
+    </Folder>
+    <File name="Cargo.toml" />
+    <File name="tauri.conf.json" icon={<IconJson />} />
+    <Folder name="bundles" />
+  </Folder>
+  <Folder name="web" defaultOpen>
+    <Folder name="dist">
+      <File name="index.html" icon={<IconHtml />} />
+    </Folder>
+    <File name="wvb.config.ts" icon={<IconTypeScript />} />
+  </Folder>
+  <File name="wvb.config.ts" icon={<IconTypeScript />} />
+</Files>
+
+## 1. Install dependencies
+
+Add the dependency to `src-tauri/Cargo.toml`:
+
+```toml title="src-tauri/Cargo.toml"
+[dependencies]
+wvb-tauri = "0.3"
+```
+
+## 2. Initialize the plugin and connect the development server
+
+Register a proxy for the `bundle` scheme on the Tauri builder:
+
+```rust title="src-tauri/src/main.rs"
+use wvb_tauri::{Config, ProtocolConfig, wvb::protocol::ProxyResolver};
+
+fn main() {
+  let hosts = ProxyResolver::host_mapping([
+    ("app.wvb", "http://localhost:5173"),
+  ]);
+  tauri::Builder::default()
+    .plugin(wvb_tauri::init(
+      Config::new().protocol(ProtocolConfig::proxy("bundle", hosts)),
+    ))
+    .run(tauri::generate_context!())
+    .expect("failed to run app");
+}
+```
+
+If your project has `src/lib.rs`, register the plugin on the builder in your
+existing `run()` function. Set the main window URL in `tauri.conf.json`:
+
+```json title="src-tauri/tauri.conf.json"
+{
+  "app": {
+    "windows": [{ "label": "main", "url": "bundle://app.wvb/" }]
+  }
+}
+```
+
+Merge this snippet into your existing configuration. Start the frontend server
+at `http://localhost:5173`, then run the Tauri app and check that the page
+loads.
+
+## 3. Install the CLI
+
+Install the CLI at the project root:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @wvb/cli
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/cli
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/cli
+```
+
+  </Tab>
+</Tabs>
+
+## 4. Install the local build as a builtin bundle
+
+Configure the web workspace to package its `dist` directory as bundle `app`,
+version `1.0.0`:
+
+```ts title="web/wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: { srcDir: './dist' },
+  remote: { bundleName: 'app', version: '1.0.0' },
+});
+```
+
+At the native project root, point `builtin.target` at the web workspace:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './src-tauri/bundles',
+    target: { type: 'local', workspaces: ['./web'] },
+  },
+});
+```
+
+Run your existing frontend build command. After `web/dist/index.html` is
+created, run the following command from the native project root:
+
+```sh
+yarn wvb builtin
+```
+
+The CLI packages the web build output and creates
+`./src-tauri/bundles/manifest.json` and `./src-tauri/bundles/app/1.0.0.wvb`.
+
+Add a resource mapping to `tauri.conf.json`:
+
+```json title="src-tauri/tauri.conf.json"
+{
+  "bundle": {
+    "resources": { "bundles/": "bundles/" }
+  }
+}
+```
+
+## 5. Run and verify the builtin bundle
+
+Remove the proxy host mapping and replace the plugin configuration as follows:
+
+```rust title="src-tauri/src/main.rs"
+use wvb_tauri::{Config, ProtocolConfig, wvb::protocol::ProxyResolver};
+
+fn main() {
+  let hosts = ProxyResolver::host_mapping([ // [!code --]
+    ("app.wvb", "http://localhost:5173"),  // [!code --]
+  ]); // [!code --]
+  tauri::Builder::default()
+    .plugin(wvb_tauri::init(
+      Config::new().protocol(ProtocolConfig::proxy("bundle", hosts)), // [!code --]
+      Config::new().protocol(ProtocolConfig::bundle("bundle")), // [!code ++]
+    ))
+    .run(tauri::generate_context!())
+    .expect("failed to run app");
+}
+```
+
+Stop the frontend server and rebuild the native app with your existing Tauri
+command. The page should load at `bundle://app.wvb/`. The packaged resources
+must contain `bundles/manifest.json` and `bundles/app/1.0.0.wvb`.
+
+## Mobile packaging
+
+Android support requires
+[tauri-plugin-fs](https://v2.tauri.app/reference/javascript/fs/). Add the
+dependency to `Cargo.toml`:
+
+```toml title="src-tauri/Cargo.toml"
+[dependencies]
+tauri-plugin-fs = "2"
+```
+
+Register `tauri_plugin_fs::init(){:rust}` before `wvb_tauri::init(){:rust}`:
+
+```rust title="src-tauri/src/main.rs"
+use wvb_tauri::{Config, ProtocolConfig, wvb::protocol::ProxyResolver};
+
+fn main() {
+  tauri::Builder::default()
+    .plugin(tauri_plugin_fs::init())
+    .plugin(wvb_tauri::init(/* */))
+    .run(tauri::generate_context!())
+    .expect("failed to run app");
+}
+```

@@ -1,0 +1,315 @@
+---
+title: 'Configuration'
+---
+
+Use a configuration file to share options across
+[CLI commands](/docs/guide/cli). This file controls how bundles are prepared and
+deployed. Configure the native app's source, protocols, and updater separately
+in each platform's native integration code.
+
+## Create and use a configuration file
+
+Create `wvb.config.ts` next to your project's `package.json`. Export the
+configuration with `defineConfig` to get type checking and editor completion:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: {
+    srcDir: './dist',
+    outFile: './out/app.wvb',
+  },
+  remote: {
+    bundleName: 'app',
+    version: '1.0.0',
+    baseUrl: 'https://updates.example.com',
+  },
+  serve: {
+    pathResolver: 'directory_index',
+  },
+});
+```
+
+Build the frontend into `dist`, then package and inspect the output:
+
+```bash
+wvb pack
+wvb serve --port 4312
+```
+
+`pack` creates `out/app.wvb`. Open `http://localhost:4312` to inspect the
+result.
+
+### Filenames and lookup order
+
+The CLI searches the working directory in the following order and loads the
+first file it finds. It doesn't merge multiple configuration files:
+
+1. `wvb.config.js`, `wvb.config.cjs`, `wvb.config.mjs`, `wvb.config.ts`,
+   `wvb.config.cts`, `wvb.config.mts`.
+2. `webview-bundle.config.js`, `webview-bundle.config.cjs`,
+   `webview-bundle.config.mjs`, `webview-bundle.config.ts`,
+   `webview-bundle.config.cts`, `webview-bundle.config.mts`.
+3. `wvb.config.json`, `wvb.config.jsonc`.
+
+To load a configuration file from another path, use `--config` or `-C`:
+
+```bash
+wvb pack --config ./config/wvb.production.ts
+wvb pack --cwd ./web --config ./wvb.config.ts
+```
+
+## `root`
+
+- **Type**: `string`
+- **Default**: `process.cwd(){:js}`
+
+The base directory for resolving file paths and finding the nearest
+`package.json`.
+
+In the CLI, set this with `--cwd`.
+
+## `pack`
+
+Settings for packaging frontend build output as a `.wvb` archive.
+
+### `srcDir`
+
+- **Type**: `string`
+- **Default**: `./dist`
+
+The directory to package. Use a path relative to the working directory or an
+absolute path.
+
+### `outFile`
+
+- **Type**: `string`
+- **Default**: `./.wvb/{NAME}.wvb`
+
+The path of the archive to create. Use a path relative to the working directory
+or an absolute path. The `.wvb` extension is added automatically if omitted.
+
+The default is `.wvb/NAME.wvb`, where `NAME` is the name from the nearest
+`package.json` with the npm scope removed.
+
+### `overwrite`
+
+- **Type**: `boolean`
+- **Default**: `true{:js}`
+
+Whether to overwrite an existing output archive. If `false`, packaging fails
+when the target file already exists.
+
+### `ignore`
+
+- **Type**:
+  - `Array<string | RegExp>{:ts}`
+  - `(file: string) => boolean | Promise<boolean>{:ts}`
+
+Files to exclude from packaging.
+
+For example, exclude source maps with the following configuration:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: {
+    ignore: ['**/*.map'],
+  },
+});
+```
+
+### `headers`
+
+- **Type**:
+  - `Record<string, HeadersInit>{:ts}`
+  - `Array<[string, HeadersInit]>{:ts}`
+  - `(file: string) => HeadersInit | null | undefined | Promise<HeadersInit | null | undefined>{:ts}`
+
+HTTP response headers to store on each archive entry.
+
+Matching patterns are applied in order. Later values overwrite earlier values
+for the same header. For example:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  pack: {
+    headers: {
+      '**/*.html': { 'cache-control': 'no-cache' },
+      'assets/**': { 'cache-control': 'public, max-age=31536000, immutable' },
+    },
+  },
+});
+```
+
+## `remote`
+
+Remote access and deployment settings.
+
+For local testing, use
+[`@wvb/local-remote`](/docs/references/api/remotes/remote-local):
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { localRemote } from '@wvb/remote-local';
+
+export default defineConfig({
+  remote: {
+    ...localRemote({ baseDir: './.wvb/local' }),
+    baseUrl: 'http://127.0.0.1:4313',
+  },
+});
+```
+
+Run `wvb remote local --base-dir ./.wvb/local{:bash}` to start a server that
+serves this directory. For deployment providers, see
+[Remote providers](/docs/guide/remote/provider).
+
+### `baseUrl`
+
+- **Type**: `string`
+
+The base URL of the remote server. Commands use it to check for updates or
+download bundles. When installing builtin bundles from a remote target, this URL
+is used if no target URL is specified.
+
+### `bundleName`
+
+- **Type**:
+  - `{ from: 'package.json' }{:ts}`
+  - `string`
+  - `(params: BundleInfoResolverParams) => string | Promise<string>{:ts}`
+- **Default**: `{ from: 'package.json' }{:ts}`
+
+The bundle name to upload and deploy. The default, `{ from: 'package.json' }`,
+reads the name from the nearest `package.json` and removes its scope. For
+example, `@example/app` becomes `app`.
+
+### `version`
+
+- **Type**:
+  - `{ from: 'package.json' }{:ts}`
+  - `{ from: 'git' }{:ts}`
+  - `string`
+  - `(params: BundleInfoResolverParams) => string | Promise<string>{:ts}`
+- **Default**: `{ from: 'package.json' }{:ts}`
+
+The version to upload and deploy. The default, `{ from: 'package.json' }`, reads
+the `version` field from the nearest `package.json`.
+
+### `packBeforeUpload`
+
+- **Type**: `boolean`
+- **Default**: `true`
+
+Whether `wvb upload` packages the source directory before uploading.
+
+### `uploader`
+
+- **Type**: `BaseUploader{:ts}`
+
+### `deployer`
+
+- **Type**: `BaseDeployer{:ts}`
+
+### `integrity`
+
+- **Type**: `boolean | IntegrityMakeConfig{:ts}`
+- **Default**: `true`
+
+Whether to calculate an integrity hash for the archive when uploading.
+
+### `signature`
+
+- **Type**: `SignatureSignConfig | SignatureConfig[]{:ts}`
+
+## `serve`
+
+### `file`
+
+- **Type**: `string`
+
+### `port`
+
+- **Type**: `number`
+- **Default**: `4312{:ts}`
+
+### `silent`
+
+- **Type**: `boolean`
+- **Default**: `false`
+
+### `pathResolver`
+
+- **Type**: `'directory_index' | 'html_extension'{:ts}`
+- **Default**: `'directory_index'`
+
+## `builtin`
+
+Settings for `wvb builtin`, which prepares archives and `manifest.json` for
+inclusion in the native app. For example, install from a local web workspace:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+
+export default defineConfig({
+  builtin: {
+    outDir: './bundles',
+    target: {
+      type: 'local',
+      workspaces: ['./web/*'],
+    },
+  },
+});
+```
+
+Build the workspace, then run `builtin`. It creates `manifest.json` and archives
+at `BUNDLE_NAME/VERSION.wvb` in the target directory.
+
+### `outDir`
+
+- **Type**: `string`
+- **Default**: `./.wvb/builtin/bundles`
+
+The installation directory. Use a path relative to the working directory or an
+absolute path.
+
+### `target`
+
+- **Type**:
+  - `({ type: 'remote' } & BuiltinRemoteTargetConfig){:ts}`
+  - `({ type: 'local' } & BuiltinRemoteTargetConfig){:ts}`
+- **Default**: `{ type: 'remote' }{:ts}`
+
+The target to fetch builtin bundles from.
+
+### `include`
+
+- **Type**:
+  - `string`
+  - `RegExp{:ts}`
+  - `Array<string | RegExp>{:ts}`
+  - `(info: { name: string; version: string }) => boolean | Promise<boolean>{:ts}`
+
+Bundles to include.
+
+### `exclude`
+
+- **Type**:
+  - `string`
+  - `RegExp{:ts}`
+  - `Array<string | RegExp>{:ts}`
+  - `(info: { name: string; version: string }) => boolean | Promise<boolean>{:ts}`
+
+Bundles to exclude.
+
+### `clean`
+
+- **Type**: `boolean`
+- **Default**: `true`
+
+Whether to delete the target directory before installation.

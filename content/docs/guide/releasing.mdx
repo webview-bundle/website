@@ -1,0 +1,247 @@
+---
+title: 'Releasing'
+---
+
+Follow this procedure after running a builtin bundle with a platform guide.
+Configure a remote, include a deployed version in the native app, and deliver
+later web changes remotely.
+
+## Before you begin
+
+Follow [Providers](/docs/guide/remote/provider) to prepare a remote server and
+deployment credentials. As in the platform guides, put the frontend in `web` and
+its static build output in `web/dist`. The examples use the `app` bundle.
+
+## 1. Configure the remote
+
+Install the CLI and deployment provider at the native project root. The
+following example uses AWS:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install --save-dev @wvb/cli @wvb/remote-aws
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add -D @wvb/cli @wvb/remote-aws
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add -D @wvb/cli @wvb/remote-aws
+```
+
+  </Tab>
+</Tabs>
+
+Then update the configuration file as follows:
+
+```ts title="wvb.config.ts"
+import { defineConfig } from '@wvb/cli';
+import { awsRemote } from '@wvb/remote-aws';
+
+export default defineConfig({
+  pack: { srcDir: './web/dist', outFile: './.wvb/app.wvb' },
+  remote: {
+    baseUrl: 'REMOTE_BASE_URL',
+    bundleName: 'app',
+    version: '1.0.0',
+    ...awsRemote({ bucket: 'BUCKET_NAME' }),
+  },
+  builtin: {
+    outDir: './bundles',
+    target: { type: 'remote' },
+    include: 'app',
+  },
+});
+```
+
+Replace `REMOTE_BASE_URL` with the server base URL and `BUCKET_NAME` with your
+bucket name. For Cloudflare, use the
+[Cloudflare deployment configuration](/docs/guide/remote/provider#cloudflare)
+instead of `awsRemote(...)`. Configure both the provider's uploader and
+deployer.
+
+## 2. Include a deployed version as a builtin bundle
+
+For the first release, build the frontend, then upload and deploy `1.0.0`. Run
+the following commands from the native project root:
+
+```bash
+wvb upload app --version 1.0.0
+wvb deploy app --version 1.0.0
+```
+
+If you have already deployed that version, skip both commands. Install the
+deployed bundle in the builtin directory:
+
+```bash
+wvb builtin
+```
+
+Set `builtin.outDir` to the resource path from your platform guide:
+
+| Platform     | Builtin directory               | Packaging step                                         |
+| ------------ | ------------------------------- | ------------------------------------------------------ |
+| Electron     | `./.wvb/bundles/builtin`        | Forge and Builder integrations copy the resources.     |
+| Tauri        | `./src-tauri/bundles`           | Keep the resource mapping in `tauri.conf.json`.        |
+| Android      | `./app/src/main/assets/bundles` | Rebuild the APK with the resources included.           |
+| iOS          | `./bundles`                     | Keep the folder reference in the app resources.        |
+| Deno Desktop | `./bundles`                     | Include `bundles` and `.wvb/lib` in the desktop build. |
+
+Check that the manifest selects `1.0.0`, then package and distribute the native
+app with your existing release process. Run the packaged app offline to verify
+the builtin bundle.
+
+## 3. Upload the next web version
+
+After changing the frontend, rebuild `web/dist` and upload it with a different
+version:
+
+```bash
+wvb upload app --version 1.1.0
+```
+
+The command packages the build output and uploads the `.wvb` file with an integrity hash.
+
+## 4. Deploy the version
+
+When the web release is ready, deploy it:
+
+```bash
+wvb deploy app --version 1.1.0
+```
+
+The provider creates an update document and changes the current update for the
+channel. Installed apps receive the update on their next check. Use the same
+channel for builtin downloads, deployment, and client checks.
+
+For signed updates, see [Signatures](/docs/guide/remote/spec#signatures). This
+CLI command doesn't pass signing options to the deployer.
+
+## 5. Configure the native updater
+
+Add the remote base URL and the `stable` channel to the instance from your
+platform guide. Use the configuration for your host:
+
+<Tabs items={["Electron", "Tauri", "Android", "iOS", "Deno Desktop"]}>
+<Tab value="Electron">
+
+```ts
+updater: {
+  remote: { baseUrl: 'REMOTE_BASE_URL' },
+},
+```
+
+</Tab>
+<Tab value="Tauri">
+
+```rust
+.remote(RemoteConfig::new("REMOTE_BASE_URL"))
+```
+
+</Tab>
+<Tab value="Android">
+
+```kotlin
+updater = WebViewBundleUpdaterConfig(
+    remote = WebViewBundleRemoteConfig(baseUrl = "REMOTE_BASE_URL"),
+),
+```
+
+</Tab>
+<Tab value="iOS">
+
+```swift
+updater: WebViewBundleUpdaterConfig(
+    remote: WebViewBundleRemoteConfig(baseUrl: "REMOTE_BASE_URL"),
+)
+```
+
+</Tab>
+<Tab value="Deno Desktop">
+
+```ts
+updater: {
+  remote: { baseUrl: 'REMOTE_BASE_URL' },
+},
+```
+
+</Tab>
+</Tabs>
+
+Replace `REMOTE_BASE_URL` with the URL used in your deployment configuration.
+
+## 6. Download and install from the web app
+
+Install the bridge in the frontend workspace:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  <Tab value="npm">
+
+```sh
+npm install @wvb/bridge
+```
+
+  </Tab>
+  <Tab value="yarn">
+
+```sh
+yarn add @wvb/bridge
+```
+
+  </Tab>
+  <Tab value="pnpm">
+
+```sh
+pnpm add @wvb/bridge
+```
+
+  </Tab>
+</Tabs>
+
+Electron requires a preload file that calls `preload(){:js}` from
+`@wvb/electron/preload`. Include the following file in the main-process build
+and set `webPreferences.preload` to the absolute path of its build output:
+
+```ts title="src/preload.ts"
+import { preload } from '@wvb/electron/preload';
+
+preload();
+```
+
+Tauri requires `wvb-tauri:default` in the main window capability. Android and
+iOS install the bridge when connecting the webview. Deno uses
+`registerBindings(win, instance){:js}`.
+
+The following example handles an update:
+
+```ts title="web/src/update.ts"
+import { updater } from '@wvb/bridge';
+
+export async function checkForUpdates() {
+  const update = await updater.getUpdate();
+  if (update === null) {
+    return;
+  }
+
+  const downloads = await updater.download(update.bundles);
+  if (downloads.some(item => item.result.type !== 'downloaded')) {
+    throw new Error('A bundle could not be downloaded');
+  }
+
+  const installed = await updater.install(update.bundles);
+  if (installed.some(item => item.result.type !== 'installed')) {
+    throw new Error('A bundle could not be installed');
+  }
+
+  window.location.reload();
+}
+```
