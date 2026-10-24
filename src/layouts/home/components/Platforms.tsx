@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { localizeHref, useLocale } from '../../../lib/locale';
 import { useUiStrings } from '../../../lib/ui-strings';
 import { PLATFORMS } from '../data';
@@ -22,12 +23,12 @@ export function Platforms() {
           <div className="font-mono text-[11px] tracking-widest text-zinc-500 uppercase">
             {t.platforms.eyebrow}
           </div>
-          <a
-            href={localizeHref('/docs/guide/platform-support', locale)}
+          <Link
+            to={localizeHref('/docs/guide/platform-support', locale)}
             className="font-mono text-[11.5px] text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
           >
             {t.platforms.matrix}
-          </a>
+          </Link>
         </div>
         <div className="grid grid-cols-2 gap-px bg-zinc-200 sm:grid-cols-3 md:grid-cols-5 dark:bg-zinc-900">
           {PLATFORMS.map(platform => {

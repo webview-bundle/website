@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { Fragment } from 'react';
 import { localizeHref, useLocale } from '../../../lib/locale';
 import { useUiStrings } from '../../../lib/ui-strings';
@@ -33,32 +34,30 @@ export function CallToAction() {
         {/*<div className="mb-4 font-mono text-[11px] tracking-widest text-zinc-500 uppercase dark:text-zinc-400">*/}
         {/*  {t.cta.eyebrow}*/}
         {/*</div>*/}
-        <h2
-          className="mx-auto max-w-3xl bg-gradient-to-b from-zinc-900 to-zinc-700 bg-clip-text text-3xl leading-[1.1] font-semibold tracking-tight break-keep text-balance text-transparent sm:text-[40px] md:text-[52px] dark:from-white dark:to-zinc-300">
+        <h2 className="mx-auto max-w-3xl bg-gradient-to-b from-zinc-900 to-zinc-700 bg-clip-text text-3xl leading-[1.1] font-semibold tracking-tight break-keep text-balance text-transparent sm:text-[40px] md:text-[52px] dark:from-white dark:to-zinc-300">
           {t.cta.title.split('\n').map((line, index) => (
             <Fragment key={line}>
-              {index > 0 && <br/>}
+              {index > 0 && <br />}
               {line}
             </Fragment>
           ))}
         </h2>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a
-            href={localizeHref('/docs/guide/get-started', locale)}
+          <Link
+            to={localizeHref('/docs/guide/get-started', locale)}
             className="group inline-flex items-center justify-center gap-2 rounded-md bg-gradient-to-b from-brand to-brand-hover px-5 py-2.5 font-mono text-[14px] font-medium text-white shadow-lg shadow-brand/30 ring-1 ring-white/10 ring-inset transition-all hover:shadow-brand/50 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             {t.cta.getStarted}
-            <ArrowRightIcon
-              className="size-[13px] transition-transform duration-200 group-hover:translate-x-0.5"/>
-          </a>
+            <ArrowRightIcon className="size-[13px] transition-transform duration-200 group-hover:translate-x-0.5" />
+          </Link>
           <a
             href={GITHUB_URL}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white/50 px-5 py-2.5 font-mono text-[14px] font-medium text-zinc-800 backdrop-blur-sm transition-colors hover:border-zinc-500 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-zinc-800 dark:bg-white/[0.02] dark:text-zinc-200 dark:hover:border-zinc-600 dark:hover:bg-white/[0.04]"
           >
-            <GitHubIcon className="size-[14px]"/>
+            <GitHubIcon className="size-[14px]" />
             {t.cta.github}
           </a>
         </div>

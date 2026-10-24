@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { usePathname } from 'fumadocs-core/framework';
 import { FullSearchTrigger, SearchTrigger } from 'fumadocs-ui/layouts/shared/slots/search-trigger';
 import { cn } from '../lib/cn';
@@ -29,21 +30,21 @@ export function SiteHeader({ className }: { className?: string }) {
       )}
     >
       <div className="flex h-14 items-center gap-3 px-4 sm:gap-6 sm:px-6">
-        <a href={localizeHref('/', locale)} className="flex shrink-0 items-center gap-2">
+        <Link to={localizeHref('/', locale)} className="flex shrink-0 items-center gap-2">
           <Logo width={26} height={26} />
           <span className="font-mono text-[15px] font-semibold tracking-tight">webview-bundle</span>
-        </a>
+        </Link>
 
         <nav className="hidden items-center gap-5 font-sans text-sm text-zinc-600 md:flex dark:text-zinc-400">
           {t.sections.map(section => (
-            <a
+            <Link
               key={section.href}
-              href={section.href}
+              to={section.href}
               data-active={pathname.startsWith(section.match ?? section.href)}
               className="transition-colors hover:text-zinc-900 data-[active=true]:text-brand dark:hover:text-zinc-100 dark:data-[active=true]:text-brand"
             >
               {section.label}
-            </a>
+            </Link>
           ))}
         </nav>
 

@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { useUiStrings } from '../../../lib/ui-strings';
 import { Logo } from './Logo';
 
@@ -11,15 +12,25 @@ export function Footer() {
           <span className="font-mono text-[12px]">webview-bundle · MIT · 2026</span>
         </div>
         <div className="flex flex-wrap justify-center gap-6 font-mono text-[11.5px] text-zinc-500">
-          {t.footer.map(item => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100"
-            >
-              {item.label}
-            </a>
-          ))}
+          {t.footer.map(item =>
+            item.href.startsWith('/') ? (
+              <Link
+                key={item.label}
+                to={item.href}
+                className="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                className="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100"
+              >
+                {item.label}
+              </a>
+            )
+          )}
         </div>
       </div>
     </footer>

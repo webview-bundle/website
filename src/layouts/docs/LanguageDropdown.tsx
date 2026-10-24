@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { usePathname } from 'fumadocs-core/framework';
 import { type ComponentProps, useState } from 'react';
 import { cn } from '../../lib/cn';
@@ -73,8 +74,8 @@ export function LanguageDropdown({ menuPlacement = 'down' }: { menuPlacement?: '
               const active = language.code === locale;
               return (
                 <li key={language.code}>
-                  <a
-                    href={switchLocalePath(pathname, language.code)}
+                  <Link
+                    to={switchLocalePath(pathname, language.code)}
                     onClick={() => setOpen(false)}
                     className={cn(
                       'flex w-full items-center justify-between gap-3 px-3 py-1.5 text-start',
@@ -83,7 +84,7 @@ export function LanguageDropdown({ menuPlacement = 'down' }: { menuPlacement?: '
                   >
                     <span>{language.label}</span>
                     {active && <span className="text-brand">✓</span>}
-                  </a>
+                  </Link>
                 </li>
               );
             })}
