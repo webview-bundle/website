@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { localizeHref, useLocale } from '../../../lib/locale';
 import { useUiStrings } from '../../../lib/ui-strings';
 import { DOCS_URL, GITHUB_URL, PLATFORMS } from '../data';
@@ -68,13 +69,13 @@ export function Hero() {
           className={`${RISE} mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap`}
           style={{ animationDelay: '0.2s' }}
         >
-          <a
-            href={localizeHref(DOCS_URL, locale)}
+          <Link
+            to={localizeHref(DOCS_URL, locale)}
             className="group inline-flex items-center justify-center gap-2 rounded-md bg-gradient-to-b from-brand to-brand-hover px-5 py-2.5 font-mono text-[14px] font-medium text-white shadow-lg shadow-brand/30 ring-1 ring-white/10 ring-inset transition-all hover:shadow-brand/50 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             {t.hero.getStarted}
             <ArrowRightIcon className="size-[13px] transition-transform duration-200 group-hover:translate-x-0.5" />
-          </a>
+          </Link>
           <a
             href={GITHUB_URL}
             target="_blank"

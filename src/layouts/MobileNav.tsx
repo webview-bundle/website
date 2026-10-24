@@ -1,4 +1,5 @@
 import { Dialog } from '@base-ui/react/dialog';
+import { Link } from '@tanstack/react-router';
 import { usePathname } from 'fumadocs-core/framework';
 import { cn } from '../lib/cn';
 import { useUiStrings } from '../lib/ui-strings';
@@ -17,7 +18,7 @@ export function MobileNav({ className }: { className?: string }) {
   const t = useUiStrings();
 
   return (
-    <Dialog.Root>
+    <Dialog.Root key={pathname}>
       <Dialog.Trigger aria-label={t.menu.open} className={cn(CONTROL_BUTTON, className)}>
         <MenuIcon className="size-[18px]" />
       </Dialog.Trigger>
@@ -41,7 +42,7 @@ export function MobileNav({ className }: { className?: string }) {
             {t.sections.map(section => (
               <Dialog.Close
                 key={section.href}
-                render={<a href={section.href}>{section.label}</a>}
+                render={<Link to={section.href}>{section.label}</Link>}
                 className={cn(
                   'rounded-md px-3 py-2.5 text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900',
                   pathname.startsWith(section.match ?? section.href) && 'text-brand dark:text-brand'

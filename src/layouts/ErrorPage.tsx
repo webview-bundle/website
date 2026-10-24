@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/tanstackstart-react';
-import { type ErrorComponentProps, useRouter, useRouterState } from '@tanstack/react-router';
+import { type ErrorComponentProps, Link, useRouter, useRouterState } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import { localeFromPathname, localizeHref, LocaleProvider, useLocale } from '../lib/locale';
 import { useUiStrings } from '../lib/ui-strings';
@@ -83,12 +83,12 @@ function ErrorBody({ error, info }: Omit<ErrorComponentProps, 'reset'>) {
         >
           {t.error.retry}
         </button>
-        <a
-          href={localizeHref('/', locale)}
+        <Link
+          to={localizeHref('/', locale)}
           className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 px-5 py-2.5 font-mono text-[14px] font-medium text-zinc-800 transition-colors hover:border-zinc-500 dark:border-zinc-800 dark:text-zinc-200 dark:hover:border-zinc-600"
         >
           {t.error.home}
-        </a>
+        </Link>
       </div>
 
       {eventId != null && (
